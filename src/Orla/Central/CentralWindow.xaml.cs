@@ -98,7 +98,7 @@ namespace Orla
 
             DataButton.Click += delegate { controller.open(controller.DataDirectory); };
             GuideButton.Click += delegate { browse(Repository + (Text.Language == "pt-BR" ? "/blob/main/docs/pt-BR/guia.md" : "/blob/main/docs/en/guide.md")); };
-            IssueButton.Click += delegate { browse(Repository + "/issues/new/choose"); };
+            IssueButton.Click += delegate { browse(Report.issueUrl(Repository)); };
             QuitButton.Click += delegate { controller.quit(); };
             StartButton.Click += delegate {
                 if (ChoiceOrganize.IsChecked == true)

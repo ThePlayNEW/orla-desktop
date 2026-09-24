@@ -46,6 +46,8 @@ namespace Orla
         // Set on panels made by "Let Orla organize": the kind of item that belongs here, so new ones can follow.
         public string AutoCategory { get; set; }
         public List<Entry> Items { get; set; }
+        // The text key of the name Orla gave the panel, so the name follows the interface language. Renaming clears it.
+        public string TitleKey { get; set; }
 
         public Group()
         {
@@ -61,6 +63,13 @@ namespace Orla
         }
 
         public bool IsFolder => Kind == PanelKind.Folder;
+
+        public Group titled(string key)
+        {
+            TitleKey = key;
+            Name = Text.get(key);
+            return this;
+        }
     }
 
     // Shoreline colours a panel can use. The values live in the theme; the layout stores only the name.
@@ -82,6 +91,8 @@ namespace Orla
         public bool StartupEnabled { get; set; }
         public bool CleanDesktop { get; set; }
         public bool AutoOrganize { get; set; }
+        // The copy of the layout made by the last organize, in the data folder, which "Restore previous panels" uses.
+        public string UndoBackup { get; set; }
         // Folders of shortcuts the organizer read from the inside, such as Shortcuts\Games. New items there are kept
         // organized like items on the desktop itself.
         public List<string> SortedFolders { get; set; }

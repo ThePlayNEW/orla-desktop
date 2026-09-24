@@ -55,6 +55,7 @@ namespace Orla
                 menu.Items.Add(visible);
                 MenuItem front = Menus.check("tray.front", controller.Overlay, () => controller.setOverlay(!controller.Overlay));
                 menu.Items.Add(front);
+                menu.Items.Add(Menus.item("organize.open", "Glyph.PanelCollection", controller.showOrganize));
                 menu.Items.Add(new Separator());
                 menu.Items.Add(Menus.check("tray.lock", controller.Layout.LockLayout, () => controller.setLock(!controller.Layout.LockLayout)));
                 menu.Items.Add(Menus.check("tray.clean", controller.Layout.CleanDesktop,

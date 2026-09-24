@@ -83,7 +83,7 @@ On first run, or later from **Panels > Organize for me**, Orla reads the desktop
 - A category with a single item joins the closest one, so no panel is left with one icon.
 - Tools go on the left of the main screen, work on the right, and the middle stays free.
 - You see a preview first. Nothing moves on disk: panels hold shortcuts to your files.
-- If you already had panels, they are replaced. A copy stays in the data folder, and **Restore previous panels** undoes it while Orla is open.
+- If you already had panels, they are replaced. A copy stays in the data folder, and **Restore previous panels** undoes it, even after a restart.
 
 With **Hide the Windows icons** on, the **New on desktop** panel shows what is not in any panel yet. With **Keep organized** on, each new item on the desktop goes to its category's panel by itself, and deleted items leave their panel. Anything that fits nowhere stays in **New on desktop**.
 

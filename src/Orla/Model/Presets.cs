@@ -40,9 +40,9 @@ namespace Orla
                          Create = () => folder("screenshots", screenshots(), Tints.Sky), Available = () => Directory.Exists(screenshots()) },
             new Preset { Key = "desktop", Glyph = "Glyph.Desktop", Tint = Tints.SeaGlass, Create = inbox },
             new Preset { Key = "work", Glyph = "Glyph.PanelCollection", Tint = Tints.SeaGlass,
-                         Create = () => new Group { Name = Text.get("preset.work"), Tint = Tints.SeaGlass, Rows = 2 } },
+                         Create = () => new Group { Tint = Tints.SeaGlass, Rows = 2 }.titled("preset.work") },
             new Preset { Key = "study", Glyph = "Glyph.PanelCollection", Tint = Tints.Moss,
-                         Create = () => new Group { Name = Text.get("preset.study"), Tint = Tints.Moss, Rows = 2 } },
+                         Create = () => new Group { Tint = Tints.Moss, Rows = 2 }.titled("preset.study") },
         };
 
         public static IEnumerable<Preset> available() => All.Where(p => {
@@ -69,11 +69,11 @@ namespace Orla
         static string screenshots() => Path.Combine(special(Environment.SpecialFolder.MyPictures), "Screenshots");
 
         static Group folder(string key, string path, string tint) =>
-            new Group { Kind = PanelKind.Folder, Name = Text.get("preset." + key), FolderPath = path, Tint = tint, Rows = 2 };
+            new Group { Kind = PanelKind.Folder, FolderPath = path, Tint = tint, Rows = 2 }.titled("preset." + key);
 
         static Group quickAccess()
         {
-            var g = new Group { Name = Text.get("preset.quickAccess"), Tint = Tints.Moss, Columns = 5, Rows = 1 };
+            Group g = new Group { Tint = Tints.Moss, Columns = 5, Rows = 1 }.titled("preset.quickAccess");
             var places = new List<string> { "shell:MyComputerFolder", "shell:Downloads" };
             places.AddRange(new[] { special(Environment.SpecialFolder.MyDocuments), special(Environment.SpecialFolder.MyPictures) }
                                 .Where(Directory.Exists));
@@ -92,7 +92,7 @@ namespace Orla
 
         static Group collection(string key, string tint, IEnumerable<string> paths)
         {
-            var g = new Group { Name = Text.get("preset." + key), Tint = tint, Rows = 2 };
+            Group g = new Group { Tint = tint, Rows = 2 }.titled("preset." + key);
             foreach (string path in paths.Take(Store.MaxItems))
                 g.Items.Add(new Entry { Name = Shell.displayName(path), Path = path });
             return g;

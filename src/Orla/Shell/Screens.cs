@@ -7,7 +7,7 @@ namespace Orla
 {
     public class Screen
     {
-        public RECT Work;
+        public RECT Bounds, Work;
         public uint Dpi;
         public bool Primary;
         public double Scale => Dpi / 96.0;
@@ -49,7 +49,7 @@ namespace Orla
             catch (DllNotFoundException)
             {
             }
-            return new Screen { Work = info.rcWork, Dpi = dpi, Primary = (info.dwFlags & 1) != 0 };
+            return new Screen { Bounds = info.rcMonitor, Work = info.rcWork, Dpi = dpi, Primary = (info.dwFlags & 1) != 0 };
         }
 
         // Keeps a panel fully inside the work area of the monitor it mostly covers, with a margin on every side.
@@ -148,15 +148,16 @@ namespace Orla
         // column share one width, so the edges line up. Among a few ways to split each side into columns and icons per
         // row, it picks the one that hides the fewest rows behind scrolling while keeping the middle open, and never lets
         // panels overlap or leave the screen. When even one row each does not fit, the last panels start collapsed.
-        public static void arrange(IList<Group> left, IList<Group> right, string iconSize, Screen s)
+        // keepCollapsed: panels people collapsed stay collapsed (Rearrange); the organizer's preview starts fresh.
+        public static void arrange(IList<Group> left, IList<Group> right, string iconSize, Screen s, bool keepCollapsed = false)
         {
             left = left.Where(g => g.Visible).ToList();
             right = right.Where(g => g.Visible).ToList();
             const int edge = Margin * 2;
             RECT work = s.Work;
             int room = work.Height - 2 * edge;
-            var leftOptions = Fit.options(left, iconSize, s.Scale, room);
-            var rightOptions = Fit.options(right, iconSize, s.Scale, room);
+            var leftOptions = Fit.options(left, iconSize, s.Scale, room, keepCollapsed);
+            var rightOptions = Fit.options(right, iconSize, s.Scale, room, keepCollapsed);
             // The middle should keep a third of the screen. Below that, 60 px of middle costs about one row hidden behind
             // scrolling, and below a quarter it costs four times as much: a crowded desktop scrolls inside its panels, or
             // on a small screen starts some collapsed, before the wallpaper disappears.
@@ -180,8 +181,8 @@ namespace Orla
             if (bestLeft == null)
             {
                 // The two sides cannot share the width: everything goes on the right, as narrow as it has to be.
-                var one = Fit.options(left.Concat(right).ToList(), iconSize, s.Scale, room);
-                bestLeft = Fit.options(new Group[0], iconSize, s.Scale, room)[0];
+                var one = Fit.options(left.Concat(right).ToList(), iconSize, s.Scale, room, keepCollapsed);
+                bestLeft = Fit.options(new Group[0], iconSize, s.Scale, room, false)[0];
                 bestRight = one.Where(o => o.Width + 2 * edge <= work.Width).OrderBy(o => o.Cost).FirstOrDefault() ??
                             one.OrderBy(o => o.Width).First();
             }
@@ -205,7 +206,7 @@ namespace Orla
 
             public double Width, Cost;
 
-            public static List<Fit> options(IList<Group> groups, string iconSize, double scale, int room)
+            public static List<Fit> options(IList<Group> groups, string iconSize, double scale, int room, bool keepCollapsed)
             {
                 var list = new List<Fit>();
                 if (groups.Count == 0)
@@ -214,7 +215,7 @@ namespace Orla
                     return list;
                 }
                 foreach (int[] shape in shapes.Where(x => x[0] <= groups.Count))
-                    list.Add(new Fit(groups, shape[0], shape[1], iconSize, scale, room));
+                    list.Add(new Fit(groups, shape[0], shape[1], iconSize, scale, room, keepCollapsed));
                 return list;
             }
 
@@ -222,15 +223,16 @@ namespace Orla
             {
             }
 
-            Fit(IList<Group> groups, int stackCount, int columns, string iconSize, double scale, int room)
+            Fit(IList<Group> groups, int stackCount, int columns, string iconSize, double scale, int room, bool keepCollapsed)
             {
                 this.columns = columns;
                 this.scale = scale;
                 this.iconSize = iconSize;
                 panelWidth = (int)Math.Round(PanelMetrics.width(columns, iconSize) * scale);
                 rows = groups.ToDictionary(g => g, g => wanted(g));
-                // Collapsed and Rows are this layout's own output; a layout drawn again must not start from them.
-                collapsed = new HashSet<Group>();
+                // Collapsed and Rows are this layout's own output; a layout drawn again must not start from them, unless
+                // the panels were collapsed by hand.
+                collapsed = new HashSet<Group>(keepCollapsed ? groups.Where(g => g.Collapsed) : Enumerable.Empty<Group>());
                 // Columns keep the panels' order and share the height evenly.
                 double total = groups.Sum(g => height(g, rows[g]) + Margin), before = 0;
                 stacks = Enumerable.Range(0, stackCount).Select(_ => new List<Group>()).ToList();

@@ -32,7 +32,7 @@ Os painéis ficam na mesma camada dos ícones do desktop, dentro da janela do Ex
 
 O atalho de teclado, **Ctrl+Alt+Espaço** por padrão, esconde ou mostra os painéis quando o desktop está à vista e traz os painéis para a frente quando há uma janela por cima. Veja [O atalho de teclado](#o-atalho-de-teclado).
 
-O ícone do Orla fica na bandeja, ao lado do relógio. Um clique abre a janela do Orla. O clique direito mostra o menu com **Abrir o Orla**, **Esconder painéis** (ou **Mostrar painéis**), **Mostrar painéis na frente**, **Travar painéis**, **Desktop limpo** e **Sair e restaurar o desktop**.
+O ícone do Orla fica na bandeja, ao lado do relógio. Um clique abre a janela do Orla. O clique direito mostra o menu com **Abrir o Orla**, **Esconder painéis** (ou **Mostrar painéis**), **Mostrar painéis na frente**, **Organizar para mim**, **Travar painéis**, **Desktop limpo** e **Sair e restaurar o desktop**.
 
 ## Primeira vez
 
@@ -89,7 +89,7 @@ As duas opções da prévia:
 | **Esconder os ícones do Windows** | Liga o [Desktop limpo](#desktop-limpo) e cria o painel **Novos no desktop**, com o que ainda não está em nenhum painel. Se você desligar, os ícones do Windows continuam e esse painel não é criado, porque os próprios ícones já mostram o que é novo. |
 | **Manter organizado** | Cada item novo no desktop entra sozinho no painel da categoria dele, uns segundos depois de chegar. Um item apagado ou tirado do desktop sai do painel. O que não se encaixar fica em **Novos no desktop**. Dá para ligar e desligar depois em **Painéis**. |
 
-Se você já tinha painéis, eles são substituídos. Uma cópia do layout anterior fica na [pasta de dados](#onde-ficam-seus-dados) com o nome `layout.json.before-organize-` seguido da data, e **Painéis > Voltar aos painéis anteriores** desfaz a organização enquanto o Orla estiver aberto.
+Se você já tinha painéis, eles são substituídos. Uma cópia do layout anterior fica na [pasta de dados](#onde-ficam-seus-dados) com o nome `layout.json.before-organize-` seguido da data, e **Painéis > Voltar aos painéis anteriores** desfaz a organização, mesmo depois de fechar e abrir o Orla. Cada cópia serve para desfazer uma vez.
 
 ## Painéis prontos
 
@@ -357,12 +357,16 @@ Tudo fica em `%LOCALAPPDATA%\Orla`, tanto na versão instalada quanto na portát
 | `layout.json` | Painéis, itens, posições e ajustes |
 | `layout.json.bak` | A versão anterior, criada a cada salvamento |
 | `layout.json.corrupt-<data>` | Uma cópia de um arquivo que não pôde ser lido, guardada para você não perder nada |
+| `layout.json.before-organize-<data>` | Os painéis de antes de cada **Deixe o Orla organizar**, para **Voltar aos painéis anteriores** |
+| `orla.log` | Erros inesperados, se houver algum, com os caminhos da sua pasta de usuário trocados por `%USERPROFILE%` |
 
 O Orla salva em um arquivo temporário e só depois troca pelo definitivo, então uma queda de energia no meio do salvamento não corrompe o layout. Se o `layout.json` não puder ser lido, o Orla usa o `.bak` e avisa: "Seus painéis foram recuperados da última cópia salva."
 
 O layout guarda só caminhos e nomes. Para fazer backup, copie `layout.json`.
 
-O Orla não tem telemetria. O único acesso à rede é a busca por atualizações da versão instalada, descrita em [Atualizações](#atualizações).
+Os painéis com o nome que o Orla deu, como **Jogos** ou **Downloads**, mudam de nome quando você troca o idioma. Um nome que você escreveu fica como está.
+
+O Orla não tem telemetria. Em **Sobre**, **Relatar um problema** abre o formulário do GitHub com a versão do Windows, a do Orla, os monitores e o último erro do `orla.log` já preenchidos. Nada é enviado até você revisar e publicar. O único acesso à rede é a busca por atualizações da versão instalada, descrita em [Atualizações](#atualizações).
 
 ## Solução de problemas
 

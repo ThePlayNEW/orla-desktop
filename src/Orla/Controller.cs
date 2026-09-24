@@ -101,6 +101,8 @@ namespace Orla
                 showCentral("welcome");
                 return;
             }
+            if (Organizer.retitle(Layout))
+                saveLayout();
             rebuild();
             if (store.recoveryNotice != null)
                 tray?.notify(store.recoveryNotice);
@@ -482,6 +484,7 @@ namespace Orla
         public void renamePanel(Group g, string name)
         {
             g.Name = name;
+            g.TitleKey = null;
             changed(g);
         }
 
@@ -528,7 +531,7 @@ namespace Orla
 
         public void resetPositions()
         {
-            Organizer.arrange(Layout, Screens.primary());
+            Organizer.arrange(Layout, Screens.primary(), true);
             changed();
             settleAll();
             saveLayout();
@@ -644,8 +647,9 @@ namespace Orla
         public void setLanguage(string value)
         {
             Layout.Language = value;
-            saveLayout();
             Text.load(value);
+            Organizer.retitle(Layout);
+            saveLayout();
             if (Layout.Welcomed)
                 rebuild();
             if (central != null)
@@ -709,7 +713,10 @@ namespace Orla
 
         Layout beforeOrganize;
 
-        public bool CanUndoOrganize => beforeOrganize != null;
+        // The panels from before the last organize: in memory until Orla closes, and after that from the copy kept on disk.
+        public bool CanUndoOrganize => beforeOrganize != null || UndoBackup != null && File.Exists(UndoBackup);
+
+        string UndoBackup => Layout.UndoBackup == null ? null : Path.Combine(DataDirectory, Path.GetFileName(Layout.UndoBackup));
 
         public bool Organized => Layout.Groups.Any(g => g.AutoCategory != null);
 
@@ -717,9 +724,10 @@ namespace Orla
         // until Orla closes, one click away.
         public void applyOrganized(Layout next)
         {
+            beforeOrganize = null;
             if (Layout.Welcomed && Layout.Groups.Count > 0)
             {
-                backupLayout("before-organize");
+                next.UndoBackup = Path.GetFileName(backupLayout("before-organize"));
                 beforeOrganize = store.data;
             }
             store.data = next;
@@ -727,12 +735,36 @@ namespace Orla
             rebuild();
         }
 
+        // Straight to the organizer's preview, from the notification area.
+        public void showOrganize()
+        {
+            showCentral(null);
+            central?.showOrganize(false);
+        }
+
         public void undoOrganize()
         {
-            if (beforeOrganize == null)
-                return;
+            string backup = UndoBackup;
             Layout previous = beforeOrganize;
+            if (previous == null && backup != null)
+                try
+                {
+                    previous = Store.parse(File.ReadAllText(backup));
+                }
+                catch (Exception)
+                {
+                    // An unreadable copy offers nothing to go back to.
+                }
             beforeOrganize = null;
+            Layout.UndoBackup = null;
+            // The copy is used once, so the button does not offer the same step again.
+            if (backup != null && File.Exists(backup))
+                tryAction(() => File.Delete(backup));
+            if (previous == null)
+            {
+                central?.refresh();
+                return;
+            }
             // Settings changed since then stay; only the panels and how the desktop looks go back.
             Layout current = Layout;
             current.Groups = previous.Groups;
@@ -822,12 +854,16 @@ namespace Orla
             return r.Bottom <= screen.Work.Bottom && !hosts.Any(o => o != host && Screens.overlaps(r, o.Rect));
         }
 
-        void backupLayout(string reason)
+        // The copy's path, or null when there was nothing to copy or the copy failed.
+        string backupLayout(string reason)
         {
+            string copy = store.filePath + "." + reason + "-" + DateTime.Now.ToString("yyyyMMddHHmmss");
             try
             {
-                if (File.Exists(store.filePath))
-                    File.Copy(store.filePath, store.filePath + "." + reason + "-" + DateTime.Now.ToString("yyyyMMddHHmmss"), true);
+                if (!File.Exists(store.filePath))
+                    return null;
+                File.Copy(store.filePath, copy, true);
+                return copy;
             }
             catch (IOException)
             {
@@ -835,6 +871,7 @@ namespace Orla
             catch (UnauthorizedAccessException)
             {
             }
+            return null;
         }
 
         // Back to the first run, as after a fresh install: panels and settings return to their defaults and the welcome

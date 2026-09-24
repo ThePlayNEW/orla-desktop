@@ -38,6 +38,38 @@ namespace Orla
 
         public static Category category(string key) => Categories.FirstOrDefault(c => c.Key == key);
 
+        // A panel called by the name Orla gave it follows the interface language; a name someone typed stays as it is.
+        // Panels from before names were keyed get their key when the name is exactly one of Orla's, in any language.
+        // Returns whether anything changed.
+        public static bool retitle(Layout layout)
+        {
+            var keys = Presets.All.Select(p => "preset." + p.Key).Concat(Categories.Select(c => "organize." + c.Key)).ToList();
+            var names = Text.Languages.Select(Text.read).ToList();
+            bool changed = false;
+            foreach (Group g in layout.Groups)
+            {
+                if (g.TitleKey == null)
+                {
+                    // The organizer's own category comes first: "Apps" is both a preset and a category in some languages.
+                    string own = g.AutoCategory == QuickAccess ? "preset.quickAccess" : category(g.AutoCategory) != null ? "organize." + g.AutoCategory : null;
+                    g.TitleKey = new[] { own }.Concat(keys).FirstOrDefault(k => k != null &&
+                        names.Any(n => n.TryGetValue(k, out string name) && name == g.Name));
+                    changed |= g.TitleKey != null;
+                }
+                if (g.TitleKey != null && Text.get(g.TitleKey) == g.TitleKey)
+                {
+                    g.TitleKey = null;
+                    changed = true;
+                }
+                if (g.TitleKey != null && g.Name != Text.get(g.TitleKey))
+                {
+                    g.Name = Text.get(g.TitleKey);
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
         public class Plan
         {
             public List<Group> Groups = new List<Group>();
@@ -91,7 +123,7 @@ namespace Orla
         public static Group panel(string key, IEnumerable<string> paths)
         {
             Category c = category(key);
-            var g = new Group { Name = Text.get("organize." + c.Key), Tint = c.Tint, AutoCategory = c.Key };
+            Group g = new Group { Tint = c.Tint, AutoCategory = c.Key }.titled("organize." + c.Key);
             foreach (string path in paths.OrderBy(Shell.displayName, StringComparer.CurrentCultureIgnoreCase).Take(Store.MaxItems))
                 g.Items.Add(new Entry { Name = Shell.displayName(path), Path = path });
             return g;
@@ -135,14 +167,14 @@ namespace Orla
         // The one way Orla lays panels out: tools on the left and the rest on the right; with the Windows icons showing,
         // their column on the left stays free and every panel goes on the right. Panels the organizer did not make,
         // such as presets, count as work.
-        public static void arrange(Layout layout, Screen screen)
+        public static void arrange(Layout layout, Screen screen, bool keepCollapsed = false)
         {
             var tools = layout.Groups.Where(g => category(g.AutoCategory)?.Tools == true || g.AutoCategory == QuickAccess).ToList();
             var work = layout.Groups.Where(g => !tools.Contains(g)).ToList();
             if (layout.CleanDesktop)
-                Screens.arrange(tools, work, layout.IconSize, screen);
+                Screens.arrange(tools, work, layout.IconSize, screen, keepCollapsed);
             else
-                Screens.arrange(new Group[0], tools.Concat(work).ToList(), layout.IconSize, screen);
+                Screens.arrange(new Group[0], tools.Concat(work).ToList(), layout.IconSize, screen, keepCollapsed);
         }
 
         // Where something new on the desktop belongs, among the panels the organizer made. Null leaves it in the inbox.

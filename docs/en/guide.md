@@ -32,7 +32,7 @@ Panels sit on the same layer as the desktop icons, inside the Explorer window th
 
 The keyboard shortcut, **Ctrl+Alt+Space** by default, hides or shows the panels when the desktop is in view and brings them to the front when a window is on top. See [The keyboard shortcut](#the-keyboard-shortcut).
 
-The Orla icon sits in the notification area, next to the clock. A click opens the Orla window. A right-click shows a menu with **Open Orla**, **Hide panels** (or **Show panels**), **Show panels in front**, **Lock panels**, **Clean desktop** and **Quit and restore the desktop**.
+The Orla icon sits in the notification area, next to the clock. A click opens the Orla window. A right-click shows a menu with **Open Orla**, **Hide panels** (or **Show panels**), **Show panels in front**, **Organize for me**, **Lock panels**, **Clean desktop** and **Quit and restore the desktop**.
 
 ## First run
 
@@ -89,7 +89,7 @@ The two options in the preview:
 | **Hide the Windows icons** | Turns on [Clean desktop](#clean-desktop) and creates the **New on desktop** panel with what is not in any panel yet. If you turn it off, the Windows icons stay and that panel is not created, because the icons already show what is new. |
 | **Keep organized** | Each new item on the desktop goes to its category's panel by itself, a few seconds after it arrives. An item deleted or moved off the desktop leaves its panel. Anything that fits nowhere stays in **New on desktop**. You can turn it on or off later in **Panels**. |
 
-If you already had panels, they are replaced. A copy of the previous layout stays in the [data folder](#where-your-data-lives) as `layout.json.before-organize-` followed by the date, and **Panels > Restore previous panels** undoes the organization while Orla is open.
+If you already had panels, they are replaced. A copy of the previous layout stays in the [data folder](#where-your-data-lives) as `layout.json.before-organize-` followed by the date, and **Panels > Restore previous panels** undoes the organization, even after Orla is closed and opened again. Each copy undoes once.
 
 ## Ready-made panels
 
@@ -357,12 +357,16 @@ Everything is in `%LOCALAPPDATA%\Orla`, for both the installed and the portable 
 | `layout.json` | Panels, items, positions and settings |
 | `layout.json.bak` | The previous version, created on every save |
 | `layout.json.corrupt-<date>` | A copy of a file that could not be read, kept so nothing is lost |
+| `layout.json.before-organize-<date>` | The panels from before each **Let Orla organize**, for **Restore previous panels** |
+| `orla.log` | Unexpected errors, if any, with paths in your user folder written as `%USERPROFILE%` |
 
 Orla writes to a temporary file first and then swaps it in, so a power cut during a save does not corrupt the layout. If `layout.json` cannot be read, Orla uses the `.bak` file and says: "Your panels were recovered from the last saved copy."
 
 The layout stores only paths and names. To back it up, copy `layout.json`.
 
-Orla has no telemetry. Its only network access is the installed version's update check, described in [Updates](#updates).
+Panels that still have the name Orla gave them, such as **Games** or **Downloads**, are renamed when you change the language. A name you typed stays as it is.
+
+Orla has no telemetry. Under **About**, **Report a problem** opens GitHub's form with your Windows version, Orla's version, your monitors and the last error in `orla.log` already filled in. Nothing is sent until you review and submit it. Orla's only network access is the installed version's update check, described in [Updates](#updates).
 
 ## Troubleshooting
 

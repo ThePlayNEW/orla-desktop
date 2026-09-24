@@ -72,6 +72,8 @@ namespace Orla
                     }, null, Timeout.Infinite, false);
                 app.DispatcherUnhandledException += (s, e) => {
                     controller.restoreIcons();
+                    if (!tool)
+                        Report.log(e.Exception);
                     if (tool)
                     {
                         File.WriteAllText(args[1] + ".error.txt", e.Exception.ToString());
@@ -99,6 +101,8 @@ namespace Orla
             catch (Exception e)
             {
                 controller?.restoreIcons();
+                if (!tool)
+                    Report.log(e);
                 if (tool && args.Length > 1)
                     File.WriteAllText(args[1] + ".error.txt", e.ToString());
                 else

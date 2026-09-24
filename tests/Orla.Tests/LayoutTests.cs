@@ -56,6 +56,18 @@ namespace Orla.Tests
         }
 
         [Fact]
+        public void rearrangingKeepsPanelsCollapsedByHand()
+        {
+            var screen = new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = 1920, Bottom = 1040 } };
+            List<Group> right = panels(6, 5, 3);
+            right[1].Collapsed = true;
+            Screens.arrange(new Group[0], right, "medium", screen, true);
+            Assert.True(right[1].Collapsed);
+            Screens.arrange(new Group[0], right, "medium", screen);
+            Assert.False(right[1].Collapsed);
+        }
+
+        [Fact]
         public void layingOutAgainStartsFresh()
         {
             var small = new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = 1366, Bottom = 728 } };
