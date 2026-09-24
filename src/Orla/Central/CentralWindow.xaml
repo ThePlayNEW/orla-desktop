@@ -369,13 +369,23 @@
                                 </StackPanel>
                             </DockPanel>
                         </Border>
-                        <Border Style="{StaticResource Orla.Card}">
+                        <Border Style="{StaticResource Orla.Card}" Margin="0,0,0,4">
                             <DockPanel>
                                 <Button x:Name="ArrangeButton" DockPanel.Dock="Right" Margin="24,0,0,0" Style="{StaticResource Orla.Button}" VerticalAlignment="Center"
                                         Content="{l:T general.arrangeAction}" />
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.arrange}" />
                                     <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.arrangeHint}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <Border Style="{StaticResource Orla.Card}">
+                            <DockPanel>
+                                <Button x:Name="ResetButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button}" VerticalAlignment="Center"
+                                        Margin="24,0,0,0" Content="{l:T general.resetAction}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.reset}" />
+                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.resetHint}" />
                                 </StackPanel>
                             </DockPanel>
                         </Border>

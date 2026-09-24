@@ -13,7 +13,8 @@ namespace Orla
         public ModifierKeys Modifiers;
         public Key Key;
 
-        public bool IsValid => Key != Key.None && (Modifiers & (ModifierKeys.Control | ModifierKeys.Alt | ModifierKeys.Windows)) != 0;
+        public bool IsValid => Key != Key.None && KeyInterop.VirtualKeyFromKey(Key) != 0 &&
+                               (Modifiers & (ModifierKeys.Control | ModifierKeys.Alt | ModifierKeys.Windows)) != 0;
 
         public static Shortcut parse(string text)
         {

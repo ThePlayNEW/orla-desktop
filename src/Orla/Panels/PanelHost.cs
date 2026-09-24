@@ -31,6 +31,9 @@ namespace Orla
         RECT resizeLimits;
         bool fitting;
         System.Windows.Threading.DispatcherTimer settleAnimation;
+        RECT animationTarget;
+        Action animationDone;
+        bool visible = true;
         double scale = 1;
 
         public PanelView View { get; }
@@ -53,8 +56,8 @@ namespace Orla
                 commit();
             };
             View.ResizeStarted += side => {
-                resizeSide = side;
                 startDrag();
+                resizeSide = side;
                 resizeLimits = limitsForResize();
                 View.Resizing = true;
             };
@@ -73,11 +76,13 @@ namespace Orla
 
         List<RECT> others() => controller.Hosts.Where(h => h != this).Select(h => h.Rect).ToList();
 
-        public void show(PanelMode mode, Desktop target)
+        public void show(PanelMode mode, Desktop target, bool shown = true)
         {
+            finishAnimation();
             destroyWindow();
             desktop = target;
             Mode = mode;
+            visible = shown;
             measure();
             create();
         }
@@ -158,6 +163,8 @@ namespace Orla
                 placeAboveShell();
             else
                 bringToFront();
+            if (!visible)
+                return;
             Native.ShowWindow(Handle, Native.SW_SHOWNA);
             if (controller.Layout.Animations && SystemParameters.ClientAreaAnimation)
                 Motion.reveal(View);
@@ -199,6 +206,8 @@ namespace Orla
 
         void startDrag()
         {
+            // A new drag while the previous resize is still gliding into place: land it first.
+            finishAnimation();
             Native.GetCursorPos(out dragCursor);
             dragStart = rect;
             bringToFront();
@@ -243,6 +252,8 @@ namespace Orla
         // settles on whole tiles. Edges stop at the screen margin and at neighbouring panels.
         void dragResize()
         {
+            if (resizeSide == null)
+                return;
             Native.GetCursorPos(out POINT now);
             int dx = now.X - dragCursor.X, dy = now.Y - dragCursor.Y;
             string size = controller.Layout.IconSize;
@@ -270,6 +281,16 @@ namespace Orla
 
         void endResize()
         {
+            if (resizeSide == null)
+                return;
+            // A click on an edge without moving (or the first half of a double-click) changes nothing.
+            if (rect.Left == dragStart.Left && rect.Top == dragStart.Top && rect.Right == dragStart.Right && rect.Bottom == dragStart.Bottom)
+            {
+                resizeSide = null;
+                View.Resizing = false;
+                View.showSize(0, 0);
+                return;
+            }
             string size = controller.Layout.IconSize;
             bool vertical = !Group.Collapsed && (resizeSide.Contains("Top") || resizeSide.Contains("Bottom"));
             int columns = PanelMetrics.columnsFor(rect.Width / scale, size);
@@ -287,12 +308,17 @@ namespace Orla
                             target.Bottom <= resizeLimits.Bottom && !others().Any(o => Screens.overlaps(target, o));
                 if (fits || columns <= Group.MinColumns && rows <= Group.MinRows)
                     break;
-                if (target.Width > rect.Width && columns > Group.MinColumns)
+                // Give back a tile on the side that crossed the limit.
+                bool wide = target.Left < resizeLimits.Left || target.Right > resizeLimits.Right || target.Width > rect.Width;
+                bool tall = target.Top < resizeLimits.Top || target.Bottom > resizeLimits.Bottom || target.Height > rect.Height;
+                if (wide && columns > Group.MinColumns)
                     columns--;
-                else if (rows > Group.MinRows)
+                else if (tall && rows > Group.MinRows)
                     rows--;
-                else
+                else if (columns > Group.MinColumns)
                     columns--;
+                else
+                    rows--;
             }
             Group.Columns = columns;
             if (vertical)
@@ -309,9 +335,25 @@ namespace Orla
         }
 
         // A short eased glide into the final size; instant when animations are off.
+        void finishAnimation()
+        {
+            if (settleAnimation == null || !settleAnimation.IsEnabled)
+                return;
+            settleAnimation.Stop();
+            rect = animationTarget;
+            View.Width = rect.Width / scale;
+            View.Height = rect.Height / scale;
+            place(true);
+            Action done = animationDone;
+            animationDone = null;
+            done?.Invoke();
+        }
+
         void animateTo(RECT target, Action done)
         {
-            settleAnimation?.Stop();
+            finishAnimation();
+            animationTarget = target;
+            animationDone = done;
             if (!controller.Layout.Animations || !SystemParameters.ClientAreaAnimation)
             {
                 rect = target;
@@ -335,6 +377,7 @@ namespace Orla
                 if (frame < frames)
                     return;
                 settleAnimation.Stop();
+                animationDone = null;
                 done();
             }, View.Dispatcher);
             settleAnimation.Start();
@@ -385,15 +428,13 @@ namespace Orla
                 desktop.placeAbove(Handle);
         }
 
-        public void setVisible(bool visible)
+        public void setVisible(bool show)
         {
-            if (source == null)
+            if (source == null || visible == show)
                 return;
-            bool now = Native.IsWindowVisible(Handle);
-            if (now == visible)
-                return;
-            Native.ShowWindow(Handle, visible ? Native.SW_SHOWNA : Native.SW_HIDE);
-            if (visible && controller.Layout.Animations && SystemParameters.ClientAreaAnimation)
+            visible = show;
+            Native.ShowWindow(Handle, show ? Native.SW_SHOWNA : Native.SW_HIDE);
+            if (show && controller.Layout.Animations && SystemParameters.ClientAreaAnimation)
                 Motion.reveal(View);
         }
 
@@ -435,6 +476,7 @@ namespace Orla
 
         public void Dispose()
         {
+            settleAnimation?.Stop();
             destroyWindow();
         }
     }

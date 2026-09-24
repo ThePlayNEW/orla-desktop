@@ -74,7 +74,7 @@ namespace Orla
         string watchedFolder;
         Point pressPoint, marqueeStart;
         TileItem pressed, anchor;
-        bool moving, selecting, folderAvailable = true;
+        bool moving, selecting, dropImageShown, folderAvailable = true;
         int reloadVersion;
         HashSet<TileItem> marqueeBase;
         HashSet<string> pendingSelection;
@@ -97,11 +97,15 @@ namespace Orla
             InitializeComponent();
             Items.ItemsSource = tiles;
             applyTheme();
-            Theme.Changed += applyTheme;
-            Unloaded += delegate { Theme.Changed -= applyTheme; };
+            Unloaded += delegate {
+                Theme.Changed -= applyTheme;
+                Theme.GlassChanged -= applyGlass;
+            };
             Loaded += delegate {
                 Theme.Changed -= applyTheme;
+                Theme.GlassChanged -= applyGlass;
                 Theme.Changed += applyTheme;
+                Theme.GlassChanged += applyGlass;
                 applyTheme();
             };
             reloadTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(250), DispatcherPriority.Background, delegate {
@@ -151,18 +155,26 @@ namespace Orla
                 e.Handled = true;
             };
 
+            // WPF reports leave and enter each time the pointer crosses a tile; the panel counts as left only when the
+            // pointer is really outside it, so Windows' drag image does not flicker.
             Frame.DragEnter += (s, e) => {
                 dragOver(s, e);
-                DropImages.enter(this, e.Data, e.Effects);
+                if (!dropImageShown)
+                    DropImages.enter(this, e.Data, e.Effects);
+                dropImageShown = true;
             };
             Frame.DragOver += (s, e) => {
                 dragOver(s, e);
                 DropImages.over(e.Effects);
             };
-            Frame.DragLeave += delegate {
+            Frame.DragLeave += (s, e) => {
+                Point p = e.GetPosition(Frame);
+                if (p.X > 0 && p.Y > 0 && p.X < Frame.ActualWidth && p.Y < Frame.ActualHeight)
+                    return;
                 setDropHighlight(false);
                 InsertMark.Visibility = Visibility.Collapsed;
                 DropImages.leave();
+                dropImageShown = false;
             };
             Frame.Drop += drop;
             MouseEnter += delegate { HeaderButtons.Opacity = 1; };
@@ -201,6 +213,11 @@ namespace Orla
                 return;
             Resources.MergedDictionaries.Clear();
             Resources.MergedDictionaries.Add(Theme.Palette);
+            applyGlass();
+        }
+
+        void applyGlass()
+        {
             Resources["Brush.PanelGlass"] = Theme.Glass;
         }
 
@@ -816,7 +833,7 @@ namespace Orla
             if (Group.IsFolder || Group.Collapsed || e.Effects == DragDropEffects.None || tiles.Count == 0)
                 return;
             int index = dropIndex(e);
-            bool after = index >= tiles.Count;
+            bool after = index >= tiles.Count || index >= Group.Items.Count;
             TileItem anchorTile = after ? tiles[tiles.Count - 1] : tiles.FirstOrDefault(t => t.Entry == Group.Items[index]);
             FrameworkElement c = anchorTile == null ? null : containerOf(anchorTile);
             if (c == null || !c.IsVisible)
@@ -851,6 +868,7 @@ namespace Orla
             InsertMark.Visibility = Visibility.Collapsed;
             DragDropEffects effect = effectFor(e);
             DropImages.drop(e.Data, effect);
+            dropImageShown = false;
             e.Effects = effect;
             e.Handled = true;
             if (effect == DragDropEffects.None)

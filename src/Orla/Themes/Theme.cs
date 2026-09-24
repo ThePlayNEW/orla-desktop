@@ -17,7 +17,7 @@ namespace Orla
 
         // Panels live in their own native windows, which WPF does not notify when application resources change,
         // so they listen here and re-apply the palette themselves.
-        public static event Action Changed;
+        public static event Action Changed, GlassChanged;
         public static bool IsHighContrast => SystemParameters.HighContrast;
 
         public static void install(Application app)
@@ -34,11 +34,17 @@ namespace Orla
                 resources.MergedDictionaries.Remove(palette);
             resources.MergedDictionaries.Add(next);
             palette = next;
-            setOpacity(layout.Opacity);
+            updateGlass(layout.Opacity);
             Changed?.Invoke();
         }
 
         public static void setOpacity(double opacity)
+        {
+            updateGlass(opacity);
+            GlassChanged?.Invoke();
+        }
+
+        static void updateGlass(double opacity)
         {
             if (IsHighContrast)
             {
@@ -51,7 +57,6 @@ namespace Orla
             brush.Freeze();
             Glass = brush;
             Application.Current.Resources["Brush.PanelGlass"] = brush;
-            Changed?.Invoke();
         }
 
         static ResourceDictionary load(string name)

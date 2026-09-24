@@ -145,10 +145,7 @@ namespace Orla
         void showHosts()
         {
             foreach (PanelHost h in hosts)
-            {
-                h.show(Overlay ? PanelMode.Overlay : baseMode, desktop);
-                h.setVisible(!Hidden);
-            }
+                h.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
             settleAll();
         }
 
@@ -172,8 +169,9 @@ namespace Orla
 
         static bool desktopInView()
         {
+            // Orla's own window counts as an application in front; panels on the desktop report Explorer's windows.
             IntPtr foreground = Native.GetForegroundWindow();
-            if (foreground == IntPtr.Zero || Native.processOf(foreground) == (uint)Process.GetCurrentProcess().Id)
+            if (foreground == IntPtr.Zero)
                 return true;
             string c = Native.windowClass(foreground);
             return c == "Progman" || c == "WorkerW" || c == "Shell_TrayWnd" || c == "Shell_SecondaryTrayWnd";
@@ -223,8 +221,7 @@ namespace Orla
             {
                 var host = new PanelHost(this, g);
                 hosts.Add(host);
-                host.show(Overlay ? PanelMode.Overlay : baseMode, desktop);
-                host.setVisible(!Hidden);
+                host.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
             }
         }
 
@@ -267,7 +264,8 @@ namespace Orla
                 guard = new IconGuard(desktop, DataDirectory, dispatcher);
                 guard.Failed += delegate { tray?.notify(Text.get("error.guard")); };
             }
-            if (Layout.CleanDesktop && interactive)
+            // While the panels are hidden by the shortcut, the Windows icons stay visible even with a clean desktop.
+            if (Layout.CleanDesktop && interactive && !Hidden)
                 guard.hide();
             else
             {
@@ -715,6 +713,41 @@ namespace Orla
                 saveLayout();
                 rebuild();
             })));
+        }
+
+        // Back to the first run, as after a fresh install: panels and settings return to their defaults and the welcome
+        // screen opens. A copy of the current layout is kept next to it, and no file on the desktop is touched.
+        // Starting with Windows stays as it is.
+        public void resetToWelcome()
+        {
+            try
+            {
+                if (File.Exists(store.filePath))
+                    File.Copy(store.filePath, store.filePath + ".before-reset-" + DateTime.Now.ToString("yyyyMMddHHmmss"), true);
+            }
+            catch (IOException)
+            {
+            }
+            Overlay = false;
+            Hidden = false;
+            guard?.restore();
+            foreach (PanelHost h in hosts)
+                h.Dispose();
+            hosts.Clear();
+            var fresh = new Layout { StartupConfigured = true, StartupEnabled = StartupEnabled };
+            store.data = fresh;
+            saveLayout();
+            messages.setHotkey(fresh.OverlayHotkey, Shortcut);
+            Text.load(fresh.Language);
+            Theme.apply(fresh);
+            followReferences();
+            if (central != null)
+            {
+                CentralWindow old = central;
+                central = null;
+                old.Close();
+            }
+            showCentral("welcome");
         }
 
         // ---- windows ----

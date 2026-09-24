@@ -84,6 +84,11 @@ namespace Orla
             UpdateSwitch.Click += delegate { controller.setAutoUpdate(UpdateSwitch.IsChecked == true); };
             UpdateButton.Click += delegate { Updates.restartNow(controller); };
             ArrangeButton.Click += delegate { controller.resetPositions(); };
+            ResetButton.Click += delegate {
+                if (Dialog.confirm(Text.get("general.resetConfirmTitle"), Text.get("general.resetConfirmMessage"),
+                                   Text.get("general.resetConfirmAction")))
+                    controller.resetToWelcome();
+            };
 
             DataButton.Click += delegate { controller.open(controller.DataDirectory); };
             GuideButton.Click += delegate { browse(Repository + (Text.Language == "pt-BR" ? "/blob/main/docs/pt-BR/guia.md" : "/blob/main/docs/en/guide.md")); };
@@ -112,6 +117,8 @@ namespace Orla
         public void show(string page)
         {
             bool welcome = page == "welcome" || !controller.Layout.Welcomed;
+            if (page == "welcome")
+                WelcomePresets.Visibility = Visibility.Collapsed;
             if (WelcomePresets.Visibility != Visibility.Visible)
                 Welcome.Visibility = welcome ? Visibility.Visible : Visibility.Collapsed;
             Main.Visibility = welcome ? Visibility.Collapsed : Visibility.Visible;

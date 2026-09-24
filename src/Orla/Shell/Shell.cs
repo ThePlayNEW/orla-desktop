@@ -304,11 +304,15 @@ namespace Orla
             }
             // The shell usually hands back straight (not premultiplied) alpha; reading it as premultiplied leaves a pale,
             // jagged rim around icons. A colour brighter than its alpha can only happen with straight alpha.
-            bool straight = false;
-            for (int i = 0; i < pixels.Length && !straight; i += 4)
-                straight = Math.Max(pixels[i], Math.Max(pixels[i + 1], pixels[i + 2])) > pixels[i + 3];
-            BitmapSource source = BitmapSource.Create(w, h, 96, 96, straight ? PixelFormats.Bgra32 : PixelFormats.Pbgra32, null,
-                                                      pixels, w * 4);
+            bool straight = false, anyAlpha = false;
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                anyAlpha |= pixels[i + 3] != 0;
+                straight |= Math.Max(pixels[i], Math.Max(pixels[i + 1], pixels[i + 2])) > pixels[i + 3];
+            }
+            // Some thumbnail providers leave alpha at zero everywhere: those images are opaque.
+            PixelFormat format = !anyAlpha ? PixelFormats.Bgr32 : straight ? PixelFormats.Bgra32 : PixelFormats.Pbgra32;
+            BitmapSource source = BitmapSource.Create(w, h, 96, 96, format, null, pixels, w * 4);
             source.Freeze();
             return source;
         }

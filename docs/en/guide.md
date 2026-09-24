@@ -243,7 +243,7 @@ The window has four pages:
 
 - **Panels:** create, show, hide and remove panels. See [Creating, hiding and removing panels](#creating-hiding-and-removing-panels).
 - **Appearance:** theme, opacity, icons and animations, with a live preview.
-- **General:** startup, **Clean desktop**, the shortcut, locking, language and **Rearrange panels**.
+- **General:** startup, **Clean desktop**, the shortcut, locking, language, **Rearrange panels** and **Start over**.
 - **About:** version, your data folder, **User guide**, **Report a problem** and **Quit Orla**.
 
 At the bottom of the sidebar, **Part of the Windows desktop** means the panels are on the desktop layer. If it says **Compatibility mode: the Windows desktop was not found.**, see [Troubleshooting](#orla-shows-compatibility-mode).
@@ -277,6 +277,7 @@ With Windows High Contrast on, Orla uses the system colours and turns off transp
 | **Lock position and size** | Prevents moving or resizing panels |
 | **Language** | **System** follows the Windows display language. You can also pick Português (Brasil), English, Español, Français, Deutsch or Italiano. The change applies immediately. |
 | **Rearrange panels** | The **Rearrange** button lines up the visible panels in the top-right corner of the main screen |
+| **Start over** | The **Start over…** button removes every panel, returns settings to their defaults and opens **Welcome to Orla Desktop**, as after a fresh install. First, Orla keeps a copy of the current layout in its data folder as `layout.json.before-reset-<date>`. None of your files are moved or deleted, and **Start with Windows** stays as it was. To go back to the previous layout, quit Orla and rename that copy to `layout.json`. |
 | **Automatic updates** | Installed version only. On by default. See [Updates](#updates). |
 
 ### Updates
