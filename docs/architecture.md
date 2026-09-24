@@ -65,11 +65,15 @@ A rebuild calls `Desktop.find()` again, recreates every panel window around its 
 
 If no icon host is found, panels fall back to top-level tool windows placed just above the shell window (`PanelMode.Fallback`), and the Orla window shows "Compatibility mode".
 
-### Overlay mode
+### The shortcut, hiding and overlay mode
 
-**Ctrl+Alt+Space** (a `RegisterHotKey` registration with `MOD_NOREPEAT`), the tray menu and the **Show in front** button switch panels to `PanelMode.Overlay`. A child window cannot be made topmost, so the switch destroys each panel's native window and creates a new top-level `WS_POPUP` with `WS_EX_TOPMOST | WS_EX_TOOLWINDOW`, re-attaching the same `PanelView`. Switching back rebuilds the child window. Because the view survives, selection, scroll position and folder watchers are unaffected.
+The global shortcut is a `RegisterHotKey` registration with `MOD_NOREPEAT`. The combination is stored as invariant text (`Control+Alt+Space` by default, see `Shell/Shortcut.cs`) and can be recorded again in **General**; while the recorder listens, the registration is paused so the current combination reaches the window. If Windows refuses a combination because another program owns it, the previous one stays.
 
-Overlay mode ends on the hotkey, which works from anywhere, when an item is opened or revealed, and from the tray or the Orla window. Esc also ends it, but only while a panel has keyboard focus.
+`Controller.onHotkey` picks the action from the foreground window. When the desktop is in view (the foreground window is `Progman`, `WorkerW`, the taskbar or Orla itself), the shortcut hides the panels (`SW_HIDE` on each panel window) or shows them again; with Clean desktop on, the icon guard lets the Windows icons show while the panels are hidden. When an application is in front, the shortcut switches the panels to `PanelMode.Overlay`. Panels always start visible; the hidden state is not saved.
+
+A child window cannot be made topmost, so the overlay switch destroys each panel's native window and creates a new top-level `WS_POPUP` with `WS_EX_TOPMOST | WS_EX_TOOLWINDOW`, re-attaching the same `PanelView`. Switching back rebuilds the child window. Because the view survives, selection, scroll position and folder watchers are unaffected.
+
+Overlay mode ends on the shortcut, when an item is opened or revealed, and from the tray or the Orla window. Esc also ends it, but only while a panel has keyboard focus.
 
 ### Clean desktop and the icon guard
 

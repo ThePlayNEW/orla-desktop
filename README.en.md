@@ -29,7 +29,7 @@
 - **The desktop keeps working.** In empty areas, rubber-band selection, the right-click menu and dragging files onto the desktop behave as they do in Windows.
 - **Collections.** They hold shortcuts to files and folders from anywhere. If you rename the file in File Explorer, the shortcut follows it. Removing an item from a collection never deletes the file.
 - **Folder panels.** They show a real folder, such as Downloads, and update on their own when something in it changes.
-- **Ctrl+Alt+Space** brings the panels in front of your windows, so you can drop files from File Explorer without minimizing anything. Press it again, or Esc, to send them back to the desktop.
+- **One shortcut that does what the moment calls for.** With the desktop in view, **Ctrl+Alt+Space** (the default, which you can change) hides or shows the panels. With a window in front, it brings the panels above it, so you can drop files from File Explorer without minimizing anything.
 - **Panels that stay tidy.** A panel never sits on top of another, and resizing moves in whole columns and rows of icons.
 - **Clean desktop, if you want it.** An option hides the Windows icons and leaves only the panels. A small safeguard process brings the icons back if Orla closes or crashes.
 - **Works alongside Wallpaper Engine and Lively.** Orla does not change the wallpaper, does not inject code into Explorer and does not ask for administrator rights.
@@ -53,9 +53,9 @@ Requirements: Windows 10 22H2 or Windows 11, 64-bit, with .NET Framework 4.8 (in
    - **Keep my icons** (selected by default): the Windows icons stay where they are, and you pick your first panels in the next step.
    - **Organize my desktop**: what is on your desktop becomes collections, the Windows icons are hidden, and an **On the desktop** panel shows whatever is not organized yet.
 2. If you chose **Keep my icons**, tick the panels you want under **Choose your first panels** and click **Start**. Neither option moves any file.
-3. Drag a panel by its title to place it. It lines up with the screen edges and with other panels.
-4. To change the size, drag any edge or corner of the panel.
-5. Drag files from File Explorer onto a panel. With File Explorer open, press **Ctrl+Alt+Space** to bring the panels to the front.
+3. Drag a panel by its title to place it. It sticks to the screen margins and to the edges of other panels.
+4. To change the size, drag any edge or corner of the panel. When you let go, it fits whole columns and rows of icons.
+5. Drag files from File Explorer onto a panel. With File Explorer in front, press **Ctrl+Alt+Space** to bring the panels above it.
 6. To add panels, click the Orla icon in the notification area and use **New panel**.
 
 Orla starts with **Start with Windows** turned on. You can turn it off in **General**.
@@ -85,11 +85,13 @@ On first run, and later from **New panel**, Orla offers ready-made panels. Only 
 
 | Where | Action | Result |
 | --- | --- | --- |
-| Anywhere | **Ctrl+Alt+Space** | Brings the panels in front of your windows, or sends them back |
-| Panels in front | Esc | Sends the panels back to the desktop |
-| Panel title | Drag | Moves the panel, snapping to edges and other panels |
+| Desktop in view | **Ctrl+Alt+Space** | Hides or shows the panels |
+| Application window in front | **Ctrl+Alt+Space** | Brings the panels to the front, or sends them back |
+| Panels in front, with focus | Esc | Sends the panels back to the desktop |
+| Panel title | Drag | Moves the panel, which sticks to the screen margins and other panels |
 | Panel title | Double-click | Renames the panel in place |
-| Edge or corner | Drag | Resizes the panel |
+| Edge or corner | Drag | Resizes the panel in columns and rows of icons |
+| Top or bottom edge | Double-click | Turns **Automatic height** back on |
 | Item | Double-click or Enter | Opens the item |
 | Item | Ctrl+click, Shift+click, Ctrl+A | Selects several items |
 | Empty area of a panel | Drag | Selects the items inside the rectangle |
@@ -98,6 +100,8 @@ On first run, and later from **New panel**, Orla offers ready-made panels. Only 
 | Item | Arrow keys | Moves the selection between items |
 | Item | Right-click | **Open**, **Show in File Explorer**, **Rename in panel**, **Move to**, **Remove from panel**, **Add to** |
 | Notification area icon | Click | Opens Orla |
+
+**Ctrl+Alt+Space** is the default shortcut. You can change it under **General > Key combination**.
 
 ## Quick answers
 

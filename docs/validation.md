@@ -2,6 +2,32 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.0.1
+
+### What changed
+
+- The keyboard shortcut is configurable, and it hides or shows the panels when the desktop is in view, or brings them to the front when an application window is.
+- Resizing follows the pointer, shows the size in columns × rows and settles on whole tiles on release. New panels use automatic height.
+- Moving sticks to screen margins and neighbouring panel edges.
+- Dragging items shows a preview, an insertion line in collections and scrolls panels near their edges.
+- Icons are requested at twice their size and scaled down with high-quality filtering; their alpha channel is read correctly.
+- Theme and opacity changes reach the panels without a restart.
+
+### Automated tests
+
+`./test.ps1` runs 22 xUnit tests, and all of them pass locally. The two new tests cover the shortcut:
+
+| Area | What is checked |
+| --- | --- |
+| Shortcut storage | A combination such as `Control+Shift+O` is read and written back in the same form |
+| Shortcut fallback | A combination without Ctrl, Alt or Win, an unreadable value and a missing value all fall back to the default, `Control+Alt+Space` |
+
+The 20 tests listed under [1.0](#10) are unchanged.
+
+### Manual checklist
+
+Manual results for 1.0.1 will be recorded here. The checklist in [docs/en/manual-test.md](en/manual-test.md) ([Português](pt-BR/teste-manual.md)) now covers hiding and showing panels, changing the combination, drag previews and insertion lines, resizing and automatic height, and live opacity. The open items listed under 1.0 still apply.
+
 ## 1.0
 
 ### Environment

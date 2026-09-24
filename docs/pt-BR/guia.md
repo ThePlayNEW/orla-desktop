@@ -11,7 +11,7 @@ O Orla coloca painéis translúcidos no desktop do Windows. Cada painel mostra a
 - [Mover, redimensionar e organizar](#mover-redimensionar-e-organizar)
 - [Itens nos painéis](#itens-nos-painéis)
 - [Arrastar e soltar](#arrastar-e-soltar)
-- [Mostrar os painéis na frente](#mostrar-os-painéis-na-frente)
+- [O atalho de teclado](#o-atalho-de-teclado)
 - [Desktop limpo](#desktop-limpo)
 - [Janela do Orla](#janela-do-orla)
 - [Teclado](#teclado)
@@ -30,9 +30,9 @@ Os painéis ficam na mesma camada dos ícones do desktop, dentro da janela do Ex
 - Um painel nunca cobre um aplicativo aberto. Quando uma janela está por cima do desktop, ela também está por cima dos painéis.
 - Nas áreas do desktop sem painel, tudo funciona como no Windows: seleção com o mouse, menu do botão direito e arrastar arquivos para o desktop.
 
-Quando você precisa de um painel com janelas abertas, use **Ctrl+Alt+Espaço**. Veja [Mostrar os painéis na frente](#mostrar-os-painéis-na-frente).
+O atalho de teclado, **Ctrl+Alt+Espaço** por padrão, esconde ou mostra os painéis quando o desktop está à vista e traz os painéis para a frente quando há uma janela por cima. Veja [O atalho de teclado](#o-atalho-de-teclado).
 
-O ícone do Orla fica na bandeja, ao lado do relógio. Um clique abre a janela do Orla. O clique direito mostra o menu com **Abrir o Orla**, **Mostrar painéis na frente**, **Travar painéis**, **Desktop limpo** e **Sair e restaurar o desktop**.
+O ícone do Orla fica na bandeja, ao lado do relógio. Um clique abre a janela do Orla. O clique direito mostra o menu com **Abrir o Orla**, **Esconder painéis** (ou **Mostrar painéis**), **Mostrar painéis na frente**, **Travar painéis**, **Desktop limpo** e **Sair e restaurar o desktop**.
 
 ## Primeira vez
 
@@ -121,7 +121,7 @@ No próprio painel, o menu **···** (**Mais opções**) oferece:
 
 - Em coleções: **Adicionar arquivos…** e **Adicionar pasta…**.
 - Em painéis de pasta: **Abrir pasta**.
-- Em todos: **Renomear painel**, **Cor da linha**, **Recolher** ou **Expandir**, **Ocultar painel**, **Abrir o Orla** e **Remover painel…**.
+- Em todos: **Renomear painel**, **Cor da linha**, **Recolher** ou **Expandir**, **Altura automática**, **Ocultar painel**, **Abrir o Orla** e **Remover painel…**.
 
 Remover um painel nunca apaga arquivos. Em uma coleção, somem só os atalhos. Em um painel de pasta, a pasta continua intacta.
 
@@ -129,8 +129,9 @@ A **Cor da linha** muda a linha fina abaixo do título: **Vidro do mar**, **Arei
 
 ## Mover, redimensionar e organizar
 
-- **Mover:** arraste o painel pelo título. Ao soltar, ele se alinha às bordas da tela e aos painéis vizinhos. Durante o arraste, o painel fica dentro da área útil da tela, com uma pequena margem.
-- **Redimensionar:** arraste qualquer borda ou canto. A largura e a altura avançam em colunas e linhas inteiras de ícones, então não sobra faixa vazia. A altura acompanha o conteúdo até o tamanho que você definiu; a partir daí, o painel ganha rolagem.
+- **Mover:** arraste o painel pelo título. Durante o arraste, ele gruda nas margens da tela e nas bordas dos painéis próximos, mantendo o mesmo espaço entre eles, e fica dentro da área útil da tela.
+- **Redimensionar:** arraste qualquer borda ou canto. Uma linha fina na cor de destaque mostra a borda sob o ponteiro. O painel acompanha o ponteiro e mostra o tamanho em colunas × linhas. Ao soltar, ele se ajusta suavemente a colunas e linhas inteiras de ícones, então não sobra faixa vazia. As bordas param na margem da tela e nos painéis vizinhos.
+- **Altura automática:** vem ligada em painéis novos. O painel fica da altura do conteúdo, até o número de linhas definido; a partir daí, ganha rolagem. Se você mudar a altura com o mouse, a opção se desliga e o painel mantém exatamente as linhas que você escolheu. Para ligá-la de novo, clique duas vezes na borda de cima ou de baixo, ou marque **Altura automática** no menu **···**.
 - **Sem sobreposição:** um painel nunca fica por cima de outro. Se você soltar ou aumentar um painel sobre outro, ele vai para o espaço livre mais próximo.
 - **Renomear:** clique duas vezes no título, digite o novo nome e aperte Enter. Esc cancela.
 - **Recolher:** a seta no lado direito da barra de título deixa só a barra de título à vista. Clique de novo para expandir.
@@ -166,21 +167,44 @@ Com vários itens selecionados, você pode arrastar, abrir ou tirar todos de uma
 | Painel de pasta | Coleção | Cria um atalho para o arquivo |
 | Painel de pasta | Explorador ou desktop | Segue as regras normais do Windows, porque o arquivo é real |
 
+Enquanto você arrasta itens do Orla, uma prévia translúcida do item acompanha o ponteiro, com um número quando são vários, por cima do Orla e de outros programas. Em coleções, uma linha mostra exatamente onde os itens vão entrar, no mesmo painel ou em outro. Perto da borda de cima ou de baixo de um painel, ele rola sozinho. Depois de soltar, os itens movidos continuam selecionados no destino. Arquivos arrastados do Explorador mostram a imagem de arraste do próprio Windows sobre os painéis.
+
 Ao soltar em um painel de pasta, segure **Ctrl** para copiar ou **Shift** para mover, como no Explorador. A operação usa a janela do próprio Windows, com progresso e aviso de conflito de nomes, e pode ser desfeita com Ctrl+Z no Explorador.
 
-## Mostrar os painéis na frente
+## O atalho de teclado
+
+O atalho é **Ctrl+Alt+Espaço** por padrão, e você pode trocá-lo em **Geral**. Ele faz o que o momento pede:
+
+| Situação | O que o atalho faz |
+| --- | --- |
+| Desktop à vista (o foco está no desktop, na barra de tarefas ou em um painel) | Esconde os painéis, ou mostra de novo. Com o **Desktop limpo** ligado, os ícones do Windows voltam enquanto os painéis estão escondidos. |
+| Uma janela de aplicativo na frente | Traz os painéis para a frente das janelas. Aperte de novo, ou Esc, para devolvê-los ao desktop. |
+
+Os painéis sempre começam visíveis quando o Orla abre.
+
+### Soltar arquivos com janelas abertas
 
 Normalmente, as janelas abertas ficam por cima dos painéis. Para soltar um arquivo do Explorador em um painel sem minimizar nada:
 
-1. Aperte **Ctrl+Alt+Espaço**. Os painéis aparecem na frente de todas as janelas.
+1. Com a janela do Explorador na frente, aperte o atalho. Os painéis aparecem na frente de todas as janelas.
 2. Arraste o arquivo do Explorador até o painel.
-3. Aperte **Ctrl+Alt+Espaço** de novo, ou Esc, para devolver os painéis ao desktop.
+3. Aperte o atalho de novo, ou Esc com um painel em foco, para devolver os painéis ao desktop.
 
 Abrir um item ou usar **Mostrar no Explorador** também devolve os painéis ao desktop.
 
-O mesmo recurso está no menu da bandeja, como **Mostrar painéis na frente**, e na janela do Orla, no botão **Mostrar na frente**. Enquanto os painéis estão na frente, esse botão vira **Voltar ao desktop**.
+### Pela bandeja e pela janela do Orla
 
-Se outro programa já usa **Ctrl+Alt+Espaço**, o Orla avisa e o recurso continua disponível pela bandeja. Veja [O atalho não funciona](#o-atalho-não-funciona).
+O menu da bandeja tem **Esconder painéis** (ou **Mostrar painéis**, se estiverem escondidos) e **Mostrar painéis na frente**, com o atalho atual ao lado. Na janela do Orla, o botão **Mostrar na frente** faz o mesmo; enquanto os painéis estão na frente, ele vira **Voltar ao desktop**.
+
+### Trocar a combinação
+
+Em **Geral**:
+
+- **Atalho de teclado** liga ou desliga o atalho. A descrição mostra a combinação atual.
+- Em **Combinação de teclas**, clique no botão e pressione a nova combinação: Ctrl, Alt ou Win junto com outra tecla. Esc cancela.
+- **Restaurar padrão** volta para **Ctrl+Alt+Espaço**.
+
+Se outro programa já usa a combinação escolhida, o Orla mantém a anterior e avisa. Veja [O atalho não funciona](#o-atalho-não-funciona).
 
 ## Desktop limpo
 
@@ -238,6 +262,8 @@ No rodapé da barra lateral, **Integrado ao desktop do Windows** indica que os p
 | **Tamanho dos ícones** | **Pequenos**, **Médios** ou **Grandes** |
 | **Animações** | Transições curtas quando os painéis aparecem. Se as animações estiverem desligadas no Windows, o Orla também não anima. |
 
+Mudanças de tema e de opacidade valem na hora, nos painéis e na janela do Orla.
+
 Com o Alto Contraste do Windows ligado, o Orla usa as cores do sistema e desliga a transparência.
 
 ### Geral
@@ -246,7 +272,8 @@ Com o Alto Contraste do Windows ligado, o Orla usa as cores do sistema e desliga
 | --- | --- |
 | **Iniciar com o Windows** | Abre os painéis quando você entra no Windows. Vem ligado. |
 | **Desktop limpo** | Esconde os ícones do Windows. Veja [Desktop limpo](#desktop-limpo). |
-| **Atalho Ctrl+Alt+Espaço** | Liga ou desliga o atalho que traz os painéis para a frente |
+| **Atalho de teclado** | Liga ou desliga o atalho. Veja [O atalho de teclado](#o-atalho-de-teclado). |
+| **Combinação de teclas** | Troca a combinação do atalho. **Restaurar padrão** volta para **Ctrl+Alt+Espaço**. |
 | **Travar posição e tamanho** | Impede mover ou redimensionar painéis |
 | **Idioma** | **Sistema** segue o idioma de exibição do Windows. Você também pode escolher Português (Brasil), English, Español, Français, Deutsch ou Italiano. A troca vale na hora. |
 | **Reorganizar painéis** | O botão **Reorganizar** alinha os painéis visíveis no canto superior direito da tela principal |
@@ -262,8 +289,9 @@ A versão portátil não se atualiza sozinha. Para atualizar, saia do Orla, baix
 
 | Tecla | Onde | Ação |
 | --- | --- | --- |
-| Ctrl+Alt+Espaço | Qualquer lugar | Traz os painéis para a frente, ou devolve ao desktop |
-| Esc | Painel na frente | Devolve os painéis ao desktop |
+| Ctrl+Alt+Espaço (padrão, configurável) | Desktop à vista | Esconde ou mostra os painéis |
+| Ctrl+Alt+Espaço (padrão, configurável) | Janela de aplicativo na frente | Traz os painéis para a frente, ou devolve ao desktop |
+| Esc | Painel na frente, com foco | Devolve os painéis ao desktop |
 | Enter | Item | Abre |
 | Setas | Item | Move a seleção |
 | Ctrl+A | Painel | Seleciona todos os itens |
@@ -319,7 +347,9 @@ Seus arquivos nunca saem da pasta da área de trabalho, mesmo com os ícones ocu
 
 ### O atalho não funciona
 
-Se outro programa já usa **Ctrl+Alt+Espaço**, o Orla mostra o aviso "Outro programa já usa Ctrl+Alt+Espaço" e a chave **Atalho Ctrl+Alt+Espaço** fica desligada. Use **Mostrar painéis na frente** no menu da bandeja, ou libere o atalho no outro programa e ligue a chave de novo em **Geral**.
+Se outro programa já usa a combinação, o Orla avisa ("Outro programa já usa…") e os painéis continuam disponíveis pelo menu da bandeja. Para resolver, escolha outra combinação em **Geral > Combinação de teclas**, ou libere a combinação no outro programa e ligue de novo **Atalho de teclado**.
+
+Se você trocou a combinação e não lembra qual é, a descrição de **Atalho de teclado** e o menu da bandeja mostram a atual. **Restaurar padrão** volta para **Ctrl+Alt+Espaço**.
 
 ### O Windows mostrou um aviso do SmartScreen
 
@@ -335,7 +365,9 @@ Em **Geral**, clique em **Reorganizar** ao lado de **Reorganizar painéis**. Tod
 
 ### Um painel sumiu
 
-Ele pode ter sido ocultado. Abra o Orla, vá em **Painéis** e ligue a chave **No desktop** do painel.
+Se todos os painéis sumiram, eles podem ter sido escondidos pelo atalho. Aperte o atalho com o desktop à vista, ou escolha **Mostrar painéis** no menu da bandeja.
+
+Se só um painel sumiu, ele pode ter sido ocultado. Abra o Orla, vá em **Painéis** e ligue a chave **No desktop** do painel.
 
 ### O Orla mostra "Modo compatível"
 
