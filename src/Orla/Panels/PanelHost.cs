@@ -76,7 +76,7 @@ namespace Orla
 
         List<RECT> others() => controller.Hosts.Where(h => h != this).Select(h => h.Rect).ToList();
 
-        public void show(PanelMode mode, Desktop target, bool shown = true)
+        public void show(PanelMode mode, Desktop target, bool shown)
         {
             finishAnimation();
             destroyWindow();
@@ -166,8 +166,7 @@ namespace Orla
             if (!visible)
                 return;
             Native.ShowWindow(Handle, Native.SW_SHOWNA);
-            if (controller.Layout.Animations && SystemParameters.ClientAreaAnimation)
-                Motion.reveal(View);
+            reveal();
         }
 
         // A child window takes the DPI of its host (the primary monitor). Panels on other monitors are scaled to
@@ -434,8 +433,19 @@ namespace Orla
                 return;
             visible = show;
             Native.ShowWindow(Handle, show ? Native.SW_SHOWNA : Native.SW_HIDE);
-            if (show && controller.Layout.Animations && SystemParameters.ClientAreaAnimation)
-                Motion.reveal(View);
+            if (show)
+                reveal();
+        }
+
+        // The only motion when a panel appears: a short, eased fade. Nothing runs continuously.
+        void reveal()
+        {
+            if (!controller.Layout.Animations || !SystemParameters.ClientAreaAnimation)
+                return;
+            View.BeginAnimation(UIElement.OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(0.6, 1, TimeSpan.FromMilliseconds(160)) {
+                EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
+                FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop
+            });
         }
 
         public void bringToFront()

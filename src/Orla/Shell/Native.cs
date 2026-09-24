@@ -52,15 +52,13 @@ namespace Orla
         public delegate void WinEventProc(IntPtr hook, uint ev, IntPtr hwnd, int idObject, int idChild, uint thread,
                                           uint time);
 
-        public const int GWL_STYLE = -16, GWL_EXSTYLE = -20;
+        public const int GWL_EXSTYLE = -20;
         public const int WS_CHILD = 0x40000000, WS_POPUP = unchecked((int)0x80000000), WS_CLIPSIBLINGS = 0x04000000,
                          WS_CLIPCHILDREN = 0x02000000;
         public const int WS_EX_TOPMOST = 0x8, WS_EX_TOOLWINDOW = 0x80, WS_EX_NOACTIVATE = 0x08000000;
         public static readonly IntPtr HWND_TOP = IntPtr.Zero, HWND_TOPMOST = new IntPtr(-1);
-        public const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10,
-                          SWP_SHOWWINDOW = 0x40;
+        public const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10;
         public const uint GW_HWNDNEXT = 2, GW_HWNDPREV = 3, GW_CHILD = 5;
-        public const uint GA_PARENT = 1, GA_ROOT = 2;
         public const int SW_HIDE = 0, SW_SHOW = 5, SW_SHOWNA = 8;
         public const uint EVENT_OBJECT_DESTROY = 0x8001, EVENT_OBJECT_REORDER = 0x8004,
                           EVENT_OBJECT_PARENTCHANGE = 0x800F;
@@ -69,8 +67,7 @@ namespace Orla
                          WM_DPICHANGED = 0x02E0;
         public const uint TME_LEAVE = 2;
         public const uint MOD_ALT = 1, MOD_CONTROL = 2, MOD_SHIFT = 4, MOD_WIN = 8, MOD_NOREPEAT = 0x4000;
-        public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20, DWMWA_SYSTEMBACKDROP_TYPE = 38,
-                         DWMWA_EXCLUDED_FROM_PEEK = 12;
+        public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20, DWMWA_EXCLUDED_FROM_PEEK = 12;
 
         [DllImport("user32.dll")]
         public static extern bool TrackMouseEvent(ref TRACKMOUSEEVENT tme);
@@ -91,8 +88,6 @@ namespace Orla
         [DllImport("user32.dll")]
         public static extern IntPtr GetParent(IntPtr h);
         [DllImport("user32.dll")]
-        public static extern IntPtr GetAncestor(IntPtr h, uint flags);
-        [DllImport("user32.dll")]
         public static extern IntPtr GetWindow(IntPtr h, uint cmd);
         [DllImport("user32.dll")]
         public static extern IntPtr GetShellWindow();
@@ -110,8 +105,6 @@ namespace Orla
         public static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int w, int ht, uint flags);
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(IntPtr h, int cmd);
-        [DllImport("user32.dll")]
-        public static extern bool GetWindowRect(IntPtr h, out RECT r);
         [DllImport("user32.dll")]
         public static extern bool ScreenToClient(IntPtr h, ref POINT p);
         [DllImport("user32.dll")]
@@ -141,8 +134,6 @@ namespace Orla
         public static extern bool UnregisterHotKey(IntPtr h, int id);
         [DllImport("dwmapi.dll")]
         public static extern int DwmSetWindowAttribute(IntPtr h, int attr, ref int value, int size);
-        [DllImport("user32.dll")]
-        public static extern bool DestroyIcon(IntPtr h);
         [DllImport("gdi32.dll")]
         public static extern bool DeleteObject(IntPtr h);
 
@@ -159,15 +150,8 @@ namespace Orla
             return pid;
         }
 
-        public static int style(IntPtr h) => GetWindowLongPtr(h, GWL_STYLE).ToInt32();
         public static int exStyle(IntPtr h) => GetWindowLongPtr(h, GWL_EXSTYLE).ToInt32();
         public static void setExStyle(IntPtr h, int value) => SetWindowLongPtr(h, GWL_EXSTYLE, new IntPtr(value));
-
-        public static RECT rect(IntPtr h)
-        {
-            GetWindowRect(h, out RECT r);
-            return r;
-        }
 
         // Children of a window from the top of the z-order down.
         public static List<IntPtr> children(IntPtr parent)

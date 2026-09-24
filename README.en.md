@@ -188,7 +188,7 @@ Orla.exe --render <folder>    regenerates the documentation images with demo dat
 | Folder | Contents |
 | --- | --- |
 | `src/Orla` | The app: `Shell` (Windows integration), `Panels`, `Central` (the Orla window), `Model`, `Strings`, `Themes` |
-| `tests/Orla.Tests` | Persistence, migration and translation tests |
+| `tests/Orla.Tests` | Persistence, layout, organizer and translation tests |
 | `assets` | Brand and interface glyph SVGs |
 | `tools/icons` | Generates the `.ico` files, `Glyphs.xaml` and `Brand.xaml` from the SVGs (`npm install`, then `npm run export`) |
 | `docs` | Guides, architecture, validation and images |

@@ -37,7 +37,7 @@ namespace Orla
                                     Tint = Tints.Sky, Columns = 4, Rows = 2 };
             foreach (string name in new[] { "Captura de tela.png", "Relatório final.pdf", "Mapa.jpg" })
                 File.WriteAllText(Path.Combine(inbox.FolderPath, name), "");
-            var quick = new Group { Name = Text.get("starter.quickAccess"), Tint = Tints.Moss, Columns = 4, Rows = 1 };
+            var quick = new Group { Name = Text.get("preset.quickAccess"), Tint = Tints.Moss, Columns = 4, Rows = 1 };
             foreach (string path in new[] { "shell:MyComputerFolder", "shell:Downloads", "shell:RecycleBinFolder" })
                 quick.Items.Add(new Entry { Name = Shell.displayName(path), Path = path });
             layout.Groups.AddRange(new[] { projects, documents, inbox, quick });

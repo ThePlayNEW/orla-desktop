@@ -17,7 +17,6 @@ O Orla coloca painéis translúcidos no desktop do Windows. Cada painel mostra a
 - [Janela do Orla](#janela-do-orla)
 - [Teclado](#teclado)
 - [Vários monitores](#vários-monitores)
-- [Atualizar da prévia 0.1](#atualizar-da-prévia-01)
 - [Onde ficam seus dados](#onde-ficam-seus-dados)
 - [Solução de problemas](#solução-de-problemas)
 - [Perguntas frequentes](#perguntas-frequentes)
@@ -178,7 +177,7 @@ A **Cor da linha** muda a linha fina abaixo do título: **Vidro do mar**, **Arei
 - **Renomear:** clique duas vezes no título, digite o novo nome e aperte Enter. Esc cancela.
 - **Recolher:** a seta no lado direito da barra de título deixa só a barra de título à vista. Clique de novo para expandir.
 - **Travar:** em **Geral**, **Travar posição e tamanho** evita mover ou redimensionar sem querer. O mesmo ajuste está no menu da bandeja como **Travar painéis**.
-- **Reorganizar:** em **Geral**, **Reorganizar painéis** alinha todos os painéis visíveis no canto superior direito da tela principal.
+- **Reorganizar:** em **Geral**, **Reorganizar painéis** reorganiza os painéis visíveis na tela principal do mesmo jeito que o **Deixe o Orla organizar**: as ferramentas à esquerda (se o Desktop limpo estiver ligado), o resto à direita e o centro livre. Os painéis de cada lado ficam com a mesma largura.
 
 ## Itens nos painéis
 
@@ -318,7 +317,7 @@ Com o Alto Contraste do Windows ligado, o Orla usa as cores do sistema e desliga
 | **Combinação de teclas** | Troca a combinação do atalho. **Restaurar padrão** volta para **Ctrl+Alt+Espaço**. |
 | **Travar posição e tamanho** | Impede mover ou redimensionar painéis |
 | **Idioma** | **Sistema** segue o idioma de exibição do Windows. Você também pode escolher Português (Brasil), English, Español, Français, Deutsch ou Italiano. A troca vale na hora. |
-| **Reorganizar painéis** | O botão **Reorganizar** alinha os painéis visíveis no canto superior direito da tela principal |
+| **Reorganizar painéis** | O botão **Reorganizar** reorganiza os painéis visíveis na tela principal do mesmo jeito que o **Deixe o Orla organizar**: as ferramentas à esquerda (se o Desktop limpo estiver ligado), o resto à direita e o centro livre. Os painéis de cada lado ficam com a mesma largura. |
 | **Recomeçar do zero** | O botão **Recomeçar…** tira todos os painéis, volta os ajustes ao padrão e abre a tela **Bem-vindo ao Orla Desktop**, como numa instalação nova. Antes, o Orla guarda uma cópia do layout atual na pasta de dados, com o nome `layout.json.before-reset-<data>`. Nenhum arquivo seu é movido ou apagado, e **Iniciar com o Windows** fica como estava. Para voltar ao layout anterior, saia do Orla e renomeie essa cópia para `layout.json`. |
 | **Atualizações automáticas** | Só na versão instalada. A chave começa ligada. Veja [Atualizações](#atualizações). |
 
@@ -349,18 +348,6 @@ Você pode pôr painéis em qualquer monitor. Cada painel usa a escala do monito
 
 Monitores com escalas diferentes, como um notebook em 150% e um monitor externo em 100%, ainda não foram testados. Se algo parecer fora do lugar nessa situação, [relate o problema](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose).
 
-## Atualizar da prévia 0.1
-
-Se você usou a prévia 0.1, a versão 1.0 converte o arquivo dela na primeira vez que abre:
-
-- Cada grupo vira uma coleção, com os mesmos itens, um tamanho parecido e uma cor equivalente.
-- Os painéis são reorganizados a partir do canto superior direito da tela principal, porque na prévia eles podiam ficar sobre a coluna de ícones do Windows, que agora volta a aparecer.
-- Os ícones do Windows voltam a aparecer, porque o **Desktop limpo** fica desligado. Se você preferia o desktop sem ícones da prévia, ligue **Desktop limpo** em **Geral**.
-- O atalho da prévia na pasta Inicializar do Windows é removido. A versão 1.0 inicia com o Windows por uma entrada de inicialização do seu usuário.
-- O Orla mostra o aviso "Seus grupos da versão anterior agora são coleções, e os ícones do Windows voltaram a aparecer. Para escondê-los de novo, ligue Desktop limpo."
-
-O arquivo original da prévia fica guardado, sem alterações, como `layout.json.preview`, ao lado do `layout.json`. A prévia não lê o arquivo da versão 1.0, então, para voltar a ela, saia do Orla, apague `layout.json` e renomeie `layout.json.preview` para `layout.json`. As duas versões não rodam ao mesmo tempo.
-
 ## Onde ficam seus dados
 
 Tudo fica em `%LOCALAPPDATA%\Orla`, tanto na versão instalada quanto na portátil. Em **Sobre**, o botão **Abrir pasta** abre essa pasta.
@@ -369,7 +356,6 @@ Tudo fica em `%LOCALAPPDATA%\Orla`, tanto na versão instalada quanto na portát
 | --- | --- |
 | `layout.json` | Painéis, itens, posições e ajustes |
 | `layout.json.bak` | A versão anterior, criada a cada salvamento |
-| `layout.json.preview` | O arquivo da prévia 0.1, guardado sem alterações na atualização, se você usava a prévia |
 | `layout.json.corrupt-<data>` | Uma cópia de um arquivo que não pôde ser lido, guardada para você não perder nada |
 
 O Orla salva em um arquivo temporário e só depois troca pelo definitivo, então uma queda de energia no meio do salvamento não corrompe o layout. Se o `layout.json` não puder ser lido, o Orla usa o `.bak` e avisa: "Seus painéis foram recuperados da última cópia salva."
@@ -404,7 +390,7 @@ Quando o Explorador reinicia, a camada do desktop é recriada. O Orla percebe is
 
 ### Um painel está fora da tela
 
-Em **Geral**, clique em **Reorganizar** ao lado de **Reorganizar painéis**. Todos os painéis visíveis vão para o canto superior direito da tela principal.
+Em **Geral**, clique em **Reorganizar** ao lado de **Reorganizar painéis**. Todos os painéis visíveis voltam para a tela principal, alinhados em colunas.
 
 ### Um painel sumiu
 

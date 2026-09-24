@@ -90,9 +90,8 @@ namespace Orla
                 tray = new Tray(this, messages.Handle);
                 if (Layout.OverlayHotkey && !messages.setHotkey(true, Shortcut))
                     tray.notify(Text.format("notice.hotkeyTaken", Shortcut.display()));
-                // Also points an existing entry at this copy, and replaces the 0.1 preview's Startup shortcut, so an older
-                // version never starts with a newer layout.
-                if (!Layout.StartupConfigured || StartupEnabled || File.Exists(LegacyShortcut))
+                // Also points an existing entry at this copy, so an older copy never starts with a newer layout.
+                if (!Layout.StartupConfigured || StartupEnabled)
                     tryAction(() => setStartup(true));
                 if (Layout.AutoUpdate)
                     Updates.start(this);
@@ -102,18 +101,9 @@ namespace Orla
                 showCentral("welcome");
                 return;
             }
-            // The 0.1 preview hid the Windows icons, so its panels may sit where the icons live. Start them from the
-            // top-right corner instead, leaving the icon column free.
-            if (store.migrated)
-            {
-                Screens.arrange(Layout.Groups, Layout.IconSize);
-                saveLayout();
-            }
             rebuild();
             if (store.recoveryNotice != null)
                 tray?.notify(store.recoveryNotice);
-            else if (store.migrated)
-                tray?.notify(Text.get("notice.migrated"));
         }
 
         // ---- panels on the desktop ----
@@ -308,7 +298,7 @@ namespace Orla
                 foreach (Entry e in g.Items)
                 {
                     bool same = String.Equals(e.Path, oldPath, StringComparison.OrdinalIgnoreCase);
-                    bool inside = e.Path.StartsWith(oldPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+                    bool inside = !same && Shell.within(e.Path, oldPath);
                     if (!same && !inside)
                         continue;
                     if (same && (e.Name == Path.GetFileNameWithoutExtension(oldPath) || e.Name == Path.GetFileName(oldPath)))
@@ -538,11 +528,7 @@ namespace Orla
 
         public void resetPositions()
         {
-            // An organized desktop is laid out again the organizer's way; other panels line up from the top-right corner.
-            if (Organized)
-                Organizer.arrange(Layout, Screens.primary());
-            else
-                Screens.arrange(Layout.Groups, Layout.IconSize);
+            Organizer.arrange(Layout, Screens.primary());
             changed();
             settleAll();
             saveLayout();
@@ -550,12 +536,11 @@ namespace Orla
 
         // ---- settings ----
 
-        public void setOpacity(double value, bool save)
+        // Saved when the slider is released, not on every step of a drag.
+        public void setOpacity(double value)
         {
             Layout.Opacity = value;
             Theme.setOpacity(value);
-            if (save)
-                saveLayout();
         }
 
         public void setTheme(string value)
@@ -635,6 +620,7 @@ namespace Orla
         }
 
         // Closes everything like quit, for an update that restarts Orla itself.
+        // Lets go of the desktop: icons back, panels and watchers closed. Quitting and restarting for an update share it.
         public void closeForUpdate()
         {
             exiting = true;
@@ -673,9 +659,6 @@ namespace Orla
 
         const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run", RunValue = "Orla Desktop";
 
-        // The 0.1 preview started through a shortcut in the Startup folder.
-        static string LegacyShortcut => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "Orla.lnk");
-
         public bool StartupEnabled
         {
             get
@@ -701,15 +684,13 @@ namespace Orla
         {
             using (RegistryKey key = Registry.CurrentUser.OpenSubKey(RunKey, true))
                 key?.DeleteValue(RunValue, false);
-            if (File.Exists(LegacyShortcut))
-                File.Delete(LegacyShortcut);
         }
 
         // Applies the choice made on the welcome screen and puts the first panels on the desktop.
         public void welcome(IList<Preset> presets)
         {
             System.Threading.Tasks.Task.Run(() => {
-                Layout next = Starter.alongside(Layout);
+                Layout next = Layout.copySettings();
                 foreach (Preset p in presets)
                     next.Groups.Add(p.Create());
                 return next;
@@ -717,7 +698,7 @@ namespace Orla
                 if (t.IsFaulted)
                     return;
                 store.data = t.Result;
-                Screens.arrange(Layout.Groups, Layout.IconSize);
+                Organizer.arrange(Layout, Screens.primary());
                 Layout.Welcomed = true;
                 saveLayout();
                 rebuild();
@@ -803,10 +784,8 @@ namespace Orla
                     if (r.Gone)
                     {
                         // A deleted folder of shortcuts takes the shortcuts sorted from it along.
-                        string inside = r.Path.TrimEnd('\\') + "\\";
                         foreach (Group g in Layout.Groups.Where(g => g.AutoCategory != null && !g.IsFolder))
-                            any |= g.Items.RemoveAll(e => String.Equals(e.Path, r.Path, StringComparison.OrdinalIgnoreCase) ||
-                                                          e.Path.StartsWith(inside, StringComparison.OrdinalIgnoreCase)) > 0;
+                            any |= g.Items.RemoveAll(e => Shell.within(e.Path, r.Path)) > 0;
                     }
                     else if (r.Home != null && Layout.Groups.Contains(r.Home) && r.Home.Items.Count < Store.MaxItems &&
                              !Layout.Groups.Any(g => g.Items.Any(e => String.Equals(e.Path, r.Path, StringComparison.OrdinalIgnoreCase))))
@@ -926,16 +905,8 @@ namespace Orla
         {
             if (exiting)
                 return;
-            exiting = true;
             Updates.applyOnExit();
-            guard?.restore();
-            watch.Dispose();
-            references.Dispose();
-            foreach (PanelHost h in hosts)
-                h.Dispose();
-            hosts.Clear();
-            tray?.Dispose();
-            messages.Dispose();
+            closeForUpdate();
             Application.Current.Shutdown();
         }
 

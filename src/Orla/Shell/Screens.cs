@@ -7,7 +7,7 @@ namespace Orla
 {
     public class Screen
     {
-        public RECT Bounds, Work;
+        public RECT Work;
         public uint Dpi;
         public bool Primary;
         public double Scale => Dpi / 96.0;
@@ -49,7 +49,7 @@ namespace Orla
             catch (DllNotFoundException)
             {
             }
-            return new Screen { Bounds = info.rcMonitor, Work = info.rcWork, Dpi = dpi, Primary = (info.dwFlags & 1) != 0 };
+            return new Screen { Work = info.rcWork, Dpi = dpi, Primary = (info.dwFlags & 1) != 0 };
         }
 
         // Keeps a panel fully inside the work area of the monitor it mostly covers, with a margin on every side.
@@ -127,22 +127,9 @@ namespace Orla
         // Aligns a dropped panel to an 8 px grid and pulls it to nearby work-area edges and other panels.
         public static RECT snap(RECT r, IEnumerable<RECT> others)
         {
-            RECT work = forRect(r).Work;
-            int x = pull(r.Left, r.Width, new[] { work.Left + Margin }, new[] { work.Right - Margin });
-            int y = pull(r.Top, r.Height, new[] { work.Top + Margin }, new[] { work.Bottom - Margin });
-            foreach (RECT o in others)
-            {
-                bool rowsOverlap = r.Top < o.Bottom + Snap && r.Bottom > o.Top - Snap;
-                bool columnsOverlap = r.Left < o.Right + Snap && r.Right > o.Left - Snap;
-                if (rowsOverlap)
-                    x = pull(x, r.Width, new[] { o.Right + Margin, o.Left }, new[] { o.Left - Margin, o.Right });
-                if (columnsOverlap)
-                    y = pull(y, r.Height, new[] { o.Bottom + Margin, o.Top }, new[] { o.Top - Margin, o.Bottom });
-            }
-            if (x == r.Left)
-                x = (int)Math.Round(x / (double)Grid) * Grid;
-            if (y == r.Top)
-                y = (int)Math.Round(y / (double)Grid) * Grid;
+            RECT m = magnet(r, others, forRect(r).Work);
+            int x = m.Left == r.Left ? (int)Math.Round(r.Left / (double)Grid) * Grid : m.Left;
+            int y = m.Top == r.Top ? (int)Math.Round(r.Top / (double)Grid) * Grid : m.Top;
             return clamp(new RECT { Left = x, Top = y, Right = x + r.Width, Bottom = y + r.Height });
         }
 
@@ -156,10 +143,6 @@ namespace Orla
                     return e - size;
             return start;
         }
-
-        // Default arrangement: columns from the top-right corner of the primary monitor, leaving the left side,
-        // where Windows places its own icons, free.
-        public static void arrange(IList<Group> groups, string iconSize) => stack(groups, primary(), iconSize, false);
 
         // The organizer's layout: columns of panels from both top corners of a screen, the middle left free. Panels in a
         // column share one width, so the edges line up. Among a few ways to split each side into columns and icons per
@@ -298,7 +281,7 @@ namespace Orla
             }
 
             double height(Group g, int r) =>
-                Math.Round((collapsed != null && collapsed.Contains(g) ? PanelMetrics.CollapsedHeight : PanelMetrics.height(r, iconSize)) * scale);
+                Math.Round((collapsed.Contains(g) ? PanelMetrics.CollapsedHeight : PanelMetrics.height(r, iconSize)) * scale);
 
             double stackHeight(List<Group> st) => st.Sum(g => height(g, rows[g])) + (st.Count - 1) * Margin;
 
@@ -321,28 +304,6 @@ namespace Orla
                     }
                     x += direction * (panelWidth + Margin);
                 }
-            }
-        }
-
-        static void stack(IList<Group> groups, Screen s, string iconSize, bool fromLeft)
-        {
-            int x = fromLeft ? s.Work.Left + Margin * 2 : s.Work.Right - Margin * 2, y = s.Work.Top + Margin * 2, columnWidth = 0;
-            foreach (Group g in groups.Where(g => g.Visible))
-            {
-                int w = (int)Math.Round(PanelMetrics.width(g.Columns, iconSize) * s.Scale);
-                // Collections are as tall as their content; a folder's content is unknown here, so it gets its full rows.
-                int rows = g.IsFolder ? g.Rows : Math.Max(1, Math.Min(g.Rows, (int)Math.Ceiling(g.Items.Count / (double)g.Columns)));
-                int h = (int)Math.Round((g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, iconSize)) * s.Scale);
-                if (y + h > s.Work.Bottom - Margin && y > s.Work.Top + Margin * 2)
-                {
-                    x += (fromLeft ? 1 : -1) * (columnWidth + Margin);
-                    y = s.Work.Top + Margin * 2;
-                    columnWidth = 0;
-                }
-                g.X = fromLeft ? x : x - w;
-                g.Y = y;
-                y += h + Margin;
-                columnWidth = Math.Max(columnWidth, w);
             }
         }
     }

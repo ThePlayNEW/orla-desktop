@@ -10,13 +10,11 @@
     <StreamGeometry x:Key="Glyph.EyeOff">M2.5 10 C2.5 10 5.3 5 10 5 S17.5 10 17.5 10 S14.7 15 10 15 S2.5 10 2.5 10 Z M8 10 a2 2 0 1 0 4 0 a2 2 0 1 0 -4 0 M4 3.5 L16 16.5</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Eye">M2.5 10 C2.5 10 5.3 5 10 5 S17.5 10 17.5 10 S14.7 15 10 15 S2.5 10 2.5 10 Z M8 10 a2 2 0 1 0 4 0 a2 2 0 1 0 -4 0</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Grid">M5 4.5 H8 a0.5 0.5 0 0 1 0.5 0.5 V8 a0.5 0.5 0 0 1 -0.5 0.5 H5 a0.5 0.5 0 0 1 -0.5 -0.5 V5 A0.5 0.5 0 0 1 5 4.5 Z M12 4.5 H15 a0.5 0.5 0 0 1 0.5 0.5 V8 a0.5 0.5 0 0 1 -0.5 0.5 H12 a0.5 0.5 0 0 1 -0.5 -0.5 V5 A0.5 0.5 0 0 1 12 4.5 Z M5 11.5 H8 a0.5 0.5 0 0 1 0.5 0.5 V15 a0.5 0.5 0 0 1 -0.5 0.5 H5 a0.5 0.5 0 0 1 -0.5 -0.5 V12 A0.5 0.5 0 0 1 5 11.5 Z M12 11.5 H15 a0.5 0.5 0 0 1 0.5 0.5 V15 a0.5 0.5 0 0 1 -0.5 0.5 H12 a0.5 0.5 0 0 1 -0.5 -0.5 V12 A0.5 0.5 0 0 1 12 11.5 Z</StreamGeometry>
-    <StreamGeometry x:Key="Glyph.Grip">M7.4 6 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0 M11.4 6 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0 M7.4 10 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0 M11.4 10 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0 M7.4 14 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0 M11.4 14 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Info">M3.5 10 a6.5 6.5 0 1 0 13 0 a6.5 6.5 0 1 0 -13 0 M10 9.5 V13.5 M9.4 6.9 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0</StreamGeometry>
     <StreamGeometry x:Key="Glyph.ItemApp">M5 3.5 H8 a1.5 1.5 0 0 1 1.5 1.5 V8 A1.5 1.5 0 0 1 8 9.5 H5 A1.5 1.5 0 0 1 3.5 8 V5 A1.5 1.5 0 0 1 5 3.5 Z M12 3.5 H15 a1.5 1.5 0 0 1 1.5 1.5 V8 a1.5 1.5 0 0 1 -1.5 1.5 H12 a1.5 1.5 0 0 1 -1.5 -1.5 V5 A1.5 1.5 0 0 1 12 3.5 Z M5 10.5 H8 a1.5 1.5 0 0 1 1.5 1.5 V15 A1.5 1.5 0 0 1 8 16.5 H5 A1.5 1.5 0 0 1 3.5 15 V12 A1.5 1.5 0 0 1 5 10.5 Z M10.5 13.5 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0</StreamGeometry>
     <StreamGeometry x:Key="Glyph.ItemFile">M6 3 H11.5 L15 6.5 V15.5 A1.5 1.5 0 0 1 13.5 17 H6 A1.5 1.5 0 0 1 4.5 15.5 V4.5 A1.5 1.5 0 0 1 6 3 Z M11.5 3 V6.5 H15 M7.5 10.5 H12 M7.5 13.5 H10.5</StreamGeometry>
     <StreamGeometry x:Key="Glyph.ItemImage">M4.5 4.5 H15.5 a1.5 1.5 0 0 1 1.5 1.5 V14 a1.5 1.5 0 0 1 -1.5 1.5 H4.5 A1.5 1.5 0 0 1 3 14 V6 A1.5 1.5 0 0 1 4.5 4.5 Z M3.5 13.5 L7.5 10 L10.5 12.5 L12.5 11 L16.5 14 M11.5 7.7 a1.2 1.2 0 1 0 2.4 0 a1.2 1.2 0 1 0 -2.4 0</StreamGeometry>
     <StreamGeometry x:Key="Glyph.ItemMissing">M6 3 H11.5 L15 6.5 V15.5 A1.5 1.5 0 0 1 13.5 17 H6 A1.5 1.5 0 0 1 4.5 15.5 V4.5 A1.5 1.5 0 0 1 6 3 Z M8 9 L12 13 M12 9 L8 13</StreamGeometry>
-    <StreamGeometry x:Key="Glyph.Lock">M7 9 H13 A2 2 0 0 1 15 11 V14.5 A2 2 0 0 1 13 16.5 H7 A2 2 0 0 1 5 14.5 V11 A2 2 0 0 1 7 9 Z M7.5 9 V6.8 a2.5 2.5 0 0 1 5 0 V9</StreamGeometry>
     <StreamGeometry x:Key="Glyph.More">M4.9 10 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0 M9.4 10 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0 M13.9 10 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0</StreamGeometry>
     <StreamGeometry x:Key="Glyph.MoveTo">M4 10 H13 M10 7 L13 10 L10 13 M15.5 4.5 V15.5</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Open">M11.5 4.5 H15.5 V8.5 M15.5 4.5 L9.5 10.5 M13.5 11.5 V14.5 a1.5 1.5 0 0 1 -1.5 1.5 H6 a1.5 1.5 0 0 1 -1.5 -1.5 V8.5 A1.5 1.5 0 0 1 6 7 H9</StreamGeometry>
@@ -25,12 +23,7 @@
     <StreamGeometry x:Key="Glyph.PanelFolder">M3.5 6.5 a1.5 1.5 0 0 1 1.5 -1.5 H8.2 L9.8 6.8 H15 a1.5 1.5 0 0 1 1.5 1.5 V14.5 A1.5 1.5 0 0 1 15 16 H5 a1.5 1.5 0 0 1 -1.5 -1.5 Z</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Remove">M3.5 10 a6.5 6.5 0 1 0 13 0 a6.5 6.5 0 1 0 -13 0 M7 10 H13</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Rename">M12.5 4.5 L15.5 7.5 L7.5 15.5 H4.5 V12.5 Z M11 6 L14 9</StreamGeometry>
-    <StreamGeometry x:Key="Glyph.Resize">M15.5 9.5 L9.5 15.5 M15.5 13.5 L13.5 15.5</StreamGeometry>
-    <StreamGeometry x:Key="Glyph.Restore">M6.5 6 L4 8.5 L6.5 11 M4 8.5 H11.5 a4 4 0 0 1 0 8 H8.5</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Reveal">M3.5 14 V6 a1.5 1.5 0 0 1 1.5 -1.5 H8 L9.5 6 H14 a1.5 1.5 0 0 1 1.5 1.5 V8.5 M3.5 14 L5.2 9.3 A1.2 1.2 0 0 1 6.3 8.5 H16.4 a0.8 0.8 0 0 1 0.8 1 L15.7 14.8 A1.2 1.2 0 0 1 14.6 15.5 H4.7 A1.2 1.2 0 0 1 3.5 14 Z</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Search">M4 9 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0 M12.8 12.8 L16 16</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Settings">M4 6.5 H9 M13 6.5 H16 M11 4.5 V8.5 M4 13.5 H7 M11 13.5 H16 M9 11.5 V15.5</StreamGeometry>
-    <StreamGeometry x:Key="Glyph.Sort">M6.5 4.5 V15.5 M4 13 L6.5 15.5 L9 13 M13.5 15.5 V4.5 M11 7 L13.5 4.5 L16 7</StreamGeometry>
-    <StreamGeometry x:Key="Glyph.Unlock">M7 9 H13 A2 2 0 0 1 15 11 V14.5 A2 2 0 0 1 13 16.5 H7 A2 2 0 0 1 5 14.5 V11 A2 2 0 0 1 7 9 Z M7.5 9 V6.8 a2.5 2.5 0 0 1 4.8 -1</StreamGeometry>
-    <StreamGeometry x:Key="Glyph.Warning">M8.7 4.2 a1.5 1.5 0 0 1 2.6 0 L16.8 14 a1.5 1.5 0 0 1 -1.3 2.2 H4.5 a1.5 1.5 0 0 1 -1.3 -2.2 Z M10 8.5 V11.5 M9.4 13.7 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0</StreamGeometry>
 </ResourceDictionary>

@@ -111,5 +111,12 @@ namespace Orla
             IconSize = "medium";
             AutoUpdate = true;
         }
+
+        // A new layout with no panels and the same settings.
+        public Layout copySettings() => new Layout {
+            StartupConfigured = StartupConfigured, StartupEnabled = StartupEnabled, OverlayHotkey = OverlayHotkey,
+            OverlayShortcut = OverlayShortcut, Welcomed = Welcomed, Animations = Animations, Opacity = Opacity, Theme = Theme,
+            Language = Language, IconSize = IconSize, LockLayout = LockLayout, AutoUpdate = AutoUpdate, LastUpdateCheck = LastUpdateCheck
+        };
     }
 }

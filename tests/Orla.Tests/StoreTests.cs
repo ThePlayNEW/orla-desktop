@@ -147,27 +147,6 @@ namespace Orla.Tests
         }
 
         [Fact]
-        public void migratesVersionOneGroupsToCollections()
-        {
-            string v1 = "{\"Version\":1,\"Opacity\":0.6,\"Groups\":[{\"Id\":\"g1\",\"Name\":\"Apps\",\"Color\":\"#8BBEFF\"," +
-                        "\"Visible\":true,\"X\":24,\"Y\":64,\"Width\":332,\"Height\":306,\"Items\":[{\"Id\":\"e1\"," +
-                        "\"Name\":\"Nota\",\"Path\":\"C:\\nota.txt\"}]}]}";
-            Layout migrated = Store.parse(v1, 1.5, out bool wasMigrated);
-            Assert.True(wasMigrated);
-            Assert.Equal(Layout.CurrentVersion, migrated.Version);
-            Assert.False(migrated.CleanDesktop);
-            Assert.True(migrated.Welcomed);
-            Assert.Equal(PanelKind.Collection, migrated.Groups[0].Kind);
-            Assert.Equal(Tints.Sky, migrated.Groups[0].Tint);
-            Assert.Equal(36, migrated.Groups[0].X);
-            Assert.Equal(96, migrated.Groups[0].Y);
-            Assert.Equal(Layout.MinOpacity, migrated.Opacity);
-            Assert.Equal(3, migrated.Groups[0].Columns);
-            Assert.Equal(3, migrated.Groups[0].Rows);
-            Assert.Single(migrated.Groups[0].Items);
-        }
-
-        [Fact]
         public void rejectsFolderPanelWithoutFolderAndUnknownKind()
         {
             first.Kind = PanelKind.Folder;

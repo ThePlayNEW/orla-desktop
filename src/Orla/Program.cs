@@ -61,7 +61,7 @@ namespace Orla
                 Theme.install(app);
                 string dataDirectory = tool ? Path.Combine(Path.GetTempPath(), "Orla-" + Guid.NewGuid().ToString("N")) : DataDirectory;
                 var store = new Store(Path.Combine(dataDirectory, "layout.json"));
-                store.load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "seed.json"), Screens.primary().Scale);
+                store.load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "seed.json"));
                 Text.load(store.data.Language);
                 Theme.apply(store.data);
                 controller = new Controller(store, !tool);

@@ -31,6 +31,15 @@ namespace Orla
             return File.Exists(path) || Directory.Exists(path);
         }
 
+        // Whether a path is a folder or something inside it, ignoring case and trailing separators.
+        public static bool within(string path, string folder)
+        {
+            path = path.TrimEnd('\\');
+            folder = folder.TrimEnd('\\');
+            return path.Equals(folder, StringComparison.OrdinalIgnoreCase) ||
+                   path.StartsWith(folder + "\\", StringComparison.OrdinalIgnoreCase);
+        }
+
         public static bool isHidden(string path)
         {
             try

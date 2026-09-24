@@ -72,12 +72,13 @@
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         </Style>
 
-        <Style x:Key="Orla.Section" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Margin" Value="0,20,0,8" />
-            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
-        </Style>
+        <!-- The sample wallpaper behind previews: sea above, sand below, the brand's shoreline. -->
+        <LinearGradientBrush x:Key="Orla.Shore" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Offset="0" Color="#2F6F78" />
+            <GradientStop Offset="0.62" Color="#8FC3C6" />
+            <GradientStop Offset="0.63" Color="#E4D6BC" />
+            <GradientStop Offset="1" Color="#D8C7A6" />
+        </LinearGradientBrush>
 
         <!-- Preset card on the welcome screen. -->
         <Style x:Key="Orla.PresetCard" TargetType="CheckBox">
@@ -255,15 +256,8 @@
                     <!-- Appearance -->
                     <StackPanel x:Name="PageAppearance" Visibility="Collapsed">
                         <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T central.navAppearance}" />
-                        <Border x:Name="PreviewStage" Margin="0,20,0,4" CornerRadius="10" Height="220" ClipToBounds="True">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Offset="0" Color="#2F6F78" />
-                                    <GradientStop Offset="0.62" Color="#8FC3C6" />
-                                    <GradientStop Offset="0.63" Color="#E4D6BC" />
-                                    <GradientStop Offset="1" Color="#D8C7A6" />
-                                </LinearGradientBrush>
-                            </Border.Background>
+                        <Border x:Name="PreviewStage" Margin="0,20,0,4" CornerRadius="10" Height="220" ClipToBounds="True"
+                                Background="{StaticResource Orla.Shore}">
                             <Grid x:Name="PreviewHost" Margin="28,22" HorizontalAlignment="Left" VerticalAlignment="Top" />
                         </Border>
                         <TextBlock Text="{l:T central.previewHint}" FontSize="12" Margin="2,0,0,16"
@@ -573,15 +567,8 @@
                 <!-- The main screen in miniature, centred in a card that takes the room left. -->
                 <Border x:Name="OrganizeStage" Style="{StaticResource Orla.Card}" Margin="0,20,0,0" Padding="12">
                     <Border x:Name="OrganizeScreen" CornerRadius="8" ClipToBounds="True" HorizontalAlignment="Center"
-                            VerticalAlignment="Center" BorderThickness="1" BorderBrush="{DynamicResource Brush.Line}">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                <GradientStop Offset="0" Color="#2F6F78" />
-                                <GradientStop Offset="0.62" Color="#8FC3C6" />
-                                <GradientStop Offset="0.63" Color="#E4D6BC" />
-                                <GradientStop Offset="1" Color="#D8C7A6" />
-                            </LinearGradientBrush>
-                        </Border.Background>
+                            VerticalAlignment="Center" BorderThickness="1" BorderBrush="{DynamicResource Brush.Line}"
+                            Background="{StaticResource Orla.Shore}">
                         <Canvas x:Name="OrganizeMap" />
                     </Border>
                 </Border>

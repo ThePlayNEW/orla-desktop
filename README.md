@@ -188,7 +188,7 @@ Orla.exe --render <pasta>     gera as imagens da documentação com dados de dem
 | Pasta | Conteúdo |
 | --- | --- |
 | `src/Orla` | Aplicativo: `Shell` (integração com o Windows), `Panels`, `Central` (janela do Orla), `Model`, `Strings`, `Themes` |
-| `tests/Orla.Tests` | Testes de persistência, migração e tradução |
+| `tests/Orla.Tests` | Testes de persistência, posicionamento, organizador e tradução |
 | `assets` | SVGs da marca e dos ícones da interface |
 | `tools/icons` | Gera `.ico`, `Glyphs.xaml` e `Brand.xaml` a partir dos SVGs (`npm install` e `npm run export`) |
 | `docs` | Guias, arquitetura, validação e imagens |

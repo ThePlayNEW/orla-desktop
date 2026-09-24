@@ -20,6 +20,12 @@ namespace Orla
 
         public static double height(int rows, string size) => ChromeHeight + rows * tile(size);
 
+        public static double height(Group g, int rows, string size) => g.Collapsed ? CollapsedHeight : height(rows, size);
+
+        // The rows a panel shows before its content is read: a collection's items up to Rows, a folder's full Rows.
+        public static int plannedRows(Group g) =>
+            g.IsFolder ? g.Rows : Math.Max(1, Math.Min(g.Rows, (g.Items.Count + g.Columns - 1) / g.Columns));
+
         public static int columnsFor(double width, string size) =>
             Math.Max(Group.MinColumns, Math.Min(Group.MaxColumns, (int)Math.Round((width - ChromeWidth) / tile(size))));
 
