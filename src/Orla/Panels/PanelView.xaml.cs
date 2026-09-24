@@ -5,10 +5,12 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Threading.Tasks;
@@ -188,7 +190,14 @@ namespace Orla
                 queueReload();
             };
             Unloaded += delegate { stopWatching(); };
+            PreviewMouseDown += delegate { KeyboardCues = false; };
+            IsKeyboardFocusWithinChanged += delegate {
+                if (!IsKeyboardFocusWithin)
+                    KeyboardCues = false;
+            };
             PreviewKeyDown += (s, e) => {
+                if (e.Key == Key.Tab || e.Key >= Key.Left && e.Key <= Key.Down)
+                    KeyboardCues = true;
                 if (e.Key == Key.Escape && controller.Overlay && !TitleEditor.IsVisible)
                 {
                     controller.leaveOverlay();
@@ -205,6 +214,28 @@ namespace Orla
         }
 
         string IconSize => controller.Layout.IconSize;
+
+        public static readonly DependencyProperty KeyboardCuesProperty =
+            DependencyProperty.Register(nameof(KeyboardCues), typeof(bool), typeof(PanelView));
+
+        // True while the tiles are being used from the keyboard; a click hides the focus ring again.
+        public bool KeyboardCues
+        {
+            get => (bool)GetValue(KeyboardCuesProperty);
+            set => SetValue(KeyboardCuesProperty, value);
+        }
+
+        // Windows stops reporting that the pointer left after a drag, a menu or a dialog, which leaves a tile lit
+        // up. Asking to be told when the pointer leaves answers at once if it is already outside.
+        void recheckPointer()
+        {
+            if (PresentationSource.FromVisual(this) is HwndSource source)
+            {
+                var track = new TRACKMOUSEEVENT { cbSize = Marshal.SizeOf(typeof(TRACKMOUSEEVENT)), dwFlags = Native.TME_LEAVE,
+                                                  hwndTrack = source.Handle };
+                Native.TrackMouseEvent(ref track);
+            }
+        }
 
         // Brings the current palette and panel opacity into this panel's own resources.
         void applyTheme()
@@ -624,6 +655,7 @@ namespace Orla
             {
                 GiveFeedback -= follow;
                 ghost.close();
+                recheckPointer();
             }
         }
 
@@ -682,6 +714,7 @@ namespace Orla
         void renameItem(TileItem tile)
         {
             string name = Dialog.prompt(Text.get("tile.renameTitle"), tile.Entry.Name, Text.get("tile.renameHint"));
+            recheckPointer();
             if (name != null)
                 controller.renameItem(tile.Entry, name);
         }
@@ -786,6 +819,7 @@ namespace Orla
             controller.focusPanel(this);
             menu.PlacementTarget = anchorElement ?? this;
             menu.Placement = anchorElement != null ? PlacementMode.Bottom : PlacementMode.MousePoint;
+            menu.Closed += delegate { recheckPointer(); };
             menu.IsOpen = true;
         }
 

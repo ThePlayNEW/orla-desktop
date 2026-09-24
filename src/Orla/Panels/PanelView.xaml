@@ -32,9 +32,14 @@
                 <DataTrigger Binding="{Binding Selected}" Value="True">
                     <Setter TargetName="Tile" Property="Background" Value="{DynamicResource Brush.ItemSelected}" />
                 </DataTrigger>
-                <Trigger SourceName="Tile" Property="IsKeyboardFocused" Value="True">
+                <!-- The focus ring shows only while the keyboard is in use, as in Explorer. -->
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsKeyboardFocused, ElementName=Tile}" Value="True" />
+                        <Condition Binding="{Binding KeyboardCues, RelativeSource={RelativeSource AncestorType=local:PanelView}}" Value="True" />
+                    </MultiDataTrigger.Conditions>
                     <Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource Brush.Focus}" />
-                </Trigger>
+                </MultiDataTrigger>
                 <DataTrigger Binding="{Binding IsMissing}" Value="True">
                     <Setter TargetName="Tile" Property="Opacity" Value="0.55" />
                     <Setter TargetName="Missing" Property="Visibility" Value="Visible" />

@@ -36,6 +36,15 @@ namespace Orla
         public string szDevice;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct TRACKMOUSEEVENT
+    {
+        public int cbSize;
+        public uint dwFlags;
+        public IntPtr hwndTrack;
+        public uint dwHoverTime;
+    }
+
     public static class Native
     {
         public delegate bool EnumProc(IntPtr hwnd, IntPtr lparam);
@@ -58,10 +67,13 @@ namespace Orla
         public const uint MONITOR_DEFAULTTONEAREST = 2;
         public const int WM_HOTKEY = 0x0312, WM_SETTINGCHANGE = 0x001A, WM_DISPLAYCHANGE = 0x007E,
                          WM_DPICHANGED = 0x02E0;
+        public const uint TME_LEAVE = 2;
         public const uint MOD_ALT = 1, MOD_CONTROL = 2, MOD_SHIFT = 4, MOD_WIN = 8, MOD_NOREPEAT = 0x4000;
         public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20, DWMWA_SYSTEMBACKDROP_TYPE = 38,
                          DWMWA_EXCLUDED_FROM_PEEK = 12;
 
+        [DllImport("user32.dll")]
+        public static extern bool TrackMouseEvent(ref TRACKMOUSEEVENT tme);
         [DllImport("user32.dll")]
         public static extern bool EnumWindows(EnumProc cb, IntPtr arg);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
