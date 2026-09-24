@@ -159,14 +159,169 @@ namespace Orla
 
         // Default arrangement: columns from the top-right corner of the primary monitor, leaving the left side,
         // where Windows places its own icons, free.
-        public static void arrange(IList<Group> groups, string iconSize) => arrange(new Group[0], groups, iconSize);
+        public static void arrange(IList<Group> groups, string iconSize) => stack(groups, primary(), iconSize, false);
 
-        // Columns of panels from both top corners of the primary monitor, growing toward the middle, which stays free.
-        public static void arrange(IList<Group> left, IList<Group> right, string iconSize)
+        // The organizer's layout: columns of panels from both top corners of a screen, the middle left free. Panels in a
+        // column share one width, so the edges line up. Among a few ways to split each side into columns and icons per
+        // row, it picks the one that hides the fewest rows behind scrolling while keeping the middle open, and never lets
+        // panels overlap or leave the screen. When even one row each does not fit, the last panels start collapsed.
+        public static void arrange(IList<Group> left, IList<Group> right, string iconSize, Screen s)
         {
-            Screen s = primary();
-            stack(left, s, iconSize, true);
-            stack(right, s, iconSize, false);
+            left = left.Where(g => g.Visible).ToList();
+            right = right.Where(g => g.Visible).ToList();
+            const int edge = Margin * 2;
+            RECT work = s.Work;
+            int room = work.Height - 2 * edge;
+            var leftOptions = Fit.options(left, iconSize, s.Scale, room);
+            var rightOptions = Fit.options(right, iconSize, s.Scale, room);
+            // The middle should keep a third of the screen. Below that, 60 px of middle costs about one row hidden behind
+            // scrolling, and below a quarter it costs four times as much: a crowded desktop scrolls inside its panels, or
+            // on a small screen starts some collapsed, before the wallpaper disappears.
+            Fit bestLeft = null, bestRight = null;
+            double best = Double.MaxValue;
+            foreach (Fit l in leftOptions)
+                foreach (Fit r in rightOptions)
+                {
+                    double width = l.Width + r.Width + 2 * edge + (l.Width > 0 && r.Width > 0 ? Margin : 0);
+                    if (width > work.Width)
+                        continue;
+                    double middle = work.Width - width;
+                    double cost = l.Cost + r.Cost + Math.Max(0, work.Width / 3.0 - middle) / 20 + Math.Max(0, work.Width / 4.0 - middle) / 5;
+                    if (cost < best)
+                    {
+                        best = cost;
+                        bestLeft = l;
+                        bestRight = r;
+                    }
+                }
+            if (bestLeft == null)
+            {
+                // The two sides cannot share the width: everything goes on the right, as narrow as it has to be.
+                var one = Fit.options(left.Concat(right).ToList(), iconSize, s.Scale, room);
+                bestLeft = Fit.options(new Group[0], iconSize, s.Scale, room)[0];
+                bestRight = one.Where(o => o.Width + 2 * edge <= work.Width).OrderBy(o => o.Cost).FirstOrDefault() ??
+                            one.OrderBy(o => o.Width).First();
+            }
+            bestLeft.place(work.Left + edge, work.Top + edge, 1);
+            bestRight.place(work.Right - edge, work.Top + edge, -1);
+        }
+
+        // One way to lay out one side: its panels split into columns in order, all with the same icons per row.
+        class Fit
+        {
+            static readonly int[][] shapes = { new[] { 1, 4 }, new[] { 1, 5 }, new[] { 1, 3 }, new[] { 2, 4 }, new[] { 2, 3 },
+                                               new[] { 2, 5 }, new[] { 3, 3 }, new[] { 3, 4 }, new[] { 4, 3 } };
+            const int MostRows = 6;
+
+            List<List<Group>> stacks;
+            Dictionary<Group, int> rows;
+            HashSet<Group> collapsed;
+            int columns, panelWidth;
+            double scale;
+            string iconSize;
+
+            public double Width, Cost;
+
+            public static List<Fit> options(IList<Group> groups, string iconSize, double scale, int room)
+            {
+                var list = new List<Fit>();
+                if (groups.Count == 0)
+                {
+                    list.Add(new Fit { stacks = new List<List<Group>>(), rows = new Dictionary<Group, int>(), collapsed = new HashSet<Group>() });
+                    return list;
+                }
+                foreach (int[] shape in shapes.Where(x => x[0] <= groups.Count))
+                    list.Add(new Fit(groups, shape[0], shape[1], iconSize, scale, room));
+                return list;
+            }
+
+            Fit()
+            {
+            }
+
+            Fit(IList<Group> groups, int stackCount, int columns, string iconSize, double scale, int room)
+            {
+                this.columns = columns;
+                this.scale = scale;
+                this.iconSize = iconSize;
+                panelWidth = (int)Math.Round(PanelMetrics.width(columns, iconSize) * scale);
+                rows = groups.ToDictionary(g => g, g => wanted(g));
+                // Collapsed and Rows are this layout's own output; a layout drawn again must not start from them.
+                collapsed = new HashSet<Group>();
+                // Columns keep the panels' order and share the height evenly.
+                double total = groups.Sum(g => height(g, rows[g]) + Margin), before = 0;
+                stacks = Enumerable.Range(0, stackCount).Select(_ => new List<Group>()).ToList();
+                foreach (Group g in groups)
+                {
+                    double h = height(g, rows[g]) + Margin;
+                    int index = Math.Min(stackCount - 1, (int)((before + h / 2) / (total / stackCount)));
+                    stacks[index].Add(g);
+                    before += h;
+                }
+                stacks.RemoveAll(st => st.Count == 0);
+                int hidden = 0;
+                double overflow = 0;
+                foreach (List<Group> st in stacks)
+                {
+                    // Too tall: the panel with the most rows gives one up, until the column fits.
+                    while (stackHeight(st) > room)
+                    {
+                        Group tallest = st.Where(g => !collapsed.Contains(g) && rows[g] > 1).OrderByDescending(g => rows[g]).FirstOrDefault();
+                        if (tallest != null)
+                        {
+                            rows[tallest]--;
+                            hidden++;
+                            continue;
+                        }
+                        Group last = st.LastOrDefault(g => !collapsed.Contains(g));
+                        if (last == null)
+                        {
+                            overflow += stackHeight(st) - room;
+                            break;
+                        }
+                        collapsed.Add(last);
+                        hidden += 6;
+                    }
+                }
+                Width = stacks.Count * panelWidth + (stacks.Count - 1) * Margin;
+                // A hidden row costs more than a wider side; empty slots in a last row cost a little.
+                double empty = groups.Where(g => !g.IsFolder).Sum(g => rows[g] * columns - Math.Min(g.Items.Count, rows[g] * columns));
+                // Running off the screen is the last resort, and the less of it the better.
+                Cost = hidden * 3 + Width / 400.0 + empty * 0.1 + overflow * 1000;
+            }
+
+            int wanted(Group g)
+            {
+                if (g.IsFolder)
+                    return 2;
+                return Math.Max(1, Math.Min(MostRows, (g.Items.Count + columns - 1) / columns));
+            }
+
+            double height(Group g, int r) =>
+                Math.Round((collapsed != null && collapsed.Contains(g) ? PanelMetrics.CollapsedHeight : PanelMetrics.height(r, iconSize)) * scale);
+
+            double stackHeight(List<Group> st) => st.Sum(g => height(g, rows[g])) + (st.Count - 1) * Margin;
+
+            // Writes the result into the panels, from an outer edge toward the middle.
+            public void place(int outer, int top, int direction)
+            {
+                int x = direction > 0 ? outer : outer - panelWidth;
+                foreach (List<Group> st in stacks)
+                {
+                    double y = top;
+                    foreach (Group g in st)
+                    {
+                        g.Columns = columns;
+                        g.Rows = rows[g];
+                        g.AutoHeight = true;
+                        g.Collapsed = collapsed.Contains(g);
+                        g.X = x;
+                        g.Y = y;
+                        y += height(g, rows[g]) + Margin;
+                    }
+                    x += direction * (panelWidth + Margin);
+                }
+            }
         }
 
         static void stack(IList<Group> groups, Screen s, string iconSize, bool fromLeft)

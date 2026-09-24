@@ -45,7 +45,12 @@ namespace Orla
         }
 
         // What "Let Orla organize" would find on a typical desktop, for the documentation images.
-        public static Organizer.Plan plan()
+        public static Organizer.Plan plan() => plan(false);
+
+        // A crowded desktop, a couple of hundred items, to check that the organizer still lays it out calmly.
+        public static Organizer.Plan crowded() => plan(true);
+
+        static Organizer.Plan plan(bool crowded)
         {
             var plan = new Organizer.Plan { QuickAccess = Presets.All[0].Create() };
             var sample = new[] {
@@ -57,8 +62,23 @@ namespace Orla
                 new { Key = Organizer.Documents, Names = new[] { "Proposta.pdf", "Contrato.docx", "Orçamento.xlsx", "Notas.txt" } },
                 new { Key = Organizer.Media, Names = new[] { "Captura.png", "Logo.svg", "Vídeo.mp4" } },
             };
+            int[] extra = { 22, 9, 14, 39, 19, 27, 35 };
+            int i = 0;
             foreach (var s in sample)
-                plan.add(Organizer.panel(s.Key, s.Names.Select(n => Path.Combine(Path.GetTempPath(), n))));
+            {
+                var names = s.Names.ToList();
+                if (crowded)
+                    names.AddRange(Enumerable.Range(1, extra[i]).Select(n => s.Names[0] + " " + n));
+                i++;
+                plan.add(Organizer.panel(s.Key, names.Select(n => Path.Combine(Path.GetTempPath(), n))));
+            }
+            if (crowded)
+            {
+                plan.add(Organizer.panel(Organizer.Creative, Enumerable.Range(1, 9).Select(n => Path.Combine(Path.GetTempPath(), "Editor " + n))));
+                plan.add(Organizer.panel(Organizer.Files, Enumerable.Range(1, 19).Select(n => Path.Combine(Path.GetTempPath(), "Pacote " + n + ".zip"))));
+                plan.Groups.Sort((a, b) => Array.FindIndex(Organizer.Categories, c => c.Key == a.AutoCategory)
+                                               .CompareTo(Array.FindIndex(Organizer.Categories, c => c.Key == b.AutoCategory)));
+            }
             return plan;
         }
     }

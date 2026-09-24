@@ -23,6 +23,9 @@ namespace Orla
         Organizer.Plan plan;
         bool organizeFromWelcome;
 
+        // The screen the organizer plans for; the primary monitor unless the documentation renderer picks one.
+        internal Screen PreviewScreen { get; set; }
+
         public CentralWindow(Controller controller)
         {
             this.controller = controller;
@@ -212,7 +215,8 @@ namespace Orla
             })));
         }
 
-        Layout planned() => Organizer.build(plan, controller.Layout, OrganizeClean.IsChecked == true, OrganizeKeep.IsChecked == true);
+        Layout planned() => Organizer.build(plan, controller.Layout, OrganizeClean.IsChecked == true, OrganizeKeep.IsChecked == true,
+                                            PreviewScreen ?? Screens.primary());
 
         // The primary screen in miniature with every planned panel where it will be. The panels arrive one by one, the
         // single moment of motion in the flow.
@@ -222,7 +226,7 @@ namespace Orla
                 return;
             Layout next = planned();
             OrganizeLead.Text = plan.Count == 0 ? Text.get("organize.nothing") : Text.format("organize.lead", plan.Count, next.Groups.Count);
-            Screen screen = Screens.primary();
+            Screen screen = PreviewScreen ?? Screens.primary();
             RECT work = screen.Work;
             double roomWidth = OrganizeStage.ActualWidth - 26, roomHeight = OrganizeStage.ActualHeight - 26;
             if (roomWidth <= 0 || roomHeight <= 0)
@@ -242,7 +246,8 @@ namespace Orla
                 int rows = g.IsFolder ? g.Rows : Math.Max(1, Math.Min(g.Rows, (int)Math.Ceiling(g.Items.Count / (double)g.Columns)));
                 double left = (g.X - work.Left) * k, top = (g.Y - work.Top) * k;
                 double x0 = Math.Round(left), x1 = Math.Round(left + PanelMetrics.width(g.Columns, next.IconSize) * k * screen.Scale);
-                double y0 = Math.Round(top), y1 = Math.Round(top + PanelMetrics.height(rows, next.IconSize) * k * screen.Scale);
+                double tall = g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, next.IconSize);
+                double y0 = Math.Round(top), y1 = Math.Round(top + tall * k * screen.Scale);
                 FrameworkElement mini = miniPanel(g, rows, x1 - x0, y1 - y0, k * screen.Scale, next.IconSize);
                 Canvas.SetLeft(mini, x0);
                 Canvas.SetTop(mini, y0);
@@ -271,8 +276,16 @@ namespace Orla
             card.SetResourceReference(Border.BackgroundProperty, "Brush.PanelGlass");
             card.SetResourceReference(Border.BorderBrushProperty, "Brush.PanelBorder");
             var face = new Canvas();
-            var title = new TextBlock { Text = g.Name, FontSize = 9, FontWeight = FontWeights.SemiBold, Width = width - 16 * k - 4,
+            // The count says how much a panel holds when not every icon fits, as on the real panel's header.
+            var title = new TextBlock { FontSize = 9, FontWeight = FontWeights.SemiBold, Width = width - 16 * k - 4,
                                         TextTrimming = TextTrimming.CharacterEllipsis };
+            title.Inlines.Add(new System.Windows.Documents.Run(g.Name));
+            if (!g.IsFolder)
+            {
+                var total = new System.Windows.Documents.Run("  " + g.Items.Count) { FontWeight = FontWeights.Normal };
+                total.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "Brush.TextSecondary");
+                title.Inlines.Add(total);
+            }
             title.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Text");
             Canvas.SetLeft(title, 14 * k);
             Canvas.SetTop(title, 2);
@@ -288,7 +301,7 @@ namespace Orla
             double tile = PanelMetrics.tile(iconSize) * k, icon = Math.Round(PanelMetrics.icon(iconSize) * k);
             double top = 19, pitch = (height - top - 3) / rows;
             // A folder panel's content is only known later, so it shows one faint row, as a panel that fills up.
-            int count = g.IsFolder ? g.Columns : Math.Min(g.Items.Count, g.Columns * rows);
+            int count = g.Collapsed ? 0 : g.IsFolder ? g.Columns : Math.Min(g.Items.Count, g.Columns * rows);
             for (int i = 0; i < count; i++)
             {
                 var mark = new Border { Width = icon, Height = icon, CornerRadius = new CornerRadius(icon / 4),

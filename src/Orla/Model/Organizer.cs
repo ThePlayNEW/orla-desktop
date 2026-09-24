@@ -14,6 +14,8 @@ namespace Orla
     {
         public const string Apps = "apps", Dev = "dev", Creative = "creative", Utilities = "utilities", Play = "games",
                             Folders = "folders", Documents = "documents", Media = "media", Files = "files";
+        // Not a category of desktop items: marks the Quick access panel the organizer adds, which sits with the tools.
+        public const string QuickAccess = "quickAccess";
 
         public class Category
         {
@@ -92,7 +94,6 @@ namespace Orla
             var g = new Group { Name = Text.get("organize." + c.Key), Tint = c.Tint, AutoCategory = c.Key };
             foreach (string path in paths.OrderBy(Shell.displayName, StringComparer.CurrentCultureIgnoreCase).Take(Store.MaxItems))
                 g.Items.Add(new Entry { Name = Shell.displayName(path), Path = path });
-            fit(g);
             return g;
         }
 
@@ -107,17 +108,8 @@ namespace Orla
             list.Add(path);
         }
 
-        // Whole rows and at most five columns, so a panel never shows empty slots when it can be avoided.
-        static void fit(Group g)
-        {
-            int n = Math.Max(1, g.Items.Count);
-            int rows = (n + 4) / 5;
-            g.Columns = Math.Max(Group.MinColumns, (n + rows - 1) / rows);
-            g.Rows = Math.Min(rows, 4);
-        }
-
         // Lays out a plan: tools from the left edge, work and the desktop inbox from the right edge.
-        public static Layout build(Plan plan, Layout settings, bool clean, bool keep)
+        public static Layout build(Plan plan, Layout settings, bool clean, bool keep, Screen screen)
         {
             Layout layout = Starter.copySettings(settings);
             layout.Welcomed = true;
@@ -127,18 +119,29 @@ namespace Orla
             var tools = plan.Groups.Where(g => category(g.AutoCategory)?.Tools == true).ToList();
             var work = plan.Groups.Where(g => !tools.Contains(g)).ToList();
             if (plan.QuickAccess != null)
+            {
+                plan.QuickAccess.AutoCategory = QuickAccess;
                 tools.Add(plan.QuickAccess);
+            }
             // Without a clean desktop the Windows icons already show what is new, so the inbox would only repeat them.
             if (clean)
                 work.Add(Presets.inbox());
             layout.Groups.AddRange(tools);
             layout.Groups.AddRange(work);
-            // With the Windows icons showing, their column on the left stays free and every panel starts on the right.
-            if (clean)
-                Screens.arrange(tools, work, layout.IconSize);
-            else
-                Screens.arrange(tools.Concat(work).ToList(), layout.IconSize);
+            arrange(layout, screen);
             return layout;
+        }
+
+        // Tools on the left and the rest on the right; with the Windows icons showing, their column on the left stays
+        // free and every panel goes on the right. Panels the organizer did not make count as work.
+        public static void arrange(Layout layout, Screen screen)
+        {
+            var tools = layout.Groups.Where(g => category(g.AutoCategory)?.Tools == true || g.AutoCategory == QuickAccess).ToList();
+            var work = layout.Groups.Where(g => !tools.Contains(g)).ToList();
+            if (layout.CleanDesktop)
+                Screens.arrange(tools, work, layout.IconSize, screen);
+            else
+                Screens.arrange(new Group[0], tools.Concat(work).ToList(), layout.IconSize, screen);
         }
 
         // Where something new on the desktop belongs, among the panels the organizer made. Null leaves it in the inbox.

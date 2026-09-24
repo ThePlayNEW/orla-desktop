@@ -538,7 +538,11 @@ namespace Orla
 
         public void resetPositions()
         {
-            Screens.arrange(Layout.Groups, Layout.IconSize);
+            // An organized desktop is laid out again the organizer's way; other panels line up from the top-right corner.
+            if (Organized)
+                Organizer.arrange(Layout, Screens.primary());
+            else
+                Screens.arrange(Layout.Groups, Layout.IconSize);
             changed();
             settleAll();
             saveLayout();
@@ -793,6 +797,7 @@ namespace Orla
                 if (t.IsFaulted || !Layout.AutoOrganize)
                     return;
                 bool any = false;
+                var grown = new Dictionary<Group, int>();
                 foreach (var r in t.Result)
                 {
                     if (r.Gone)
@@ -809,8 +814,12 @@ namespace Orla
                         r.Home.Items.Add(new Entry { Name = r.Name, Path = r.Path });
                         any = true;
                         int rows = (r.Home.Items.Count + r.Home.Columns - 1) / r.Home.Columns;
-                        if (r.Home.AutoHeight && rows > r.Home.Rows && r.Home.Rows < 4)
+                        grown.TryGetValue(r.Home, out int already);
+                        if (r.Home.AutoHeight && rows > r.Home.Rows && roomBelow(r.Home, already + 1))
+                        {
                             r.Home.Rows++;
+                            grown[r.Home] = already + 1;
+                        }
                     }
                 }
                 if (any)
@@ -819,6 +828,19 @@ namespace Orla
                     settleAll();
                 }
             })));
+        }
+
+        // Whether a panel can grow by more rows and still keep the gap to the panel below and the screen edge; if not,
+        // its new items scroll.
+        bool roomBelow(Group g, int rows)
+        {
+            PanelHost host = hosts.FirstOrDefault(h => h.Group == g);
+            if (host == null || g.Collapsed || g.Rows >= 6)
+                return false;
+            RECT r = host.Rect;
+            Screen screen = Screens.forRect(r);
+            r.Bottom += (int)Math.Round(rows * PanelMetrics.tile(Layout.IconSize) * screen.Scale) + Screens.Margin;
+            return r.Bottom <= screen.Work.Bottom && !hosts.Any(o => o != host && Screens.overlaps(r, o.Rect));
         }
 
         void backupLayout(string reason)

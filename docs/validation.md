@@ -2,6 +2,23 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.1.2
+
+- **Let Orla organize** fits crowded desktops. Panels on each side share a width. The organizer picks how many columns of panels and icons per row to use, keeps the middle of the screen free, and lets big panels scroll instead of overlapping. On a small screen, the last panels start collapsed.
+- The preview shows each panel's item count and draws collapsed panels as headers.
+- With **Keep organized**, a panel grows only when the space below it is free.
+
+`./test.ps1` runs 45 xUnit tests. The new ones check the layout on 1366 × 768, 1920 × 1080, 2560 × 1080 and 2880 × 1800 at 200 %, with 4, 6 and 8 panels per side holding up to 120 items each:
+- Every panel stays inside the work area.
+- No two panels overlap.
+- Panels on one side share a width.
+- A tidy desktop on 1920 × 1080 hides nothing and leaves a third of the screen free.
+- Laying out again, as the preview does when an option changes, gives the same result as a fresh layout.
+- A short screen uses more columns before panels run off the bottom.
+- When the two sides cannot share a small, high-DPI screen, they still never overlap.
+
+The preview was also rendered with 225 items on three screen sizes.
+
 ## 1.1.1
 
 - The installed version looks for updates every six hours instead of once a day.
