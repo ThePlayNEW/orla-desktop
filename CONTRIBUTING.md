@@ -6,7 +6,7 @@ Thank you for helping. Bug reports, test results, translations and code are all 
 
 ## Ways to help
 
-- **Test on Windows 11.** Version 2 has not been tested on Windows 11 24H2 or 25H2 yet. Run the [manual checklist](docs/en/manual-test.md) and open an issue with the results, even if everything passed.
+- **Test on Windows 11.** Orla has not been tested on Windows 11 24H2 or 25H2 yet. Run the [manual checklist](docs/en/manual-test.md) and open an issue with the results, even if everything passed.
 - **Report a bug.** Use the [bug form](https://github.com/ThePlayNEW/orla/issues/new/choose). Include your Windows version, Orla version, wallpaper program and monitor setup.
 - **Translate.** Interface text lives in `src/Orla/Strings/<language>.json`. See [Translations](#translations).
 - **Change code.** For anything larger than a small fix, open an issue first so we can agree on the approach.
@@ -76,7 +76,7 @@ By contributing, you agree that your contribution is licensed under the [MIT lic
 
 Contribuições são bem-vindas: relatos de problemas, resultados de teste, traduções e código.
 
-- **Teste no Windows 11.** A versão 2 ainda não foi testada no Windows 11 24H2 ou 25H2. Siga o [roteiro de teste manual](docs/pt-BR/teste-manual.md) e abra uma issue com o resultado.
+- **Teste no Windows 11.** O Orla ainda não foi testado no Windows 11 24H2 ou 25H2. Siga o [roteiro de teste manual](docs/pt-BR/teste-manual.md) e abra uma issue com o resultado.
 - **Relate um problema** pelo [formulário](https://github.com/ThePlayNEW/orla/issues/new/choose), com a versão do Windows e do Orla, o programa de papel de parede e os monitores.
 - **Traduza** a partir de `src/Orla/Strings/en.json`, seguindo os passos em [Translations](#translations).
 - **Mude o código** depois de ler as regras acima. Para mudanças grandes, abra uma issue antes.

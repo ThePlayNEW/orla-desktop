@@ -57,9 +57,9 @@ namespace Orla
                 if (migrated)
                     try
                     {
-                        // Keep the version 1 file as it was, once, before the first save in the new format.
-                        if (!File.Exists(filePath + ".v1"))
-                            File.Copy(filePath, filePath + ".v1");
+                        // Keep the 0.1 preview file as it was, once, before the first save in the new format.
+                        if (!File.Exists(filePath + ".preview"))
+                            File.Copy(filePath, filePath + ".preview");
                         save();
                     }
                     catch (IOException)
@@ -146,7 +146,7 @@ namespace Orla
             return d;
         }
 
-        // Version 1 stored every group as references, sized and positioned in device-independent units on the
+        // The 0.1 preview (layout format 1) stored every group as references, sized and positioned in device-independent units on the
         // primary monitor, and always hid the Windows icons. Groups become collections of about the same size, and
         // the Windows icons come back: Orla now shares the desktop with them unless people choose a clean desktop.
         static void migrate(Layout d, Dictionary<string, object> raw, double legacyScale)

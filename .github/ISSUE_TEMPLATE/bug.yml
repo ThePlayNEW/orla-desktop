@@ -24,7 +24,7 @@ body:
     attributes:
       label: Versão do Orla / Orla version
       description: Janela do Orla, página Sobre. / Orla window, About page.
-      placeholder: "2.0.0"
+      placeholder: "1.0.0"
     validations:
       required: true
 

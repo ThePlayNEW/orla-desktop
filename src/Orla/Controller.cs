@@ -87,7 +87,7 @@ namespace Orla
                 tray = new Tray(this, messages.Handle);
                 if (Layout.OverlayHotkey && !messages.setHotkey(true))
                     tray.notify(Text.get("notice.hotkeyTaken"));
-                // Also points an existing entry at this copy, and replaces version 1's Startup shortcut, so an older
+                // Also points an existing entry at this copy, and replaces the 0.1 preview's Startup shortcut, so an older
                 // version never starts with a newer layout.
                 if (!Layout.StartupConfigured || StartupEnabled || File.Exists(LegacyShortcut))
                     tryAction(() => setStartup(true));
@@ -99,7 +99,7 @@ namespace Orla
                 showCentral("welcome");
                 return;
             }
-            // Version 1 hid the Windows icons, so its panels may sit where the icons live. Start them from the
+            // The 0.1 preview hid the Windows icons, so its panels may sit where the icons live. Start them from the
             // top-right corner instead, leaving the icon column free.
             if (store.migrated)
             {
@@ -578,7 +578,7 @@ namespace Orla
 
         const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run", RunValue = "Orla Desktop";
 
-        // Version 1 started through a shortcut in the Startup folder.
+        // The 0.1 preview started through a shortcut in the Startup folder.
         static string LegacyShortcut => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "Orla.lnk");
 
         public bool StartupEnabled

@@ -2,7 +2,7 @@
 
 Orla Desktop is an x64 WPF application for .NET Framework 4.8. It uses WPF for drawing, a WinForms `NotifyIcon` for the notification area, a small Win32 interop layer, and [Velopack](https://velopack.io) for installation and updates. It has no other runtime dependencies.
 
-This document describes version 2. User-facing behaviour is covered in the [user guide](en/guide.md).
+This document describes Orla Desktop 1.0. User-facing behaviour is covered in the [user guide](en/guide.md).
 
 ## Components
 
@@ -21,7 +21,7 @@ This document describes version 2. User-facing behaviour is covered in the [user
 | `PanelView` | `Panels/PanelView.xaml(.cs)` | Panel content: header, tiles, selection, menus, drag and drop, folder watching |
 | `CentralWindow` | `Central/CentralWindow.xaml(.cs)` | The Orla window: welcome and preset choice, panels, appearance, general, about |
 | `Layout`, `Group`, `Entry` | `Model/Layout.cs` | The saved data |
-| `Store` | `Model/Store.cs` | Validation, atomic persistence, recovery, migration from version 1 |
+| `Store` | `Model/Store.cs` | Validation, atomic persistence, recovery, migration from the 0.1 preview |
 | `Starter` | `Model/Starter.cs` | The two first-run layouts |
 | `Presets`, `Games` | `Model/Presets.cs` | Ready-made panels, and recognition of game and launcher shortcuts |
 | `PanelMetrics` | `Model/PanelMetrics.cs` | Panel geometry in columns and rows of tiles |
@@ -134,9 +134,9 @@ The layout lives in `%LOCALAPPDATA%\Orla\layout.json`, serialized with `JavaScri
 - **Loading:** the file is validated (version, unique IDs, known panel kinds, folder panels with a folder, at most 40 panels and 3,000 items per panel) and out-of-range values are clamped.
 - **Recovery:** an unreadable file is copied to `layout.json.corrupt-<timestamp>`. If `layout.json.bak` is valid, it is restored and the user is notified; otherwise Orla reports the problem and leaves the files untouched.
 - **References:** `ReferenceWatch` follows up to 64 folders that contain collection items. A rename updates the item's path; a deletion refreshes the panel so the item shows as missing. Removing a reference never touches the file.
-- **Migration from version 1:** a `Version: 1` file is converted on load, and the untouched original is kept as `layout.json.v1`. Groups become collections, colours map to the nearest tint, positions are scaled from device-independent units to physical pixels using the primary monitor's scale, and sizes become columns and rows. Clean desktop is turned off, because version 2 shares the desktop with the Windows icons by default. Panels are then rearranged from the top-right corner of the primary monitor, since version 1 panels could sit over the icon column that is now visible again. The converted file is saved immediately.
+- **Migration from the 0.1 preview:** its layout (format `Version: 1`) is converted on load, and the untouched original is kept as `layout.json.preview`. Groups become collections, colours map to the nearest tint, positions are scaled from device-independent units to physical pixels using the primary monitor's scale, and sizes become columns and rows. Clean desktop is turned off, because 1.0 shares the desktop with the Windows icons by default. Panels are then rearranged from the top-right corner of the primary monitor, since panels from the preview could sit over the icon column that is now visible again. The converted file is saved immediately.
 
-Version 1 and version 2 share the same single-instance mutex, so they never run at the same time. Version 1 rejects a version 2 file. Version 1's shortcut in the Startup folder is removed on upgrade.
+The preview and 1.0 share the same single-instance mutex, so they never run at the same time. The preview rejects a 1.0 layout file. The preview's shortcut in the Startup folder is removed on upgrade.
 
 ## Installation, startup and updates
 

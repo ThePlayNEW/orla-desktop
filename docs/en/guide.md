@@ -16,7 +16,7 @@ Orla places translucent panels on the Windows desktop. Each panel shows shortcut
 - [The Orla window](#the-orla-window)
 - [Keyboard](#keyboard)
 - [Multiple monitors](#multiple-monitors)
-- [Upgrading from version 1](#upgrading-from-version-1)
+- [Upgrading from the 0.1 preview](#upgrading-from-the-01-preview)
 - [Where your data lives](#where-your-data-lives)
 - [Troubleshooting](#troubleshooting)
 - [Frequently asked questions](#frequently-asked-questions)
@@ -278,17 +278,17 @@ You can place panels on any monitor. Each panel uses the scale of the monitor it
 
 Monitors with different scales, such as a laptop at 150% with an external monitor at 100%, have not been tested yet. If something looks out of place in that setup, [report it](https://github.com/ThePlayNEW/orla/issues/new/choose).
 
-## Upgrading from version 1
+## Upgrading from the 0.1 preview
 
-The first time version 2 opens, it converts the version 1 file:
+If you used the 0.1 preview, version 1.0 converts its file the first time it opens:
 
 - Each group becomes a collection, with the same items, a similar size and a matching colour.
-- Panels are rearranged from the top-right corner of the main screen, because in version 1 they could sit over the Windows icon column, which is visible again now.
-- The Windows icons are shown again, because **Clean desktop** is off. If you liked version 1's desktop without icons, turn on **Clean desktop** in **General**.
-- The version 1 shortcut in the Windows Startup folder is removed. Version 2 starts with Windows through a per-user startup entry instead.
+- Panels are rearranged from the top-right corner of the main screen, because in the preview they could sit over the Windows icon column, which is visible again now.
+- The Windows icons are shown again, because **Clean desktop** is off. If you liked the preview's desktop without icons, turn on **Clean desktop** in **General**.
+- The preview's shortcut in the Windows Startup folder is removed. Version 1.0 starts with Windows through a per-user startup entry instead.
 - Orla shows the notice "Your groups from the previous version are now collections, and the Windows icons are visible again. To hide them, turn on Clean desktop."
 
-The original version 1 file is kept, unchanged, as `layout.json.v1` next to `layout.json`. Version 1 cannot read the version 2 file, so to go back to it, quit Orla, delete `layout.json` and rename `layout.json.v1` to `layout.json`. The two versions never run at the same time.
+The preview's original file is kept, unchanged, as `layout.json.preview` next to `layout.json`. The preview cannot read the 1.0 file, so to go back to it, quit Orla, delete `layout.json` and rename `layout.json.preview` to `layout.json`. The two versions never run at the same time.
 
 ## Where your data lives
 
@@ -298,7 +298,7 @@ Everything is in `%LOCALAPPDATA%\Orla`, for both the installed and the portable 
 | --- | --- |
 | `layout.json` | Panels, items, positions and settings |
 | `layout.json.bak` | The previous version, created on every save |
-| `layout.json.v1` | The version 1 file, kept unchanged during the upgrade, if you used version 1 |
+| `layout.json.preview` | The 0.1 preview file, kept unchanged during the upgrade, if you used the preview |
 | `layout.json.corrupt-<date>` | A copy of a file that could not be read, kept so nothing is lost |
 
 Orla writes to a temporary file first and then swaps it in, so a power cut during a save does not corrupt the layout. If `layout.json` cannot be read, Orla uses the `.bak` file and says: "Your panels were recovered from the last saved copy."

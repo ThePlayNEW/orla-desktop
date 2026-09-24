@@ -16,7 +16,7 @@ O Orla coloca painéis translúcidos no desktop do Windows. Cada painel mostra a
 - [Janela do Orla](#janela-do-orla)
 - [Teclado](#teclado)
 - [Vários monitores](#vários-monitores)
-- [Atualizar da versão 1](#atualizar-da-versão-1)
+- [Atualizar da prévia 0.1](#atualizar-da-prévia-01)
 - [Onde ficam seus dados](#onde-ficam-seus-dados)
 - [Solução de problemas](#solução-de-problemas)
 - [Perguntas frequentes](#perguntas-frequentes)
@@ -278,17 +278,17 @@ Você pode pôr painéis em qualquer monitor. Cada painel usa a escala do monito
 
 Monitores com escalas diferentes, como um notebook em 150% e um monitor externo em 100%, ainda não foram testados. Se algo parecer fora do lugar nessa situação, [relate o problema](https://github.com/ThePlayNEW/orla/issues/new/choose).
 
-## Atualizar da versão 1
+## Atualizar da prévia 0.1
 
-Na primeira vez que a versão 2 abre, ela converte o arquivo da versão 1:
+Se você usou a prévia 0.1, a versão 1.0 converte o arquivo dela na primeira vez que abre:
 
 - Cada grupo vira uma coleção, com os mesmos itens, um tamanho parecido e uma cor equivalente.
-- Os painéis são reorganizados a partir do canto superior direito da tela principal, porque na versão 1 eles podiam ficar sobre a coluna de ícones do Windows, que agora volta a aparecer.
-- Os ícones do Windows voltam a aparecer, porque o **Desktop limpo** fica desligado. Se você preferia o desktop sem ícones da versão 1, ligue **Desktop limpo** em **Geral**.
-- O atalho da versão 1 na pasta Inicializar do Windows é removido. A versão 2 inicia com o Windows por uma entrada de inicialização do seu usuário.
+- Os painéis são reorganizados a partir do canto superior direito da tela principal, porque na prévia eles podiam ficar sobre a coluna de ícones do Windows, que agora volta a aparecer.
+- Os ícones do Windows voltam a aparecer, porque o **Desktop limpo** fica desligado. Se você preferia o desktop sem ícones da prévia, ligue **Desktop limpo** em **Geral**.
+- O atalho da prévia na pasta Inicializar do Windows é removido. A versão 1.0 inicia com o Windows por uma entrada de inicialização do seu usuário.
 - O Orla mostra o aviso "Seus grupos da versão anterior agora são coleções, e os ícones do Windows voltaram a aparecer. Para escondê-los de novo, ligue Desktop limpo."
 
-O arquivo original da versão 1 fica guardado, sem alterações, como `layout.json.v1`, ao lado do `layout.json`. A versão 1 não lê o arquivo da versão 2, então, para voltar a ela, saia do Orla, apague `layout.json` e renomeie `layout.json.v1` para `layout.json`. As duas versões não rodam ao mesmo tempo.
+O arquivo original da prévia fica guardado, sem alterações, como `layout.json.preview`, ao lado do `layout.json`. A prévia não lê o arquivo da versão 1.0, então, para voltar a ela, saia do Orla, apague `layout.json` e renomeie `layout.json.preview` para `layout.json`. As duas versões não rodam ao mesmo tempo.
 
 ## Onde ficam seus dados
 
@@ -298,7 +298,7 @@ Tudo fica em `%LOCALAPPDATA%\Orla`, tanto na versão instalada quanto na portát
 | --- | --- |
 | `layout.json` | Painéis, itens, posições e ajustes |
 | `layout.json.bak` | A versão anterior, criada a cada salvamento |
-| `layout.json.v1` | O arquivo da versão 1, guardado sem alterações na atualização, se você usava a versão 1 |
+| `layout.json.preview` | O arquivo da prévia 0.1, guardado sem alterações na atualização, se você usava a prévia |
 | `layout.json.corrupt-<data>` | Uma cópia de um arquivo que não pôde ser lido, guardada para você não perder nada |
 
 O Orla salva em um arquivo temporário e só depois troca pelo definitivo, então uma queda de energia no meio do salvamento não corrompe o layout. Se o `layout.json` não puder ser lido, o Orla usa o `.bak` e avisa: "Seus painéis foram recuperados da última cópia salva."

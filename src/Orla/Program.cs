@@ -10,7 +10,7 @@ namespace Orla
 {
     public static class Program
     {
-        // Shared with version 1, so the two never run at the same time.
+        // Shared with the 0.1 preview, so the two never run at the same time.
         const string MutexName = @"Local\OrlaDesktopOrganizer", SettingsEvent = @"Local\Orla.OpenSettings";
 
         public static string DataDirectory =>

@@ -2,7 +2,7 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
-## Version 2
+## 1.0
 
 ### Environment
 
@@ -24,7 +24,7 @@ This page records what has been tested, how, and what has not been tested yet. N
 | Persistence | Atomic save with backup and reload; recovery from a corrupt file using the backup, across restarts; empty layouts; unknown versions and duplicate IDs rejected; panel size and opacity clamped |
 | Panel metrics | Panel sizes are whole columns and rows of tiles |
 | Startup | Start with Windows is on until the user configures it |
-| Migration | A version 1 file becomes collections with mapped tints, scaled positions and sizes in columns and rows; the Windows icons are shown again (Clean desktop off) |
+| Migration | A 0.1 preview layout becomes collections with mapped tints, scaled positions and sizes in columns and rows; the Windows icons are shown again (Clean desktop off) |
 | Presets | Store links such as `steam://` and `com.epicgames.launcher://` and known install folders are recognized as games; every preset has text in every language and builds a valid panel |
 | Translations | All six language files (`pt-BR`, `en`, `es`, `fr`, `de`, `it`) have the same keys as English; every key used in C# or XAML exists |
 
@@ -68,6 +68,6 @@ The checklist for testers is in [docs/en/manual-test.md](en/manual-test.md) ([Po
 
 Reports for any of these are welcome in [Issues](https://github.com/ThePlayNEW/orla/issues/new/choose).
 
-## Version 1
+## 0.1 preview
 
-Version 1 used top-level tool windows above the desktop instead of child windows. It was tested on Windows 10 Pro 22H2 with 11 xUnit tests and an interactive smoke test. A background sample with 52 saved references and the organization window closed measured 86.5 MB combined working set for the main process and the restoration companion, with no measurable CPU time over ten seconds. Those figures come from a different window model and a different number of panels, so they are not directly comparable with version 2.
+The 0.1 preview used top-level tool windows above the desktop instead of child windows. It was tested on Windows 10 Pro 22H2 with 11 xUnit tests and an interactive smoke test. A background sample with 52 saved references and the organization window closed measured 86.5 MB combined working set for the main process and the restoration companion, with no measurable CPU time over ten seconds. Those figures come from a different window model and a different number of panels, so they are not directly comparable with 1.0.
