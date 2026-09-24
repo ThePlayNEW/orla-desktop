@@ -15,7 +15,6 @@ namespace Orla
         public string filePath;
         public Layout data;
         public string recoveryNotice;
-        public bool migrated;
 
         public Store(string path)
         {
@@ -28,14 +27,14 @@ namespace Orla
         }
 
         // Returns false when there was no saved layout, so the caller can run the welcome flow.
-        public bool load(string seed, double legacyScale = 1)
+        public bool load(string seed)
         {
             if (File.Exists(filePath))
             {
                 string text = readShared(filePath);
                 try
                 {
-                    data = parse(text, legacyScale, out migrated);
+                    data = parse(text);
                 }
                 catch (Exception e) when (!(e is IOException || e is UnauthorizedAccessException))
                 {
@@ -44,7 +43,7 @@ namespace Orla
                     if (File.Exists(filePath + ".bak"))
                         try
                         {
-                            data = parse(readShared(filePath + ".bak"), legacyScale, out migrated);
+                            data = parse(readShared(filePath + ".bak"));
                             File.Copy(filePath + ".bak", filePath, true);
                             recoveryNotice = Text.get("notice.recovered");
                             return true;
@@ -54,21 +53,9 @@ namespace Orla
                         }
                     throw new InvalidDataException(Text.format("error.layoutUnreadable", corrupt));
                 }
-                if (migrated)
-                    try
-                    {
-                        // Keep the 0.1 preview file as it was, once, before the first save in the new format.
-                        if (!File.Exists(filePath + ".preview"))
-                            File.Copy(filePath, filePath + ".preview");
-                        save();
-                    }
-                    catch (IOException)
-                    {
-                        // The migrated layout is in memory; it is saved with the next change.
-                    }
                 return true;
             }
-            data = File.Exists(seed) ? parse(File.ReadAllText(seed), legacyScale, out migrated) : new Layout();
+            data = File.Exists(seed) ? parse(File.ReadAllText(seed)) : new Layout();
             return File.Exists(seed);
         }
 
@@ -88,16 +75,10 @@ namespace Orla
 
         public static Layout parse(string text)
         {
-            return parse(text, 1, out _);
-        }
-
-        public static Layout parse(string text, double legacyScale, out bool migrated)
-        {
             var raw = json().DeserializeObject(text) as Dictionary<string, object>;
             if (raw == null || !(raw.TryGetValue("Version", out object version) && version is int))
                 throw new InvalidDataException("Invalid layout.");
-            migrated = (int)version == 1;
-            if (!migrated && (int)version != Layout.CurrentVersion)
+            if ((int)version != Layout.CurrentVersion)
                 throw new InvalidDataException("Unsupported layout version.");
 
             Layout d = json().Deserialize<Layout>(text);
@@ -105,8 +86,6 @@ namespace Orla
                 d.SortedFolders = new List<string>();
             if (d == null || d.Groups == null || d.Groups.Count > MaxGroups)
                 throw new InvalidDataException("Invalid layout.");
-            if (migrated)
-                migrate(d, raw, legacyScale);
 
             d.Opacity = clamp(d.Opacity, Layout.MinOpacity, Layout.MaxOpacity, Layout.DefaultOpacity);
             if (!new[] { "system", "light", "dark" }.Contains(d.Theme))
@@ -148,47 +127,6 @@ namespace Orla
             return d;
         }
 
-        // The 0.1 preview (layout format 1) stored every group as references, sized and positioned in device-independent units on the
-        // primary monitor, and always hid the Windows icons. Groups become collections of about the same size, and
-        // the Windows icons come back: Orla now shares the desktop with them unless people choose a clean desktop.
-        static void migrate(Layout d, Dictionary<string, object> raw, double legacyScale)
-        {
-            var oldGroups = raw.TryGetValue("Groups", out object list) ? list as object[] : null;
-            for (int i = 0; i < d.Groups.Count; i++)
-            {
-                Group g = d.Groups[i];
-                if (g == null)
-                    continue;
-                g.Kind = PanelKind.Collection;
-                var old = oldGroups != null && i < oldGroups.Length ? oldGroups[i] as Dictionary<string, object> : null;
-                string color = old != null && old.TryGetValue("Color", out object c) ? c as string : null;
-                g.Tint = legacyTint(color);
-                g.X = finite(g.X, 24) * legacyScale;
-                g.Y = finite(g.Y, 64) * legacyScale;
-                double width = old != null && old.TryGetValue("Width", out object w) ? Convert.ToDouble(w) : 332;
-                double height = old != null && old.TryGetValue("Height", out object h) ? Convert.ToDouble(h) : 306;
-                g.Columns = (int)Math.Round((width - PanelMetrics.ChromeWidth) / PanelMetrics.tile("medium"));
-                g.Rows = (int)Math.Round((height - PanelMetrics.ChromeHeight) / PanelMetrics.tile("medium"));
-            }
-            d.CleanDesktop = false;
-            d.Welcomed = true;
-            d.OverlayHotkey = true;
-            d.Theme = "system";
-            d.Language = "system";
-            d.IconSize = "medium";
-        }
-
-        static string legacyTint(string color)
-        {
-            switch ((color ?? "").ToUpperInvariant())
-            {
-                case "#8BBEFF": return Tints.Sky;
-                case "#E9C58A": return Tints.Sand;
-                case "#B6A3F5": return Tints.Coral;
-                default: return Tints.SeaGlass;
-            }
-        }
-
         static double finite(double value, double fallback)
         {
             return Double.IsNaN(value) || Double.IsInfinity(value) ? fallback : value;
@@ -223,11 +161,6 @@ namespace Orla
                     // Antivirus or sync tools sometimes hold the file for a moment.
                     System.Threading.Thread.Sleep(120);
                 }
-        }
-
-        public Group find(string groupId)
-        {
-            return data.Groups.FirstOrDefault(g => g.Id == groupId);
         }
 
         public Group owner(string itemId)
@@ -286,22 +219,13 @@ namespace Orla
     // it or at something inside it, such as a folder of shortcuts whose shortcuts are in panels.
     public class Organized
     {
-        readonly HashSet<string> exact;
         readonly List<string> paths;
 
         public Organized(IEnumerable<string> shown)
         {
-            paths = shown.Where(p => !String.IsNullOrEmpty(p)).Select(p => p.TrimEnd('\\')).ToList();
-            exact = new HashSet<string>(paths, StringComparer.OrdinalIgnoreCase);
+            paths = shown.Where(p => !String.IsNullOrEmpty(p)).ToList();
         }
 
-        public bool Contains(string path)
-        {
-            path = path.TrimEnd('\\');
-            if (exact.Contains(path))
-                return true;
-            string inside = path + "\\";
-            return paths.Any(p => p.StartsWith(inside, StringComparison.OrdinalIgnoreCase));
-        }
+        public bool Contains(string path) => paths.Any(p => Shell.within(p, path));
     }
 }

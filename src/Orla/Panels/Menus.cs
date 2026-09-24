@@ -40,11 +40,20 @@ namespace Orla
             return p;
         }
 
-        public static FrameworkElement swatch(string brushKey)
+        // The shoreline colours for a panel, each with its swatch.
+        public static MenuItem tints(Group g, Controller controller)
         {
-            var dot = new Ellipse { Width = 12, Height = 12, Margin = new Thickness(4, 0, 0, 0) };
-            dot.SetResourceReference(Shape.FillProperty, brushKey);
-            return dot;
+            MenuItem menu = item("panel.tint", "Glyph.PanelCollection", null);
+            foreach (string t in Tints.All)
+            {
+                string value = t;
+                var dot = new Ellipse { Width = 12, Height = 12, Margin = new Thickness(4, 0, 0, 0) };
+                dot.SetResourceReference(Shape.FillProperty, "Brush.Tint." + t);
+                MenuItem option = check("tint." + t, g.Tint == t, () => controller.setTint(g, value));
+                option.Icon = dot;
+                menu.Items.Add(option);
+            }
+            return menu;
         }
     }
 }

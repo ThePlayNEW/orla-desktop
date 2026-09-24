@@ -61,7 +61,7 @@ namespace Orla
                 Theme.install(app);
                 string dataDirectory = tool ? Path.Combine(Path.GetTempPath(), "Orla-" + Guid.NewGuid().ToString("N")) : DataDirectory;
                 var store = new Store(Path.Combine(dataDirectory, "layout.json"));
-                store.load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "seed.json"), Screens.primary().Scale);
+                store.load(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "seed.json"));
                 Text.load(store.data.Language);
                 Theme.apply(store.data);
                 controller = new Controller(store, !tool);
@@ -72,6 +72,8 @@ namespace Orla
                     }, null, Timeout.Infinite, false);
                 app.DispatcherUnhandledException += (s, e) => {
                     controller.restoreIcons();
+                    if (!tool)
+                        Report.log(e.Exception);
                     if (tool)
                     {
                         File.WriteAllText(args[1] + ".error.txt", e.Exception.ToString());
@@ -99,6 +101,8 @@ namespace Orla
             catch (Exception e)
             {
                 controller?.restoreIcons();
+                if (!tool)
+                    Report.log(e);
                 if (tool && args.Length > 1)
                     File.WriteAllText(args[1] + ".error.txt", e.ToString());
                 else

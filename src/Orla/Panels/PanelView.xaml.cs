@@ -205,8 +205,7 @@ namespace Orla
                 }
                 else if (e.Key == Key.A && Keyboard.Modifiers == ModifierKeys.Control && !TitleEditor.IsVisible)
                 {
-                    foreach (TileItem t in tiles)
-                        t.Selected = true;
+                    selectAll();
                     e.Handled = true;
                 }
             };
@@ -292,7 +291,7 @@ namespace Orla
             int contentRows = Math.Max(1, (int)Math.Ceiling(tiles.Count / (double)Group.Columns));
             int rows = Math.Max(1, Math.Min(Group.AutoHeight ? contentRows : Group.Rows, Math.Min(Group.Rows, RoomRows)));
             double width = PanelMetrics.width(Group.Columns, IconSize);
-            double height = Group.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, IconSize);
+            double height = PanelMetrics.height(Group, rows, IconSize);
             if (width == Width && height == Height)
                 return;
             Width = width;
@@ -432,7 +431,7 @@ namespace Orla
 
         void headerDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.OriginalSource is DependencyObject d && isInside(d, HeaderButtons) || TitleEditor.IsVisible)
+            if (up(e.OriginalSource, d => d == HeaderButtons) != null || TitleEditor.IsVisible)
                 return;
             if (e.ClickCount == 2)
             {
@@ -492,31 +491,35 @@ namespace Orla
 
         // ---- selection ----
 
-        static TileItem tileAt(object source)
+        // The element itself or its nearest visual ancestor that matches.
+        static DependencyObject up(object source, Func<DependencyObject, bool> match)
         {
             for (var d = source as DependencyObject; d != null; d = VisualTreeHelper.GetParent(d))
-                if (d is FrameworkElement f && f.DataContext is TileItem t)
-                    return t;
+                if (match(d))
+                    return d;
             return null;
         }
 
-        static bool insideScrollBar(DependencyObject d)
-        {
-            for (; d != null; d = VisualTreeHelper.GetParent(d))
-                if (d is ScrollBar)
-                    return true;
-            return false;
-        }
-
-        static bool isInside(DependencyObject d, DependencyObject ancestor)
-        {
-            for (; d != null; d = VisualTreeHelper.GetParent(d))
-                if (d == ancestor)
-                    return true;
-            return false;
-        }
+        static TileItem tileAt(object source) =>
+            (up(source, d => d is FrameworkElement f && f.DataContext is TileItem) as FrameworkElement)?.DataContext as TileItem;
 
         List<TileItem> Selection => tiles.Where(t => t.Selected).ToList();
+
+        // What an action on a tile applies to: the selection, or the tile alone when nothing is selected.
+        List<TileItem> selectionOr(TileItem tile) => Selection.Count > 0 ? Selection : new List<TileItem> { tile };
+
+        void selectAll()
+        {
+            foreach (TileItem t in tiles)
+                t.Selected = true;
+        }
+
+        // A dozen at most, so a stray Enter on a big selection does not open a flood of windows.
+        void openAll(List<TileItem> selection)
+        {
+            foreach (TileItem t in selection.Take(12))
+                controller.open(t.Path);
+        }
 
         void selectOnly(TileItem tile)
         {
@@ -577,7 +580,7 @@ namespace Orla
 
         void marqueeDown(object sender, MouseButtonEventArgs e)
         {
-            if (tileAt(e.OriginalSource) != null || insideScrollBar(e.OriginalSource as DependencyObject))
+            if (tileAt(e.OriginalSource) != null || up(e.OriginalSource, d => d is ScrollBar) != null)
                 return;
             controller.focusPanel(this);
             marqueeBase = (Keyboard.Modifiers & ModifierKeys.Control) != 0 ? new HashSet<TileItem>(Selection) : new HashSet<TileItem>();
@@ -674,12 +677,11 @@ namespace Orla
             TileItem tile = tileAt(e.OriginalSource);
             if (tile == null)
                 return;
-            List<TileItem> selection = Selection.Count > 0 ? Selection : new List<TileItem> { tile };
+            List<TileItem> selection = selectionOr(tile);
             switch (e.Key)
             {
             case Key.Enter:
-                foreach (TileItem t in selection.Take(12))
-                    controller.open(t.Path);
+                openAll(selection);
                 break;
             case Key.F2:
                 if (tile.Entry != null)
@@ -733,14 +735,11 @@ namespace Orla
 
         ContextMenu tileMenuFor(TileItem tile)
         {
-            List<TileItem> selection = Selection.Count > 0 ? Selection : new List<TileItem> { tile };
+            List<TileItem> selection = selectionOr(tile);
             bool many = selection.Count > 1;
             var entries = selection.Where(t => t.Entry != null).Select(t => t.Entry).ToList();
             var menu = new ContextMenu();
-            MenuItem open = Menus.item("tile.open", "Glyph.Open", () => {
-                foreach (TileItem t in selection.Take(12))
-                    controller.open(t.Path);
-            }, "Enter");
+            MenuItem open = Menus.item("tile.open", "Glyph.Open", () => openAll(selection), "Enter");
             if (many)
                 open.Header = Text.format("tile.openMany", selection.Count);
             menu.Items.Add(open);
@@ -789,21 +788,10 @@ namespace Orla
                 menu.Items.Add(Menus.item("panel.addFolder", "Glyph.PanelFolder", () => controller.addFolder(Group)));
             }
             if (tiles.Count > 0)
-                menu.Items.Add(Menus.item("panel.selectAll", "Glyph.Check", () => {
-                    foreach (TileItem t in tiles)
-                        t.Selected = true;
-                }, Text.get("key.selectAll")));
+                menu.Items.Add(Menus.item("panel.selectAll", "Glyph.Check", selectAll, Text.get("key.selectAll")));
             menu.Items.Add(new Separator());
             menu.Items.Add(Menus.item("panel.rename", "Glyph.Rename", startRename));
-            MenuItem tint = Menus.item("panel.tint", "Glyph.PanelCollection", null);
-            foreach (string t in Tints.All)
-            {
-                string value = t;
-                MenuItem option = Menus.check("tint." + t, Group.Tint == t, () => controller.setTint(Group, value));
-                option.Icon = Menus.swatch("Brush.Tint." + t);
-                tint.Items.Add(option);
-            }
-            menu.Items.Add(tint);
+            menu.Items.Add(Menus.tints(Group, controller));
             menu.Items.Add(Menus.check("panel.autoHeight", Group.AutoHeight, () => controller.setAutoHeight(Group, !Group.AutoHeight)));
             menu.Items.Add(Menus.item(Group.Collapsed ? "panel.expand" : "panel.collapse",
                                       Group.Collapsed ? "Glyph.ChevronDown" : "Glyph.ChevronUp",

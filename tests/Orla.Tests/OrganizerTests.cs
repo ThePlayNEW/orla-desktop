@@ -78,6 +78,33 @@ namespace Orla.Tests
         }
 
         [Fact]
+        public void defaultNamesFollowTheLanguageAndTypedNamesStay()
+        {
+            var layout = new Layout();
+            layout.Groups.Add(new Group { Name = "Jogos" });
+            layout.Groups.Add(new Group { Name = "Acesso rápido" });
+            layout.Groups.Add(new Group { Name = "Meus jogos" });
+            layout.Groups.Add(new Group { Name = "games" });
+            layout.Groups.Add(new Group { Name = "Applications", AutoCategory = Organizer.Apps });
+            try
+            {
+                Text.load("en");
+                Assert.True(Organizer.retitle(layout));
+                // Exact names only, and the organizer's own category before a preset with the same name.
+                Assert.Equal(new[] { "Games", "Quick access", "Meus jogos", "games", "Apps" }, layout.Groups.Select(g => g.Name));
+                Assert.False(Organizer.retitle(layout));
+                Text.load("pt-BR");
+                Organizer.retitle(layout);
+                Assert.Equal("Apps", layout.Groups[4].Name);
+                Assert.Equal("Jogos", layout.Groups[0].Name);
+            }
+            finally
+            {
+                Text.load("system");
+            }
+        }
+
+        [Fact]
         public void aLayoutFromBeforeTheOrganizerStillLoads()
         {
             Layout layout = Store.parse("{\"Version\":2,\"Groups\":[]}");

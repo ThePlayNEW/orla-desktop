@@ -38,6 +38,38 @@ namespace Orla
 
         public static Category category(string key) => Categories.FirstOrDefault(c => c.Key == key);
 
+        // A panel called by the name Orla gave it follows the interface language; a name someone typed stays as it is.
+        // Panels from before names were keyed get their key when the name is exactly one of Orla's, in any language.
+        // Returns whether anything changed.
+        public static bool retitle(Layout layout)
+        {
+            var keys = Presets.All.Select(p => "preset." + p.Key).Concat(Categories.Select(c => "organize." + c.Key)).ToList();
+            var names = Text.Languages.Select(Text.read).ToList();
+            bool changed = false;
+            foreach (Group g in layout.Groups)
+            {
+                if (g.TitleKey == null)
+                {
+                    // The organizer's own category comes first: "Apps" is both a preset and a category in some languages.
+                    string own = g.AutoCategory == QuickAccess ? "preset.quickAccess" : category(g.AutoCategory) != null ? "organize." + g.AutoCategory : null;
+                    g.TitleKey = new[] { own }.Concat(keys).FirstOrDefault(k => k != null &&
+                        names.Any(n => n.TryGetValue(k, out string name) && name == g.Name));
+                    changed |= g.TitleKey != null;
+                }
+                if (g.TitleKey != null && Text.get(g.TitleKey) == g.TitleKey)
+                {
+                    g.TitleKey = null;
+                    changed = true;
+                }
+                if (g.TitleKey != null && g.Name != Text.get(g.TitleKey))
+                {
+                    g.Name = Text.get(g.TitleKey);
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
         public class Plan
         {
             public List<Group> Groups = new List<Group>();
@@ -91,7 +123,7 @@ namespace Orla
         public static Group panel(string key, IEnumerable<string> paths)
         {
             Category c = category(key);
-            var g = new Group { Name = Text.get("organize." + c.Key), Tint = c.Tint, AutoCategory = c.Key };
+            Group g = new Group { Tint = c.Tint, AutoCategory = c.Key }.titled("organize." + c.Key);
             foreach (string path in paths.OrderBy(Shell.displayName, StringComparer.CurrentCultureIgnoreCase).Take(Store.MaxItems))
                 g.Items.Add(new Entry { Name = Shell.displayName(path), Path = path });
             return g;
@@ -111,7 +143,7 @@ namespace Orla
         // Lays out a plan: tools from the left edge, work and the desktop inbox from the right edge.
         public static Layout build(Plan plan, Layout settings, bool clean, bool keep, Screen screen)
         {
-            Layout layout = Starter.copySettings(settings);
+            Layout layout = settings.copySettings();
             layout.Welcomed = true;
             layout.CleanDesktop = clean;
             layout.AutoOrganize = keep;
@@ -132,16 +164,17 @@ namespace Orla
             return layout;
         }
 
-        // Tools on the left and the rest on the right; with the Windows icons showing, their column on the left stays
-        // free and every panel goes on the right. Panels the organizer did not make count as work.
-        public static void arrange(Layout layout, Screen screen)
+        // The one way Orla lays panels out: tools on the left and the rest on the right; with the Windows icons showing,
+        // their column on the left stays free and every panel goes on the right. Panels the organizer did not make,
+        // such as presets, count as work.
+        public static void arrange(Layout layout, Screen screen, bool keepCollapsed = false)
         {
             var tools = layout.Groups.Where(g => category(g.AutoCategory)?.Tools == true || g.AutoCategory == QuickAccess).ToList();
             var work = layout.Groups.Where(g => !tools.Contains(g)).ToList();
             if (layout.CleanDesktop)
-                Screens.arrange(tools, work, layout.IconSize, screen);
+                Screens.arrange(tools, work, layout.IconSize, screen, keepCollapsed);
             else
-                Screens.arrange(new Group[0], tools.Concat(work).ToList(), layout.IconSize, screen);
+                Screens.arrange(new Group[0], tools.Concat(work).ToList(), layout.IconSize, screen, keepCollapsed);
         }
 
         // Where something new on the desktop belongs, among the panels the organizer made. Null leaves it in the inbox.
@@ -321,6 +354,104 @@ namespace Orla
             if (utilityExe.Contains(exe) || utilityPath.Any(t.Contains))
                 return Utilities;
             return Apps;
+        }
+    }
+
+    // Recognizes game and game-launcher shortcuts by where they point: store links such as steam:// and the
+    // install folders the major stores use.
+    public static class Games
+    {
+        static readonly string[] schemes = { "steam://rungameid", "steam://run", "com.epicgames.launcher://apps", "uplay://launch",
+                                             "origin2://", "origin://launchgame", "eadm://", "battlenet://", "riotclient://",
+                                             "goggalaxy://", "heroic://", "rockstar://" };
+        static readonly string[] folders = { @"\steamapps\common\", @"\epic games\", @"\riot games\", @"\ubisoft game launcher\games\",
+                                             @"\ea games\", @"\origin games\", @"\gog galaxy\games\", @"\gog games\", @"\battle.net\",
+                                             @"\rockstar games\", @"\xboxgames\", @"\minecraft launcher\" };
+        static readonly string[] launchers = { "steam.exe", "epicgameslauncher.exe", "battle.net launcher.exe", "battle.net.exe",
+                                               "riotclientservices.exe", "upc.exe", "ubisoftconnect.exe", "eadesktop.exe", "origin.exe",
+                                               "galaxyclient.exe", "launcher.exe", "minecraftlauncher.exe", "playnite.desktopapp.exe",
+                                               "ealauncher.exe", "fivem.exe", "redm.exe", "lunar client.exe", "curseforge.exe",
+                                               "tlauncher.exe", "robloxplayerlauncher.exe", "robloxplayerbeta.exe", "leagueclient.exe",
+                                               "hoyoplay.exe", "prismlauncher.exe" };
+
+        public static bool isShortcut(string path)
+        {
+            string e = Path.GetExtension(path).ToLowerInvariant();
+            return e == ".lnk" || e == ".url";
+        }
+
+        public static bool isGame(string path) => isGameTarget(targetOf(path));
+
+        public static bool isGameTarget(string target)
+        {
+            target = (target ?? "").ToLowerInvariant();
+            if (target.Length == 0)
+                return false;
+            if (schemes.Any(s => target.StartsWith(s)) || folders.Any(f => target.Contains(f)))
+                return true;
+            string exe = fileName(target);
+            return launchers.Contains(exe) && (exe != "launcher.exe" || target.Contains("rockstar"));
+        }
+
+        // The last part of a path or URL. Unlike Path.GetFileName it accepts any character a URL may hold.
+        public static string fileName(string target) => target.Substring(target.LastIndexOfAny(new[] { '\\', '/' }) + 1);
+
+        // Game shortcuts on the desktop and in the Start menu, one per name.
+        public static IEnumerable<string> find()
+        {
+            var roots = Shell.desktopDirectories().Select(d => new { Path = d, Deep = false }).ToList();
+            foreach (var menu in new[] { Environment.SpecialFolder.Programs, Environment.SpecialFolder.CommonPrograms })
+                roots.Add(new { Path = Environment.GetFolderPath(menu), Deep = true });
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var root in roots.Where(r => Directory.Exists(r.Path)))
+            {
+                List<string> files;
+                try
+                {
+                    files = Directory.EnumerateFiles(root.Path, "*.*", root.Deep ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                                .Where(isShortcut)
+                                .ToList();
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                foreach (string file in files)
+                    if (isGame(file) && seen.Add(Path.GetFileNameWithoutExtension(file)))
+                        yield return file;
+            }
+        }
+
+        // Where a shortcut points: the URL of a .url file, or the target path of a .lnk file.
+        public static string targetOf(string path)
+        {
+            try
+            {
+                if (Path.GetExtension(path).Equals(".url", StringComparison.OrdinalIgnoreCase))
+                    return File.ReadLines(path).FirstOrDefault(l => l.StartsWith("URL=", StringComparison.OrdinalIgnoreCase))?.Substring(4);
+                Type type = Type.GetTypeFromProgID("WScript.Shell");
+                dynamic shell = Activator.CreateInstance(type);
+                try
+                {
+                    dynamic link = shell.CreateShortcut(path);
+                    try
+                    {
+                        return (string)link.TargetPath;
+                    }
+                    finally
+                    {
+                        System.Runtime.InteropServices.Marshal.FinalReleaseComObject(link);
+                    }
+                }
+                finally
+                {
+                    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

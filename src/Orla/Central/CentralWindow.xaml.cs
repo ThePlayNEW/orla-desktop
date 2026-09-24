@@ -18,7 +18,6 @@ namespace Orla
     {
         public const string Repository = "https://github.com/ThePlayNEW/orla-desktop";
         readonly Controller controller;
-        PanelView preview;
         bool loading, recording;
         Organizer.Plan plan;
         bool organizeFromWelcome;
@@ -44,7 +43,7 @@ namespace Orla
             ThemeDark.Checked += delegate { onChange(() => controller.setTheme("dark")); };
             OpacitySlider.ValueChanged += delegate {
                 OpacityValue.Text = Math.Round(OpacitySlider.Value * 100) + "%";
-                onChange(() => controller.setOpacity(OpacitySlider.Value, false));
+                onChange(() => controller.setOpacity(OpacitySlider.Value));
             };
             OpacitySlider.AddHandler(Thumb.DragCompletedEvent, new DragCompletedEventHandler(delegate { controller.saveLayout(); }));
             OpacitySlider.LostKeyboardFocus += delegate { controller.saveLayout(); };
@@ -99,7 +98,7 @@ namespace Orla
 
             DataButton.Click += delegate { controller.open(controller.DataDirectory); };
             GuideButton.Click += delegate { browse(Repository + (Text.Language == "pt-BR" ? "/blob/main/docs/pt-BR/guia.md" : "/blob/main/docs/en/guide.md")); };
-            IssueButton.Click += delegate { browse(Repository + "/issues/new/choose"); };
+            IssueButton.Click += delegate { browse(Report.issueUrl(Repository)); };
             QuitButton.Click += delegate { controller.quit(); };
             StartButton.Click += delegate {
                 if (ChoiceOrganize.IsChecked == true)
@@ -243,11 +242,10 @@ namespace Orla
             foreach (Group g in next.Groups)
             {
                 // Edges are rounded, not sizes, so the gaps between neighbours stay even.
-                int rows = g.IsFolder ? g.Rows : Math.Max(1, Math.Min(g.Rows, (int)Math.Ceiling(g.Items.Count / (double)g.Columns)));
+                int rows = PanelMetrics.plannedRows(g);
                 double left = (g.X - work.Left) * k, top = (g.Y - work.Top) * k;
                 double x0 = Math.Round(left), x1 = Math.Round(left + PanelMetrics.width(g.Columns, next.IconSize) * k * screen.Scale);
-                double tall = g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, next.IconSize);
-                double y0 = Math.Round(top), y1 = Math.Round(top + tall * k * screen.Scale);
+                double y0 = Math.Round(top), y1 = Math.Round(top + PanelMetrics.height(g, rows, next.IconSize) * k * screen.Scale);
                 FrameworkElement mini = miniPanel(g, rows, x1 - x0, y1 - y0, k * screen.Scale, next.IconSize);
                 Canvas.SetLeft(mini, x0);
                 Canvas.SetTop(mini, y0);
@@ -506,15 +504,7 @@ namespace Orla
                     if (name != null)
                         controller.renamePanel(g, name);
                 }));
-                MenuItem tint = Menus.item("panel.tint", "Glyph.PanelCollection", null);
-                foreach (string t in Tints.All)
-                {
-                    string value = t;
-                    MenuItem option = Menus.check("tint." + t, g.Tint == t, () => controller.setTint(g, value));
-                    option.Icon = Menus.swatch("Brush.Tint." + t);
-                    tint.Items.Add(option);
-                }
-                menu.Items.Add(tint);
+                menu.Items.Add(Menus.tints(g, controller));
                 if (g.IsFolder)
                     menu.Items.Add(Menus.item("panel.openFolder", "Glyph.Open", () => controller.open(Shell.resolveFolder(g.FolderPath))));
                 menu.Items.Add(new Separator());
@@ -572,11 +562,10 @@ namespace Orla
         void buildPreview()
         {
             PreviewHost.Children.Clear();
-            var sample = new Group { Name = Text.get("starter.quickAccess"), Columns = 3, Rows = 1, Tint = Tints.SeaGlass };
+            var sample = new Group { Name = Text.get("preset.quickAccess"), Columns = 3, Rows = 1, Tint = Tints.SeaGlass };
             foreach (string path in new[] { "shell:MyComputerFolder", "shell:Downloads", "shell:RecycleBinFolder" })
                 sample.Items.Add(new Entry { Name = Shell.displayName(path), Path = path });
-            preview = new PanelView(controller, sample) { IsHitTestVisible = false };
-            PreviewHost.Children.Add(preview);
+            PreviewHost.Children.Add(new PanelView(controller, sample) { IsHitTestVisible = false });
         }
     }
 }

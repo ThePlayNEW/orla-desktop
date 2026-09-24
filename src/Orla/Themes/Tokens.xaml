@@ -1,4 +1,4 @@
-<!-- Theme-independent design tokens: type, spacing, radii and motion. -->
+<!-- Theme-independent design tokens: type, spacing and radii. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
@@ -9,30 +9,13 @@
 
     <sys:Double x:Key="Type.Caption">12</sys:Double>
     <sys:Double x:Key="Type.Body">14</sys:Double>
-    <sys:Double x:Key="Type.Subtitle">20</sys:Double>
     <sys:Double x:Key="Type.Title">28</sys:Double>
     <sys:Double x:Key="Type.ItemLabel">12</sys:Double>
     <sys:Double x:Key="Type.PanelTitle">13</sys:Double>
 
-    <Thickness x:Key="Space.Panel">8,6,8,10</Thickness>
-    <Thickness x:Key="Space.PanelHeader">8,4,4,2</Thickness>
-    <Thickness x:Key="Space.Item">4,8,4,6</Thickness>
-    <Thickness x:Key="Space.Page">32,28,32,24</Thickness>
-    <sys:Double x:Key="Size.Item">84</sys:Double>
-    <sys:Double x:Key="Size.ItemIcon">32</sys:Double>
-    <sys:Double x:Key="Size.Glyph">20</sys:Double>
     <sys:Double x:Key="Size.HeaderButton">28</sys:Double>
 
     <CornerRadius x:Key="Radius.Panel">12</CornerRadius>
     <CornerRadius x:Key="Radius.Item">6</CornerRadius>
     <CornerRadius x:Key="Radius.Control">6</CornerRadius>
-    <CornerRadius x:Key="Radius.Window">8</CornerRadius>
-
-    <sys:Double x:Key="Stroke.Glyph">1.5</sys:Double>
-
-    <!-- Motion: short, eased out; skipped when Windows turns off animations. -->
-    <Duration x:Key="Motion.Fast">0:0:0.12</Duration>
-    <Duration x:Key="Motion.Normal">0:0:0.18</Duration>
-    <KeySpline x:Key="Motion.EaseOut">0.1,0.9 0.2,1</KeySpline>
-
 </ResourceDictionary>

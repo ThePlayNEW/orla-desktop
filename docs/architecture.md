@@ -22,15 +22,14 @@ This document describes Orla Desktop 1.0. User-facing behaviour is covered in th
 | `PanelView` | `Panels/PanelView.xaml(.cs)` | Panel content: header, tiles, selection, menus, drag and drop, folder watching |
 | `CentralWindow` | `Central/CentralWindow.xaml(.cs)` | The Orla window: welcome and preset choice, panels, appearance, general, about |
 | `Layout`, `Group`, `Entry` | `Model/Layout.cs` | The saved data |
-| `Store` | `Model/Store.cs` | Validation, atomic persistence, recovery, migration from the 0.1 preview |
-| `Starter` | `Model/Starter.cs` | The first-run layout built from presets, and copying settings into a new layout |
+| `Store` | `Model/Store.cs` | Validation, atomic persistence, recovery |
 | `Organizer` | `Model/Organizer.cs` | **Let Orla organize**: sorting desktop items into categories and laying the panels out |
 | `Presets`, `Games` | `Model/Presets.cs` | Ready-made panels, and recognition of game and launcher shortcuts |
 | `PanelMetrics` | `Model/PanelMetrics.cs` | Panel geometry in columns and rows of tiles |
 | `Text` | `Strings/Text.cs` | Interface strings from embedded JSON |
 | `Theme` | `Themes/Theme.cs` | Palette selection, High Contrast, panel opacity |
 | `Smoke`, `Render`, `Demo` | `Smoke.cs`, `Render.cs`, `Model/Demo.cs` | Integration check and documentation images with non-personal data |
-| `Orla.Tests` | `tests/Orla.Tests` | xUnit tests for the model, persistence, migration, presets and translations |
+| `Orla.Tests` | `tests/Orla.Tests` | xUnit tests for the model, persistence, layout, the organizer, presets and translations |
 
 ## Desktop layer integration
 
@@ -116,7 +115,7 @@ The process is per-monitor DPI aware (PerMonitorV2). Positions are stored in phy
 
 A category with a single item joins its fallback (**Apps** for tools, **Files** for documents and media). The panels remember their category in `Group.AutoCategory`.
 
-`Organizer.build` makes a layout with the current settings. `Screens.arrange(left, right, iconSize, screen)` places the tool panels and **Quick access** from the top-left corner of the primary monitor and the work panels and the desktop inbox from the top-right corner. Without a clean desktop, everything goes on the right, clear of the Windows icons.
+`Organizer.build` makes a layout with the current settings. `Screens.arrange(left, right, iconSize, screen)` places the tool panels and **Quick access** from the top-left corner of the primary monitor and the work panels and the desktop inbox from the top-right corner. Without a clean desktop, everything goes on the right, clear of the Windows icons. It is the only layout Orla has: the first panels from presets and **Rearrange panels** go through `Organizer.arrange` too, where panels the organizer did not make count as work.
 
 For each side it tries a few shapes: one to four columns of panels, three to five icons per row. Every panel in a side has the same width, so the columns line up. Panels keep their order and are split so the columns have about the same height. Each panel asks for as many rows as its items need, up to six. When a column is too tall, the panel with the most rows gives one up, and those items scroll. When every panel is down to one row and the column is still too tall, the last panels start collapsed.
 
@@ -160,7 +159,7 @@ Reporting no effect is deliberate. Under the optimized-move contract, a source t
 
 Measured memory and CPU figures are in [validation.md](validation.md).
 
-## Persistence and migration
+## Persistence
 
 The layout lives in `%LOCALAPPDATA%\Orla\layout.json`, serialized with `JavaScriptSerializer`. It stores only names, paths, geometry and settings.
 
@@ -168,9 +167,7 @@ The layout lives in `%LOCALAPPDATA%\Orla\layout.json`, serialized with `JavaScri
 - **Loading:** the file is validated (version, unique IDs, known panel kinds, folder panels with a folder, at most 40 panels and 3,000 items per panel) and out-of-range values are clamped.
 - **Recovery:** an unreadable file is copied to `layout.json.corrupt-<timestamp>`. If `layout.json.bak` is valid, it is restored and the user is notified; otherwise Orla reports the problem and leaves the files untouched.
 - **References:** `ReferenceWatch` follows up to 64 folders that contain collection items. A rename updates the item's path; a deletion refreshes the panel so the item shows as missing. Removing a reference never touches the file.
-- **Migration from the 0.1 preview:** its layout (format `Version: 1`) is converted on load, and the untouched original is kept as `layout.json.preview`. Groups become collections, colours map to the nearest tint, positions are scaled from device-independent units to physical pixels using the primary monitor's scale, and sizes become columns and rows. Clean desktop is turned off, because 1.0 shares the desktop with the Windows icons by default. Panels are then rearranged from the top-right corner of the primary monitor, since panels from the preview could sit over the icon column that is now visible again. The converted file is saved immediately.
-
-The preview and 1.0 share the same single-instance mutex, so they never run at the same time. The preview rejects a 1.0 layout file. The preview's shortcut in the Startup folder is removed on upgrade.
+- **Other versions:** only format `Version: 2` is read. The 0.1 preview's format 1 is treated like an unreadable file.
 
 ## Installation, startup and updates
 

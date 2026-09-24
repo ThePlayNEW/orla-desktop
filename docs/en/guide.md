@@ -17,7 +17,6 @@ Orla places translucent panels on the Windows desktop. Each panel shows shortcut
 - [The Orla window](#the-orla-window)
 - [Keyboard](#keyboard)
 - [Multiple monitors](#multiple-monitors)
-- [Upgrading from the 0.1 preview](#upgrading-from-the-01-preview)
 - [Where your data lives](#where-your-data-lives)
 - [Troubleshooting](#troubleshooting)
 - [Frequently asked questions](#frequently-asked-questions)
@@ -33,7 +32,7 @@ Panels sit on the same layer as the desktop icons, inside the Explorer window th
 
 The keyboard shortcut, **Ctrl+Alt+Space** by default, hides or shows the panels when the desktop is in view and brings them to the front when a window is on top. See [The keyboard shortcut](#the-keyboard-shortcut).
 
-The Orla icon sits in the notification area, next to the clock. A click opens the Orla window. A right-click shows a menu with **Open Orla**, **Hide panels** (or **Show panels**), **Show panels in front**, **Lock panels**, **Clean desktop** and **Quit and restore the desktop**.
+The Orla icon sits in the notification area, next to the clock. A click opens the Orla window. A right-click shows a menu with **Open Orla**, **Hide panels** (or **Show panels**), **Show panels in front**, **Organize for me**, **Lock panels**, **Clean desktop** and **Quit and restore the desktop**.
 
 ## First run
 
@@ -90,7 +89,7 @@ The two options in the preview:
 | **Hide the Windows icons** | Turns on [Clean desktop](#clean-desktop) and creates the **New on desktop** panel with what is not in any panel yet. If you turn it off, the Windows icons stay and that panel is not created, because the icons already show what is new. |
 | **Keep organized** | Each new item on the desktop goes to its category's panel by itself, a few seconds after it arrives. An item deleted or moved off the desktop leaves its panel. Anything that fits nowhere stays in **New on desktop**. You can turn it on or off later in **Panels**. |
 
-If you already had panels, they are replaced. A copy of the previous layout stays in the [data folder](#where-your-data-lives) as `layout.json.before-organize-` followed by the date, and **Panels > Restore previous panels** undoes the organization while Orla is open.
+If you already had panels, they are replaced. A copy of the previous layout stays in the [data folder](#where-your-data-lives) as `layout.json.before-organize-` followed by the date, and **Panels > Restore previous panels** undoes the organization, even after Orla is closed and opened again. Each copy undoes once.
 
 ## Ready-made panels
 
@@ -178,7 +177,7 @@ Removing a panel never deletes files. For a collection, only the shortcuts go aw
 - **Rename:** double-click the title, type the new name and press Enter. Esc cancels.
 - **Collapse:** the chevron on the right of the title bar leaves only the title bar in view. Click it again to expand.
 - **Lock:** in **General**, **Lock position and size** prevents accidental moves and resizes. The same setting is in the notification area menu as **Lock panels**.
-- **Rearrange:** in **General**, **Rearrange panels** lines up every visible panel in the top-right corner of the main screen.
+- **Rearrange:** in **General**, **Rearrange panels** lays out the visible panels on the main screen the same way as **Let Orla organize**: tools on the left (when Clean desktop is on), everything else on the right and the middle free. Panels on each side get the same width.
 
 ## Items in panels
 
@@ -318,7 +317,7 @@ With Windows High Contrast on, Orla uses the system colours and turns off transp
 | **Key combination** | Changes the shortcut's combination. **Restore default** goes back to **Ctrl+Alt+Space**. |
 | **Lock position and size** | Prevents moving or resizing panels |
 | **Language** | **System** follows the Windows display language. You can also pick Português (Brasil), English, Español, Français, Deutsch or Italiano. The change applies immediately. |
-| **Rearrange panels** | The **Rearrange** button lines up the visible panels in the top-right corner of the main screen |
+| **Rearrange panels** | The **Rearrange** button lays out the visible panels on the main screen the same way as **Let Orla organize**: tools on the left (when Clean desktop is on), everything else on the right and the middle free. Panels on each side get the same width. |
 | **Start over** | The **Start over…** button removes every panel, returns settings to their defaults and opens **Welcome to Orla Desktop**, as after a fresh install. First, Orla keeps a copy of the current layout in its data folder as `layout.json.before-reset-<date>`. None of your files are moved or deleted, and **Start with Windows** stays as it was. To go back to the previous layout, quit Orla and rename that copy to `layout.json`. |
 | **Automatic updates** | Installed version only. On by default. See [Updates](#updates). |
 
@@ -349,18 +348,6 @@ You can place panels on any monitor. Each panel uses the scale of the monitor it
 
 Monitors with different scales, such as a laptop at 150% with an external monitor at 100%, have not been tested yet. If something looks out of place in that setup, [report it](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose).
 
-## Upgrading from the 0.1 preview
-
-If you used the 0.1 preview, version 1.0 converts its file the first time it opens:
-
-- Each group becomes a collection, with the same items, a similar size and a matching colour.
-- Panels are rearranged from the top-right corner of the main screen, because in the preview they could sit over the Windows icon column, which is visible again now.
-- The Windows icons are shown again, because **Clean desktop** is off. If you liked the preview's desktop without icons, turn on **Clean desktop** in **General**.
-- The preview's shortcut in the Windows Startup folder is removed. Version 1.0 starts with Windows through a per-user startup entry instead.
-- Orla shows the notice "Your groups from the previous version are now collections, and the Windows icons are visible again. To hide them, turn on Clean desktop."
-
-The preview's original file is kept, unchanged, as `layout.json.preview` next to `layout.json`. The preview cannot read the 1.0 file, so to go back to it, quit Orla, delete `layout.json` and rename `layout.json.preview` to `layout.json`. The two versions never run at the same time.
-
 ## Where your data lives
 
 Everything is in `%LOCALAPPDATA%\Orla`, for both the installed and the portable version. Under **About**, the **Open folder** button opens it.
@@ -369,14 +356,17 @@ Everything is in `%LOCALAPPDATA%\Orla`, for both the installed and the portable 
 | --- | --- |
 | `layout.json` | Panels, items, positions and settings |
 | `layout.json.bak` | The previous version, created on every save |
-| `layout.json.preview` | The 0.1 preview file, kept unchanged during the upgrade, if you used the preview |
 | `layout.json.corrupt-<date>` | A copy of a file that could not be read, kept so nothing is lost |
+| `layout.json.before-organize-<date>` | The panels from before each **Let Orla organize**, for **Restore previous panels** |
+| `orla.log` | Unexpected errors, if any, with paths in your user folder written as `%USERPROFILE%` |
 
 Orla writes to a temporary file first and then swaps it in, so a power cut during a save does not corrupt the layout. If `layout.json` cannot be read, Orla uses the `.bak` file and says: "Your panels were recovered from the last saved copy."
 
 The layout stores only paths and names. To back it up, copy `layout.json`.
 
-Orla has no telemetry. Its only network access is the installed version's update check, described in [Updates](#updates).
+Panels that still have the name Orla gave them, such as **Games** or **Downloads**, are renamed when you change the language. A name you typed stays as it is.
+
+Orla has no telemetry. Under **About**, **Report a problem** opens GitHub's form with your Windows version, Orla's version, your monitors and the last error in `orla.log` already filled in. Nothing is sent until you review and submit it. Orla's only network access is the installed version's update check, described in [Updates](#updates).
 
 ## Troubleshooting
 
@@ -404,7 +394,7 @@ When Explorer restarts, the desktop layer is recreated. Orla notices and puts th
 
 ### A panel is off screen
 
-Under **General**, click **Rearrange** next to **Rearrange panels**. Every visible panel moves to the top-right corner of the main screen.
+Under **General**, click **Rearrange** next to **Rearrange panels**. Every visible panel comes back to the main screen, lined up in columns.
 
 ### A panel disappeared
 

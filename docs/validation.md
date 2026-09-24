@@ -2,6 +2,17 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.2
+
+- Removed what nothing used: support for the 0.1 preview's layout, two small files, unused design tokens, glyphs and Windows calls. About 350 fewer lines.
+- One layout algorithm: the first panels from presets and **Rearrange panels** use the organizer's layout, so they line up in columns and stay clear of each other.
+- Panels with a default name follow the interface language.
+- **Restore previous panels** works after a restart, from the copy on disk.
+- **Organize for me** is in the notification area menu.
+- Unexpected errors are logged to `orla.log`, with the user folder written as `%USERPROFILE%`, and **Report a problem** fills in GitHub's form with the versions, monitors and last error.
+
+`./test.ps1` runs 48 xUnit tests. The removed migration test is replaced by tests for default panel names following the language (exact names only, typed names kept), the report link and the user name never reaching the log, and Rearrange keeping panels collapsed by hand.
+
 ## 1.1.2
 
 - **Let Orla organize** fits crowded desktops. Panels on each side share a width. The organizer picks how many columns of panels and icons per row to use, keeps the middle of the screen free, and lets big panels scroll instead of overlapping. On a small screen, the last panels start collapsed.

@@ -2,12 +2,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Color x:Key="Color.Tide">#0E3B43</Color>
-    <Color x:Key="Color.SeaGlass">#5EC8C0</Color>
-    <Color x:Key="Color.Sand">#E4D6BC</Color>
-    <Color x:Key="Color.Foam">#F2F6F5</Color>
-    <Color x:Key="Color.Ink">#0A2227</Color>
-
     <Color x:Key="Color.PanelGlass">#D109282E</Color>
     <SolidColorBrush x:Key="Brush.PanelGlass" Color="{StaticResource Color.PanelGlass}" />
     <SolidColorBrush x:Key="Brush.PanelBorder" Color="#425EC8C0" />

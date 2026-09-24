@@ -127,22 +127,9 @@ namespace Orla
         // Aligns a dropped panel to an 8 px grid and pulls it to nearby work-area edges and other panels.
         public static RECT snap(RECT r, IEnumerable<RECT> others)
         {
-            RECT work = forRect(r).Work;
-            int x = pull(r.Left, r.Width, new[] { work.Left + Margin }, new[] { work.Right - Margin });
-            int y = pull(r.Top, r.Height, new[] { work.Top + Margin }, new[] { work.Bottom - Margin });
-            foreach (RECT o in others)
-            {
-                bool rowsOverlap = r.Top < o.Bottom + Snap && r.Bottom > o.Top - Snap;
-                bool columnsOverlap = r.Left < o.Right + Snap && r.Right > o.Left - Snap;
-                if (rowsOverlap)
-                    x = pull(x, r.Width, new[] { o.Right + Margin, o.Left }, new[] { o.Left - Margin, o.Right });
-                if (columnsOverlap)
-                    y = pull(y, r.Height, new[] { o.Bottom + Margin, o.Top }, new[] { o.Top - Margin, o.Bottom });
-            }
-            if (x == r.Left)
-                x = (int)Math.Round(x / (double)Grid) * Grid;
-            if (y == r.Top)
-                y = (int)Math.Round(y / (double)Grid) * Grid;
+            RECT m = magnet(r, others, forRect(r).Work);
+            int x = m.Left == r.Left ? (int)Math.Round(r.Left / (double)Grid) * Grid : m.Left;
+            int y = m.Top == r.Top ? (int)Math.Round(r.Top / (double)Grid) * Grid : m.Top;
             return clamp(new RECT { Left = x, Top = y, Right = x + r.Width, Bottom = y + r.Height });
         }
 
@@ -157,23 +144,20 @@ namespace Orla
             return start;
         }
 
-        // Default arrangement: columns from the top-right corner of the primary monitor, leaving the left side,
-        // where Windows places its own icons, free.
-        public static void arrange(IList<Group> groups, string iconSize) => stack(groups, primary(), iconSize, false);
-
         // The organizer's layout: columns of panels from both top corners of a screen, the middle left free. Panels in a
         // column share one width, so the edges line up. Among a few ways to split each side into columns and icons per
         // row, it picks the one that hides the fewest rows behind scrolling while keeping the middle open, and never lets
         // panels overlap or leave the screen. When even one row each does not fit, the last panels start collapsed.
-        public static void arrange(IList<Group> left, IList<Group> right, string iconSize, Screen s)
+        // keepCollapsed: panels people collapsed stay collapsed (Rearrange); the organizer's preview starts fresh.
+        public static void arrange(IList<Group> left, IList<Group> right, string iconSize, Screen s, bool keepCollapsed = false)
         {
             left = left.Where(g => g.Visible).ToList();
             right = right.Where(g => g.Visible).ToList();
             const int edge = Margin * 2;
             RECT work = s.Work;
             int room = work.Height - 2 * edge;
-            var leftOptions = Fit.options(left, iconSize, s.Scale, room);
-            var rightOptions = Fit.options(right, iconSize, s.Scale, room);
+            var leftOptions = Fit.options(left, iconSize, s.Scale, room, keepCollapsed);
+            var rightOptions = Fit.options(right, iconSize, s.Scale, room, keepCollapsed);
             // The middle should keep a third of the screen. Below that, 60 px of middle costs about one row hidden behind
             // scrolling, and below a quarter it costs four times as much: a crowded desktop scrolls inside its panels, or
             // on a small screen starts some collapsed, before the wallpaper disappears.
@@ -197,8 +181,8 @@ namespace Orla
             if (bestLeft == null)
             {
                 // The two sides cannot share the width: everything goes on the right, as narrow as it has to be.
-                var one = Fit.options(left.Concat(right).ToList(), iconSize, s.Scale, room);
-                bestLeft = Fit.options(new Group[0], iconSize, s.Scale, room)[0];
+                var one = Fit.options(left.Concat(right).ToList(), iconSize, s.Scale, room, keepCollapsed);
+                bestLeft = Fit.options(new Group[0], iconSize, s.Scale, room, false)[0];
                 bestRight = one.Where(o => o.Width + 2 * edge <= work.Width).OrderBy(o => o.Cost).FirstOrDefault() ??
                             one.OrderBy(o => o.Width).First();
             }
@@ -222,7 +206,7 @@ namespace Orla
 
             public double Width, Cost;
 
-            public static List<Fit> options(IList<Group> groups, string iconSize, double scale, int room)
+            public static List<Fit> options(IList<Group> groups, string iconSize, double scale, int room, bool keepCollapsed)
             {
                 var list = new List<Fit>();
                 if (groups.Count == 0)
@@ -231,7 +215,7 @@ namespace Orla
                     return list;
                 }
                 foreach (int[] shape in shapes.Where(x => x[0] <= groups.Count))
-                    list.Add(new Fit(groups, shape[0], shape[1], iconSize, scale, room));
+                    list.Add(new Fit(groups, shape[0], shape[1], iconSize, scale, room, keepCollapsed));
                 return list;
             }
 
@@ -239,15 +223,16 @@ namespace Orla
             {
             }
 
-            Fit(IList<Group> groups, int stackCount, int columns, string iconSize, double scale, int room)
+            Fit(IList<Group> groups, int stackCount, int columns, string iconSize, double scale, int room, bool keepCollapsed)
             {
                 this.columns = columns;
                 this.scale = scale;
                 this.iconSize = iconSize;
                 panelWidth = (int)Math.Round(PanelMetrics.width(columns, iconSize) * scale);
                 rows = groups.ToDictionary(g => g, g => wanted(g));
-                // Collapsed and Rows are this layout's own output; a layout drawn again must not start from them.
-                collapsed = new HashSet<Group>();
+                // Collapsed and Rows are this layout's own output; a layout drawn again must not start from them, unless
+                // the panels were collapsed by hand.
+                collapsed = new HashSet<Group>(keepCollapsed ? groups.Where(g => g.Collapsed) : Enumerable.Empty<Group>());
                 // Columns keep the panels' order and share the height evenly.
                 double total = groups.Sum(g => height(g, rows[g]) + Margin), before = 0;
                 stacks = Enumerable.Range(0, stackCount).Select(_ => new List<Group>()).ToList();
@@ -298,7 +283,7 @@ namespace Orla
             }
 
             double height(Group g, int r) =>
-                Math.Round((collapsed != null && collapsed.Contains(g) ? PanelMetrics.CollapsedHeight : PanelMetrics.height(r, iconSize)) * scale);
+                Math.Round((collapsed.Contains(g) ? PanelMetrics.CollapsedHeight : PanelMetrics.height(r, iconSize)) * scale);
 
             double stackHeight(List<Group> st) => st.Sum(g => height(g, rows[g])) + (st.Count - 1) * Margin;
 
@@ -321,28 +306,6 @@ namespace Orla
                     }
                     x += direction * (panelWidth + Margin);
                 }
-            }
-        }
-
-        static void stack(IList<Group> groups, Screen s, string iconSize, bool fromLeft)
-        {
-            int x = fromLeft ? s.Work.Left + Margin * 2 : s.Work.Right - Margin * 2, y = s.Work.Top + Margin * 2, columnWidth = 0;
-            foreach (Group g in groups.Where(g => g.Visible))
-            {
-                int w = (int)Math.Round(PanelMetrics.width(g.Columns, iconSize) * s.Scale);
-                // Collections are as tall as their content; a folder's content is unknown here, so it gets its full rows.
-                int rows = g.IsFolder ? g.Rows : Math.Max(1, Math.Min(g.Rows, (int)Math.Ceiling(g.Items.Count / (double)g.Columns)));
-                int h = (int)Math.Round((g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, iconSize)) * s.Scale);
-                if (y + h > s.Work.Bottom - Margin && y > s.Work.Top + Margin * 2)
-                {
-                    x += (fromLeft ? 1 : -1) * (columnWidth + Margin);
-                    y = s.Work.Top + Margin * 2;
-                    columnWidth = 0;
-                }
-                g.X = fromLeft ? x : x - w;
-                g.Y = y;
-                y += h + Margin;
-                columnWidth = Math.Max(columnWidth, w);
             }
         }
     }

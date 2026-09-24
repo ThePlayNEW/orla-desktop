@@ -18,8 +18,7 @@ namespace Orla.Tests
 
         static RECT rect(Group g, double scale)
         {
-            int rows = Math.Min(g.Rows, (g.Items.Count + g.Columns - 1) / g.Columns);
-            double h = g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(Math.Max(1, rows), "medium");
+            double h = PanelMetrics.height(g, PanelMetrics.plannedRows(g), "medium");
             int x = (int)g.X, y = (int)g.Y;
             return new RECT { Left = x, Top = y, Right = x + (int)Math.Round(PanelMetrics.width(g.Columns, "medium") * scale),
                               Bottom = y + (int)Math.Round(h * scale) };
@@ -40,14 +39,9 @@ namespace Orla.Tests
             List<Group> left = panels(desk), right = panels(desk.Reverse().ToArray());
             Screens.arrange(left, right, "medium", screen);
             var all = left.Concat(right).ToList();
-            var rects = all.Select(g => rect(g, screen.Scale)).ToList();
-            foreach (RECT r in rects)
-            {
+            foreach (RECT r in all.Select(g => rect(g, screen.Scale)))
                 Assert.True(r.Left >= 0 && r.Top >= 0 && r.Right <= width && r.Bottom <= height, "off screen");
-            }
-            for (int i = 0; i < rects.Count; i++)
-                for (int j = i + 1; j < rects.Count; j++)
-                    Assert.False(Screens.overlaps(rects[i], rects[j]), "overlap");
+            noOverlap(all, screen.Scale);
             // Panels on one side share a width, so the columns line up.
             Assert.Single(left.Select(g => g.Columns).Distinct());
             Assert.Single(right.Select(g => g.Columns).Distinct());
@@ -59,6 +53,18 @@ namespace Orla.Tests
             for (int i = 0; i < rects.Count; i++)
                 for (int j = i + 1; j < rects.Count; j++)
                     Assert.False(Screens.overlaps(rects[i], rects[j]), "overlap");
+        }
+
+        [Fact]
+        public void rearrangingKeepsPanelsCollapsedByHand()
+        {
+            var screen = new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = 1920, Bottom = 1040 } };
+            List<Group> right = panels(6, 5, 3);
+            right[1].Collapsed = true;
+            Screens.arrange(new Group[0], right, "medium", screen, true);
+            Assert.True(right[1].Collapsed);
+            Screens.arrange(new Group[0], right, "medium", screen);
+            Assert.False(right[1].Collapsed);
         }
 
         [Fact]
