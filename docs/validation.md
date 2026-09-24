@@ -57,5 +57,6 @@ This is a background sample on one computer, not a fixed memory guarantee or a v
 - Panels use alpha transparency, not live background blur.
 - Layout is constrained to the primary monitor.
 - Newly created desktop items are not watched continuously. Add them by drag-and-drop or through the group menu.
+- For external drops from Explorer, use the organization window. Desktop panels yield while another application has focus.
 - If another tool also hides or manages Explorer's icons, use only one desktop-icon manager at a time.
 - The portable binary is not code-signed.

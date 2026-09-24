@@ -14,7 +14,7 @@ The screenshot uses demonstration items. The organization window is opened on de
 
 - Translucent panels with adjustable opacity, color, position and size.
 - Drag references between groups without moving their files.
-- Drop files, folders and shortcuts from Explorer to add them.
+- Drop files, folders and shortcuts from Explorer into the organization window to add them.
 - Double-click or press Enter to open an item; right-click for more actions.
 - Collapse groups and choose which groups appear on the desktop.
 - Search, rename groups and edit item labels from the organization window.
