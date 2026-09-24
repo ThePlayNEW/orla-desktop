@@ -1,0 +1,12 @@
+Orla.exe
+*.pdb
+bin/
+obj/
+.vs/
+artifacts/
+seed.json
+layout*.json
+*.ready
+*.error.txt
+*.user
+*.suo

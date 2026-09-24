@@ -1,0 +1,27 @@
+name: Build and test
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  windows:
+    strategy:
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile
+        shell: pwsh
+        run: ./build.ps1
+      - name: Test persistence and grouping
+        shell: pwsh
+        run: ./test.ps1
+      - name: Package portable build
+        shell: pwsh
+        run: ./package.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orla-${{ matrix.os }}
+          path: artifacts/*.zip
