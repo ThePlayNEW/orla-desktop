@@ -43,13 +43,13 @@ namespace Orla
         }
 
         // Starting a watcher can block on a redirected or network desktop, so it happens off the UI thread, and the
-        // UI thread never waits for it.
-        public void start()
+        // UI thread never waits for it. The task completes once the watchers are listening.
+        public System.Threading.Tasks.Task start()
         {
             if (wanted)
-                return;
+                return System.Threading.Tasks.Task.FromResult(0);
             wanted = true;
-            System.Threading.Tasks.Task.Run(() => {
+            return System.Threading.Tasks.Task.Run(() => {
                 var created = new List<FileSystemWatcher>();
                 foreach (string root in roots())
                 {
