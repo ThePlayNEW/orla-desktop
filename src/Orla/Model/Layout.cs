@@ -96,6 +96,9 @@ namespace Orla
         // Folders of shortcuts the organizer read from the inside, such as Shortcuts\Games. New items there are kept
         // organized like items on the desktop itself.
         public List<string> SortedFolders { get; set; }
+        // What people taught the organizer by moving items between panels: an item's identity (the program a
+        // shortcut opens, or the file name) and the Id of the panel it belongs in.
+        public Dictionary<string, string> Learned { get; set; }
         public bool LockLayout { get; set; }
         public bool OverlayHotkey { get; set; }
         public string OverlayShortcut { get; set; }
@@ -112,6 +115,7 @@ namespace Orla
             Version = CurrentVersion;
             Groups = new List<Group>();
             SortedFolders = new List<string>();
+            Learned = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             StartupEnabled = true;
             OverlayHotkey = true;
             OverlayShortcut = Orla.Shortcut.Default;

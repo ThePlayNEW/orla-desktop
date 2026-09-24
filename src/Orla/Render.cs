@@ -28,8 +28,15 @@ namespace Orla
                                              new { Name = "laptop", W = 1366, H = 728 } })
                 {
                     var screen = new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = size.W, Bottom = size.H } };
-                    await central(controller, "crowded", System.IO.Path.Combine(folder, "crowded-" + size.Name + ".png"), screen);
+                    await central(controller, "crowded", System.IO.Path.Combine(folder, "crowded-" + size.Name + ".png"), new[] { screen });
                 }
+                // A second monitor to the left of the main one, as on many desks.
+                var dual = new[] { new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = 2560, Bottom = 1040 } },
+                                   new Screen { Dpi = 96, Work = new RECT { Left = -1920, Right = 0, Top = 60, Bottom = 1100 } } };
+                await central(controller, "crowded", System.IO.Path.Combine(folder, "crowded-dual.png"), dual);
+                // Organizing again: a tidy desktop that gained a crowd of new items.
+                controller.store.data = Organizer.build(Demo.plan(), controller.Layout, true, true, dual[0]);
+                await central(controller, "complete", System.IO.Path.Combine(folder, "crowded-complete.png"), dual);
                 controller.quit();
                 return;
             }
@@ -43,7 +50,7 @@ namespace Orla
                 await central(controller, "appearance", System.IO.Path.Combine(folder, "appearance-" + theme + ".png"));
                 await central(controller, "welcome", System.IO.Path.Combine(folder, "welcome-" + theme + ".png"));
                 await central(controller, "presets", System.IO.Path.Combine(folder, "presets-" + theme + ".png"));
-                await central(controller, "organize", System.IO.Path.Combine(folder, "organize-" + theme + ".png"));
+                await central(controller, "organize", System.IO.Path.Combine(folder, "organize-" + theme + ".png"), new[] { Screens.primary() });
             }
             controller.Layout.Theme = "dark";
             Theme.apply(controller.Layout);
@@ -110,9 +117,9 @@ namespace Orla
             await save(canvas, width, height, path);
         }
 
-        static async Task central(Controller controller, string page, string path, Screen screen = null)
+        static async Task central(Controller controller, string page, string path, IList<Screen> screens = null)
         {
-            var window = new CentralWindow(controller) { PreviewScreen = screen, WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000,
+            var window = new CentralWindow(controller) { PreviewScreens = screens, WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000,
                                                          Top = 0, ShowActivated = false, Width = 1040, Height = 700 };
             if (page == "welcome" || page == "presets" || page == "organize" || page == "crowded")
             {
@@ -123,6 +130,11 @@ namespace Orla
                     window.showOrganize(true, Demo.plan);
                 if (page == "crowded")
                     window.showOrganize(true, Demo.crowded);
+            }
+            else if (page == "complete")
+            {
+                window.show(null);
+                window.showOrganize(false, Demo.crowded);
             }
             else
             {

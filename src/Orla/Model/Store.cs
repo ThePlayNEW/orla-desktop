@@ -84,6 +84,12 @@ namespace Orla
             Layout d = json().Deserialize<Layout>(text);
             if (d != null && d.SortedFolders == null)
                 d.SortedFolders = new List<string>();
+            if (d != null)
+                d.Learned = new Dictionary<string, string>(d.Learned ?? new Dictionary<string, string>(), StringComparer.OrdinalIgnoreCase);
+            // Rules about panels that no longer exist go away.
+            if (d?.Groups != null)
+                foreach (string stale in d.Learned.Where(r => !d.Groups.Any(g => g != null && g.Id == r.Value)).Select(r => r.Key).ToList())
+                    d.Learned.Remove(stale);
             if (d == null || d.Groups == null || d.Groups.Count > MaxGroups)
                 throw new InvalidDataException("Invalid layout.");
 
@@ -207,12 +213,7 @@ namespace Orla
         }
 
         // Paths already placed in a collection panel, used by folder panels that show only what is left over.
-        public Organized organized()
-        {
-            var shown = data.Groups.Where(g => !g.IsFolder).SelectMany(g => g.Items).Select(e => e.Path)
-                            .Concat(data.Groups.Where(g => g.IsFolder && g.FolderPath != Shell.DesktopFolder).Select(g => g.FolderPath));
-            return new Organized(shown.Where(p => !Shell.isVirtual(p)));
-        }
+        public Organized organized() => Organized.of(data);
     }
 
     // What the panels already show, so the desktop inbox lists only what is new. An item counts when a panel points at
@@ -220,6 +221,13 @@ namespace Orla
     public class Organized
     {
         readonly List<string> paths;
+
+        public static Organized of(Layout layout)
+        {
+            var shown = layout.Groups.Where(g => !g.IsFolder).SelectMany(g => g.Items).Select(e => e.Path)
+                              .Concat(layout.Groups.Where(g => g.IsFolder && g.FolderPath != Shell.DesktopFolder).Select(g => g.FolderPath));
+            return new Organized(shown.Where(p => !Shell.isVirtual(p)));
+        }
 
         public Organized(IEnumerable<string> shown)
         {

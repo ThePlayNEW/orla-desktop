@@ -76,6 +76,8 @@ namespace Orla
             public Group QuickAccess;
             public int Count;
             public List<string> SortedFolders = new List<string>();
+            // Each item's identity, read only when there are learned rules to match it against.
+            public Dictionary<string, string> Identities = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             public void add(Group g)
             {
@@ -85,8 +87,20 @@ namespace Orla
         }
 
         // Reads the desktop. Shortcuts that point at network drives can make this slow, so callers run it off the UI thread.
-        public static Plan plan()
+        public static Plan plan() => plan(null);
+
+        // learned: identity -> the category of the panel people moved that item to, or null for a panel of their own.
+        public static Plan plan(IDictionary<string, string> learned)
         {
+            var plan = new Plan { QuickAccess = Presets.All[0].Create() };
+            string sort(string path, string hint)
+            {
+                if (learned == null || learned.Count == 0)
+                    return classify(path, hint);
+                string id = identity(path);
+                plan.Identities[path] = id;
+                return learned.TryGetValue(id, out string taught) && category(taught) != null ? taught : classify(path, hint);
+            }
             var found = new Dictionary<string, List<string>>();
             var names = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
             var sorted = new List<string>();
@@ -99,10 +113,10 @@ namespace Orla
                         sorted.Add(path);
                         sorted.AddRange(inside.Select(i => Path.GetDirectoryName(i.Key)).Where(d => d != path));
                         foreach (var item in inside)
-                            add(found, names, classify(item.Key, item.Value), item.Key);
+                            add(found, names, sort(item.Key, item.Value), item.Key);
                     }
                     else
-                        add(found, names, classify(path), path);
+                        add(found, names, sort(path, null), path);
                 }
             foreach (Category c in Categories.Where(c => c.Fallback != null))
                 if (found.TryGetValue(c.Key, out List<string> few) && few.Count < 2)
@@ -112,7 +126,6 @@ namespace Orla
                         found[c.Fallback] = new List<string>();
                     found[c.Fallback].AddRange(few);
                 }
-            var plan = new Plan { QuickAccess = Presets.All[0].Create() };
             plan.SortedFolders.AddRange(sorted.Distinct(StringComparer.OrdinalIgnoreCase));
             foreach (Category c in Categories.Where(c => found.ContainsKey(c.Key)))
                 plan.add(panel(c.Key, found[c.Key]));
@@ -141,7 +154,12 @@ namespace Orla
         }
 
         // Lays out a plan: tools from the left edge, work and the desktop inbox from the right edge.
-        public static Layout build(Plan plan, Layout settings, bool clean, bool keep, Screen screen)
+        public static Layout build(Plan plan, Layout settings, bool clean, bool keep, Screen screen) =>
+            build(plan, settings, clean, keep, new[] { screen }, false);
+
+        // With a second monitor, the tools go there, on the side facing the main screen, and the work stays on the main
+        // screen's right; the main screen's left and middle stay free.
+        public static Layout build(Plan plan, Layout settings, bool clean, bool keep, IList<Screen> screens, bool second)
         {
             Layout layout = settings.copySettings();
             layout.Welcomed = true;
@@ -160,8 +178,128 @@ namespace Orla
                 work.Add(Presets.inbox());
             layout.Groups.AddRange(tools);
             layout.Groups.AddRange(work);
-            arrange(layout, screen);
+            // Rules point at panels; after a fresh layout they point at the new panel for the same category, and rules
+            // about panels people made go away with those panels.
+            layout.Learned = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var rule in settings.Learned)
+            {
+                string key = settings.Groups.FirstOrDefault(g => g.Id == rule.Value)?.AutoCategory;
+                Group now = key == null ? null : layout.Groups.FirstOrDefault(g => g.AutoCategory == key);
+                if (now != null)
+                    layout.Learned[rule.Key] = now.Id;
+            }
+            Screen main = screens.FirstOrDefault(s => s.Primary) ?? screens[0];
+            Screen other = second ? Other(screens) : null;
+            if (other == null)
+                arrange(layout, main);
+            else
+            {
+                bool leftOfMain = other.Work.Left < main.Work.Left;
+                Screens.arrange(leftOfMain ? new Group[0] : tools, leftOfMain ? tools : new Group[0], layout.IconSize, other);
+                Screens.arrange(new Group[0], work, layout.IconSize, main);
+            }
             return layout;
+        }
+
+        // The biggest monitor besides the main one, if there is one.
+        public static Screen Other(IList<Screen> screens) =>
+            screens.Where(s => !s.Primary).OrderByDescending(s => (long)s.Work.Width * s.Work.Height).FirstOrDefault();
+
+        // ---- organizing again without undoing people's work ----
+
+        public class Completion
+        {
+            public int Added;
+            // Ids of the panels this adds, and of the panels that get items, with how many.
+            public HashSet<string> Fresh = new HashSet<string>();
+            public Dictionary<string, int> Grew = new Dictionary<string, int>();
+        }
+
+        // Adds what is new on the desktop to the panels people already have, and makes a panel only for a category none
+        // of them holds. Names, colours, positions, sizes and the items people moved stay as they are. Works on a
+        // copy, so a preview never touches the live panels.
+        public static Layout complete(Plan plan, Layout current, bool clean, bool keep, IList<Screen> screens, Completion done)
+        {
+            Screen screen = screens.FirstOrDefault(s => s.Primary) ?? screens[0];
+            Layout next = Store.parse(Store.json().Serialize(current));
+            next.CleanDesktop = clean;
+            next.AutoOrganize = keep;
+            next.Welcomed = true;
+            next.SortedFolders = next.SortedFolders.Union(plan.SortedFolders, StringComparer.OrdinalIgnoreCase).ToList();
+            Organized shown = Organized.of(next);
+            var existing = next.Groups.ToList();
+            foreach (Group planned in plan.Groups)
+                foreach (Entry e in planned.Items.Where(e => !shown.Contains(e.Path)))
+                {
+                    Group home = taught(e.Path, plan, next) ?? next.Groups.FirstOrDefault(g => !g.IsFolder && g.AutoCategory == planned.AutoCategory);
+                    // Past the panel limit, what has no panel yet stays in the desktop inbox.
+                    if (home == null && next.Groups.Count >= Store.MaxGroups - 1)
+                        continue;
+                    if (home == null)
+                    {
+                        Category c = category(planned.AutoCategory);
+                        home = new Group { Tint = c.Tint, AutoCategory = c.Key }.titled("organize." + c.Key);
+                        next.Groups.Add(home);
+                        done.Fresh.Add(home.Id);
+                    }
+                    if (home.Items.Count >= Store.MaxItems)
+                        continue;
+                    home.Items.Add(new Entry { Name = e.Name, Path = e.Path });
+                    done.Added++;
+                    done.Grew[home.Id] = done.Grew.TryGetValue(home.Id, out int n) ? n + 1 : 1;
+                }
+            if (clean && next.Groups.Count < Store.MaxGroups && !next.Groups.Any(g => g.IsFolder && g.OnlyUnorganized && g.FolderPath == Shell.DesktopFolder))
+            {
+                Group inbox = Presets.inbox();
+                next.Groups.Add(inbox);
+                done.Fresh.Add(inbox.Id);
+            }
+            var taken = existing.Where(g => g.Visible).Select(g => Screens.rectOf(g, next.IconSize, Screens.nearest(g, screens).Scale)).ToList();
+            foreach (Group g in next.Groups.Where(g => done.Fresh.Contains(g.Id)))
+            {
+                bool tool = category(g.AutoCategory)?.Tools == true;
+                var side = existing.Where(x => (category(x.AutoCategory)?.Tools == true) == tool).ToList();
+                g.Columns = side.Count > 0 ? side.GroupBy(x => x.Columns).OrderByDescending(x => x.Count()).First().Key : 4;
+                g.Rows = g.IsFolder ? 2 : Math.Max(1, Math.Min(4, (g.Items.Count + g.Columns - 1) / g.Columns));
+                Screens.place(g, taken, screen, next.IconSize, tool && clean);
+            }
+            // A panel that got items grows only into free space; otherwise the new items scroll.
+            foreach (Group g in existing.Where(g => done.Grew.ContainsKey(g.Id) && g.AutoHeight && !g.Collapsed && g.Visible))
+            {
+                Screen own = Screens.nearest(g, screens);
+                RECT before = Screens.rectOf(g, next.IconSize, own.Scale);
+                var others = taken.Where(o => !o.Equals(before)).ToList();
+                while (g.Rows < 6 && (g.Items.Count + g.Columns - 1) / g.Columns > g.Rows)
+                {
+                    g.Rows++;
+                    RECT grown = Screens.rectOf(g, next.IconSize, own.Scale);
+                    grown.Bottom += Screens.Margin;
+                    if (grown.Bottom > own.Work.Bottom || others.Any(o => Screens.overlaps(grown, o)))
+                    {
+                        g.Rows--;
+                        break;
+                    }
+                }
+            }
+            return next;
+        }
+
+        // The panel people moved this item to before, if it still exists.
+        static Group taught(string path, Plan plan, Layout layout) =>
+            plan.Identities.TryGetValue(path, out string id) && layout.Learned.TryGetValue(id, out string groupId)
+                ? layout.Groups.FirstOrDefault(g => g.Id == groupId && !g.IsFolder)
+                : null;
+
+        // What an item is, for learning: the program or link a shortcut opens, or else the file name.
+        public static string identity(string path)
+        {
+            if (Games.isShortcut(path))
+            {
+                string target = Games.targetOf(path, true);
+                if (!String.IsNullOrEmpty(target))
+                    return target.ToLowerInvariant();
+            }
+            return Path.GetFileName(path).ToLowerInvariant();
         }
 
         // The one way Orla lays panels out: tools on the left and the rest on the right; with the Windows icons showing,
@@ -178,8 +316,14 @@ namespace Orla
         }
 
         // Where something new on the desktop belongs, among the panels the organizer made. Null leaves it in the inbox.
-        public static Group home(string path, IEnumerable<Group> groups)
+        public static Group home(string path, IEnumerable<Group> groups, IDictionary<string, string> learned = null)
         {
+            if (learned != null && learned.Count > 0 && learned.TryGetValue(identity(path), out string groupId))
+            {
+                Group taughtHome = groups.FirstOrDefault(g => g.Id == groupId && !g.IsFolder);
+                if (taughtHome != null)
+                    return taughtHome;
+            }
             var auto = groups.Where(g => !g.IsFolder && g.AutoCategory != null).ToList();
             string key = classify(path, hintAround(path));
             for (Category c = category(key); c != null; c = category(c.Fallback))
@@ -423,7 +567,9 @@ namespace Orla
         }
 
         // Where a shortcut points: the URL of a .url file, or the target path of a .lnk file.
-        public static string targetOf(string path)
+        // withArguments: the target followed by the shortcut's arguments, which tell apart launchers shared by many
+        // programs, such as Update.exe or a browser's app host.
+        public static string targetOf(string path, bool withArguments = false)
         {
             try
             {
@@ -436,7 +582,9 @@ namespace Orla
                     dynamic link = shell.CreateShortcut(path);
                     try
                     {
-                        return (string)link.TargetPath;
+                        string target = (string)link.TargetPath;
+                        string arguments = withArguments ? (string)link.Arguments : "";
+                        return String.IsNullOrEmpty(arguments) ? target : target + " " + arguments;
                     }
                     finally
                     {

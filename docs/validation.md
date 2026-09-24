@@ -2,6 +2,19 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.3
+
+- **Complete my panels**, the default when organizing again, adds only what is new to the panels people have, keeps their names, colours, positions, sizes and moves, and places a new category's panel in free space. **Start fresh** is the other choice.
+- Orla learns from moves between panels: an item's identity (the program a shortcut opens, or its file name) points to the panel it was moved to, for later organizing and for **Keep organized**.
+- With two monitors, the tools can go to the other monitor. The preview draws every monitor the plan uses.
+
+`./test.ps1` runs 53 xUnit tests. The new ones check:
+
+- Organizing again adds only new items, keeps a renamed and recoloured panel where it was, leaves the live layout untouched, never overlaps panels and never goes past the panel limit.
+- A learned move wins over the category.
+- Rules follow their category to a fresh layout, and rules about gone panels are dropped.
+- With two monitors, the tools land on the other monitor and work on the main one. The preview was rendered with a crowded desktop on one and two monitors, and organizing again over a tidy desktop that gained 193 items.
+
 ## 1.2
 
 - Removed what nothing used: support for the 0.1 preview's layout, two small files, unused design tokens, glyphs and Windows calls. About 350 fewer lines.

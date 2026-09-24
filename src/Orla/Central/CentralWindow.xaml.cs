@@ -22,8 +22,7 @@ namespace Orla
         Organizer.Plan plan;
         bool organizeFromWelcome;
 
-        // The screen the organizer plans for; the primary monitor unless the documentation renderer picks one.
-        internal Screen PreviewScreen { get; set; }
+
 
         public CentralWindow(Controller controller)
         {
@@ -108,6 +107,9 @@ namespace Orla
             };
             OrganizeButton.Click += delegate { showOrganize(false); };
             OrganizeClean.Click += delegate { drawPlan(false); };
+            OrganizeSecond.Click += delegate { drawPlan(false); };
+            OrganizeComplete.Checked += delegate { drawPlan(true); };
+            OrganizeRedo.Checked += delegate { drawPlan(true); };
             OrganizeStage.SizeChanged += delegate {
                 bool animate = pendingAnimation;
                 pendingAnimation = false;
@@ -120,7 +122,7 @@ namespace Orla
                     Welcome.Visibility = Visibility.Visible;
             };
             OrganizeApply.Click += delegate {
-                Layout next = planned();
+                Layout next = planned(Completing ? new Organizer.Completion() : null);
                 plan = null;
                 OrganizePreview.Visibility = Visibility.Collapsed;
                 Welcome.Visibility = Visibility.Collapsed;
@@ -196,67 +198,152 @@ namespace Orla
             plan = null;
             Welcome.Visibility = Visibility.Collapsed;
             OrganizePreview.Visibility = Visibility.Visible;
-            OrganizeClean.IsChecked = true;
-            OrganizeKeep.IsChecked = true;
+            // Organizing again starts from how the desktop is set up now; a first organize suggests both on.
+            bool again = !fromWelcome && controller.Organized;
+            OrganizeClean.IsChecked = !again || controller.Layout.CleanDesktop;
+            OrganizeKeep.IsChecked = !again || controller.Layout.AutoOrganize;
+            OrganizeSecond.IsChecked = true;
+            OrganizeSecond.Visibility = AllScreens.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+            OrganizeModes.Visibility = !fromWelcome && controller.Organized ? Visibility.Visible : Visibility.Collapsed;
+            OrganizeComplete.IsChecked = true;
             OrganizeMap.Children.Clear();
             OrganizeApply.IsEnabled = false;
             OrganizeLead.Text = Text.get("organize.reading");
-            OrganizeNote.Text = !fromWelcome && controller.Layout.Groups.Count > 0 ? Text.get("organize.replaceNote") : "";
-            Task.Run(source ?? Organizer.plan).ContinueWith(t => Dispatcher.BeginInvoke(new Action(delegate {
+            OrganizeNote.Text = "";
+            Dictionary<string, string> learned = controller.learnedCategories();
+            Task.Run(source ?? (() => Organizer.plan(learned))).ContinueWith(t => Dispatcher.BeginInvoke(new Action(delegate {
                 if (t.IsFaulted)
                 {
                     OrganizeLead.Text = Text.get("organize.failed");
                     return;
                 }
                 plan = t.Result;
-                OrganizeApply.IsEnabled = true;
                 drawPlan(true);
             })));
         }
 
-        Layout planned() => Organizer.build(plan, controller.Layout, OrganizeClean.IsChecked == true, OrganizeKeep.IsChecked == true,
-                                            PreviewScreen ?? Screens.primary());
+        // The screens the organizer plans for: every monitor, unless the documentation renderer picks them.
+        internal IList<Screen> PreviewScreens { get; set; }
 
-        // The primary screen in miniature with every planned panel where it will be. The panels arrive one by one, the
-        // single moment of motion in the flow.
+        IList<Screen> AllScreens => PreviewScreens ?? Screens.all();
+
+        bool Completing => OrganizeModes.Visibility == Visibility.Visible && OrganizeComplete.IsChecked == true;
+
+        Layout planned(Organizer.Completion done)
+        {
+            bool clean = OrganizeClean.IsChecked == true, keep = OrganizeKeep.IsChecked == true;
+            IList<Screen> screens = AllScreens;
+            Screen main = screens.FirstOrDefault(s => s.Primary) ?? screens[0];
+            return done != null ? Organizer.complete(plan, controller.Layout, clean, keep, screens, done)
+                                : Organizer.build(plan, controller.Layout, clean, keep, screens, OrganizeSecond.IsChecked == true);
+        }
+
+        // The screens in miniature with every planned panel where it will be. The panels arrive one by one, the single
+        // moment of motion in the flow. When completing, what is new stands out and the rest steps back.
         void drawPlan(bool animate)
         {
             if (plan == null)
                 return;
-            Layout next = planned();
-            OrganizeLead.Text = plan.Count == 0 ? Text.get("organize.nothing") : Text.format("organize.lead", plan.Count, next.Groups.Count);
-            Screen screen = PreviewScreen ?? Screens.primary();
-            RECT work = screen.Work;
-            double roomWidth = OrganizeStage.ActualWidth - 26, roomHeight = OrganizeStage.ActualHeight - 26;
+            var done = Completing ? new Organizer.Completion() : null;
+            Layout next = planned(done);
+            IList<Screen> screens = AllScreens;
+            // Organizing again keeps panels where they are, so the monitor choice only belongs to a fresh layout. When it
+            // appears or goes, the map is drawn again once the room it leaves is measured.
+            Visibility second = done == null && screens.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+            if (OrganizeSecond.Visibility != second)
+            {
+                OrganizeSecond.Visibility = second;
+                Dispatcher.BeginInvoke(new Action(() => drawPlan(false)), System.Windows.Threading.DispatcherPriority.Loaded);
+            }
+            if (done == null)
+            {
+                OrganizeLead.Text = plan.Count == 0 ? Text.get("organize.nothing") : Text.format("organize.lead", plan.Count, next.Groups.Count);
+                OrganizeNote.Text = !organizeFromWelcome && controller.Layout.Groups.Count > 0 ? Text.get("organize.replaceNote") : "";
+                OrganizeApply.IsEnabled = true;
+            }
+            else
+            {
+                int intoNew = done.Grew.Where(g => done.Fresh.Contains(g.Key)).Sum(g => g.Value);
+                OrganizeLead.Text = done.Added == 0 ? Text.get("organize.completeNone")
+                                                    : Text.format("organize.completeLead", done.Added, done.Added - intoNew, intoNew);
+                OrganizeNote.Text = Text.get("organize.completeNote");
+                OrganizeApply.IsEnabled = done.Added > 0 || done.Fresh.Count > 0 || next.CleanDesktop != controller.Layout.CleanDesktop ||
+                                          next.AutoOrganize != controller.Layout.AutoOrganize;
+            }
+
+            Screen main = screens.FirstOrDefault(s => s.Primary) ?? screens[0];
+            Screen screenOf(Group g) => Screens.nearest(g, screens);
+            var used = screens.Where(s => s == main || next.Groups.Any(g => g.Visible && screenOf(g) == s)).ToList();
+            var box = new RECT { Left = used.Min(s => s.Work.Left), Top = used.Min(s => s.Work.Top),
+                                 Right = used.Max(s => s.Work.Right), Bottom = used.Max(s => s.Work.Bottom) };
+            if (OrganizeSecond.Visibility == Visibility.Visible && OrganizeSecond.ActualHeight == 0)
+            {
+                // The switch above the map is not measured yet; draw once it is.
+                Dispatcher.BeginInvoke(new Action(() => drawPlan(animate)), System.Windows.Threading.DispatcherPriority.Loaded);
+                return;
+            }
+            double roomWidth = OrganizeStage.ActualWidth - 26,
+                   roomHeight = OrganizeStage.ActualHeight - 26 - (OrganizeSecond.Visibility == Visibility.Visible ? OrganizeSecond.ActualHeight + 12 : 0);
             if (roomWidth <= 0 || roomHeight <= 0)
             {
                 // Not laid out yet; the size change that follows draws it.
                 pendingAnimation = animate;
                 return;
             }
-            double k = Math.Min(roomWidth / work.Width, roomHeight / work.Height);
-            OrganizeMap.Width = Math.Floor(work.Width * k);
-            OrganizeMap.Height = Math.Floor(work.Height * k);
+            double k = Math.Min(roomWidth / box.Width, roomHeight / box.Height);
+            OrganizeMap.Width = Math.Floor(box.Width * k);
+            OrganizeMap.Height = Math.Floor(box.Height * k);
             OrganizeMap.Children.Clear();
+            foreach (Screen s in used)
+            {
+                var face = new Border { Width = Math.Round(s.Work.Width * k), Height = Math.Round(s.Work.Height * k), CornerRadius = new CornerRadius(8),
+                                        BorderThickness = new Thickness(1) };
+                face.SetResourceReference(Border.BackgroundProperty, "Orla.Shore");
+                face.SetResourceReference(Border.BorderBrushProperty, "Brush.Line");
+                Canvas.SetLeft(face, Math.Round((s.Work.Left - box.Left) * k));
+                Canvas.SetTop(face, Math.Round((s.Work.Top - box.Top) * k));
+                OrganizeMap.Children.Add(face);
+                // With more than one screen, say which one is the main screen, on the sand where no panel sits.
+                if (used.Count > 1 && s == main)
+                {
+                    var label = new TextBlock { Text = Text.get("organize.mainScreen"), FontSize = 10,
+                                                Foreground = new SolidColorBrush(Color.FromRgb(0x5A, 0x4A, 0x30)) };
+                    Canvas.SetLeft(label, Math.Round((s.Work.Left - box.Left) * k) + 10);
+                    Canvas.SetTop(label, Math.Round((s.Work.Bottom - box.Top) * k) - 20);
+                    Panel.SetZIndex(label, 1);
+                    OrganizeMap.Children.Add(label);
+                }
+            }
             int order = 0;
-            foreach (Group g in next.Groups)
+            foreach (Group g in next.Groups.Where(g => g.Visible))
             {
                 // Edges are rounded, not sizes, so the gaps between neighbours stay even.
+                double scale = screenOf(g).Scale;
                 int rows = PanelMetrics.plannedRows(g);
-                double left = (g.X - work.Left) * k, top = (g.Y - work.Top) * k;
-                double x0 = Math.Round(left), x1 = Math.Round(left + PanelMetrics.width(g.Columns, next.IconSize) * k * screen.Scale);
-                double y0 = Math.Round(top), y1 = Math.Round(top + PanelMetrics.height(g, rows, next.IconSize) * k * screen.Scale);
-                FrameworkElement mini = miniPanel(g, rows, x1 - x0, y1 - y0, k * screen.Scale, next.IconSize);
+                double left = (g.X - box.Left) * k, top = (g.Y - box.Top) * k;
+                double x0 = Math.Round(left), x1 = Math.Round(left + PanelMetrics.width(g.Columns, next.IconSize) * k * scale);
+                double y0 = Math.Round(top), y1 = Math.Round(top + PanelMetrics.height(g, rows, next.IconSize) * k * scale);
+                int added = done != null && done.Grew.TryGetValue(g.Id, out int n) ? n : 0;
+                bool fresh = done != null && done.Fresh.Contains(g.Id);
+                var mini = (Border)miniPanel(g, rows, x1 - x0, y1 - y0, k * scale, next.IconSize, done == null ? -1 : fresh ? 0 : added, fresh);
+                if (fresh)
+                {
+                    mini.BorderThickness = new Thickness(1.5);
+                    mini.SetResourceReference(Border.BorderBrushProperty, "Brush.Accent");
+                }
+                else if (done != null && added == 0)
+                    mini.Child.Opacity = 0.4;
                 Canvas.SetLeft(mini, x0);
                 Canvas.SetTop(mini, y0);
                 OrganizeMap.Children.Add(mini);
-                if (animate && controller.Layout.Animations)
+                if (animate && controller.Layout.Animations && (done == null || fresh || added > 0))
                 {
+                    double end = mini.Opacity;
                     var delay = TimeSpan.FromMilliseconds(60 * order++);
                     mini.Opacity = 0;
                     var shift = new TranslateTransform(0, 6);
                     mini.RenderTransform = shift;
-                    mini.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260)) { BeginTime = delay });
+                    mini.BeginAnimation(OpacityProperty, new DoubleAnimation(0, end, TimeSpan.FromMilliseconds(260)) { BeginTime = delay });
                     shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(6, 0, TimeSpan.FromMilliseconds(320)) {
                         BeginTime = delay, EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
                 }
@@ -267,27 +354,33 @@ namespace Orla
 
         // One planned panel drawn with the real panel's geometry at map scale: glass, title, the tinted shoreline and
         // one mark per icon where the icon will be.
-        FrameworkElement miniPanel(Group g, int rows, double width, double height, double k, string iconSize)
+        // added: -1 for a fresh layout (the header shows the item count), otherwise how many items organizing again
+        // brings; fresh marks a panel it creates.
+        FrameworkElement miniPanel(Group g, int rows, double width, double height, double k, string iconSize, int added, bool fresh)
         {
             var card = new Border { Width = width, Height = height, CornerRadius = new CornerRadius(Math.Max(3, 12 * k)),
                                     BorderThickness = new Thickness(1), ClipToBounds = true };
             card.SetResourceReference(Border.BackgroundProperty, "Brush.PanelGlass");
             card.SetResourceReference(Border.BorderBrushProperty, "Brush.PanelBorder");
             var face = new Canvas();
-            // The count says how much a panel holds when not every icon fits, as on the real panel's header.
-            var title = new TextBlock { FontSize = 9, FontWeight = FontWeights.SemiBold, Width = width - 16 * k - 4,
-                                        TextTrimming = TextTrimming.CharacterEllipsis };
-            title.Inlines.Add(new System.Windows.Documents.Run(g.Name));
-            if (!g.IsFolder)
+            // The header's right side says what matters, and only the name gives way when space is short: the item
+            // count on a fresh layout, as on the real panel; "new" or "+N" when organizing again.
+            var header = new DockPanel { Width = Math.Max(0, width - 32 * k) };
+            string note = fresh ? Text.get("organize.fresh") : added > 0 ? "+" + added : added < 0 && !g.IsFolder ? g.Items.Count.ToString() : null;
+            if (note != null)
             {
-                var total = new System.Windows.Documents.Run("  " + g.Items.Count) { FontWeight = FontWeights.Normal };
-                total.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "Brush.TextSecondary");
-                title.Inlines.Add(total);
+                var side = new TextBlock { Text = note, FontSize = 9, Margin = new Thickness(4, 0, 0, 0),
+                                           FontWeight = added < 0 ? FontWeights.Normal : FontWeights.SemiBold };
+                side.SetResourceReference(TextBlock.ForegroundProperty, added < 0 ? "Brush.TextSecondary" : "Brush.Accent");
+                DockPanel.SetDock(side, Dock.Right);
+                header.Children.Add(side);
             }
+            var title = new TextBlock { Text = g.Name, FontSize = 9, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
             title.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Text");
-            Canvas.SetLeft(title, 14 * k);
-            Canvas.SetTop(title, 2);
-            face.Children.Add(title);
+            header.Children.Add(title);
+            Canvas.SetLeft(header, 14 * k);
+            Canvas.SetTop(header, 2);
+            face.Children.Add(header);
             var shore = new Path { Data = Geometry.Parse("M 0 3 C 40 0 70 6 110 3 S 190 0 230 3 S 280 6 300 3"), Stretch = Stretch.Fill,
                                    StrokeThickness = 1, Width = width - 30 * k, Height = Math.Max(2, 6 * k),
                                    StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round };

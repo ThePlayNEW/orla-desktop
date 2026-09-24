@@ -82,6 +82,23 @@ How it sorts items:
 - Tools are stacked in columns from the left of the main screen; folders, files and **New on desktop** from the right. The middle stays free.
 - Panels show shortcuts. No file moves.
 
+### Organizing again
+
+If you already used **Let Orla organize**, the preview shows two ways at the top:
+
+| Way | What it does |
+| --- | --- |
+| **Complete my panels** (default) | Adds only what is new on the desktop. Items go into the panels you already have; a new panel appears only for a category none of them covers, in free space. Names, colours, positions, sizes and what you moved stay as they are. On the map, new panels stand out, panels that get items show how many (for example **+3**), and the rest are dimmed. |
+| **Start fresh** | Builds every panel again, as on the first time. |
+
+### Orla learns from you
+
+When you drag an item from one panel to another, or from the desktop (and **New on desktop**) into a panel, Orla remembers where it went, by what the shortcut opens, with its arguments, or else the file name. The next time you organize, and with **Keep organized** on, that item goes straight to that panel, even a panel you made yourself. **Start fresh** carries the rules over to the new panel for the same category; rules about a panel you deleted go away with it.
+
+### With two monitors
+
+With more than one monitor, the preview shows all of them and offers **Use the second monitor**, already on. Tools go to the other monitor, on the side next to the main screen, and folders, files and **New on desktop** stay on the main screen. **Complete my panels** does not move anything between monitors.
+
 The two options in the preview:
 
 | Option | What it does |
@@ -89,7 +106,7 @@ The two options in the preview:
 | **Hide the Windows icons** | Turns on [Clean desktop](#clean-desktop) and creates the **New on desktop** panel with what is not in any panel yet. If you turn it off, the Windows icons stay and that panel is not created, because the icons already show what is new. |
 | **Keep organized** | Each new item on the desktop goes to its category's panel by itself, a few seconds after it arrives. An item deleted or moved off the desktop leaves its panel. Anything that fits nowhere stays in **New on desktop**. You can turn it on or off later in **Panels**. |
 
-If you already had panels, they are replaced. A copy of the previous layout stays in the [data folder](#where-your-data-lives) as `layout.json.before-organize-` followed by the date, and **Panels > Restore previous panels** undoes the organization, even after Orla is closed and opened again. Each copy undoes once.
+With **Start fresh**, the panels you had are replaced. A copy of the previous layout stays in the [data folder](#where-your-data-lives) as `layout.json.before-organize-` followed by the date, and **Panels > Restore previous panels** undoes the organization, even after Orla is closed and opened again. Each copy undoes once.
 
 ## Ready-made panels
 
