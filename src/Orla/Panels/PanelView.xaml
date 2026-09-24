@@ -42,12 +42,24 @@
             </DataTemplate.Triggers>
         </DataTemplate>
 
-        <!-- Invisible resize zones along every edge and corner. -->
+        <!-- Resize zones along every edge and corner. A thin accent line shows which edge is under the pointer. -->
         <Style x:Key="Edge" TargetType="Thumb">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Thumb">
-                        <Border Background="Transparent" />
+                        <Grid Background="Transparent">
+                            <Border x:Name="Line" Background="{DynamicResource Brush.Focus}" CornerRadius="1" Opacity="0"
+                                    HorizontalAlignment="{TemplateBinding HorizontalAlignment}" VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                                    MinWidth="2" MinHeight="2" Margin="1" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Line" Property="Opacity" Value="0.7" />
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="Line" Property="Opacity" Value="1" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -110,20 +122,29 @@
                     <Canvas IsHitTestVisible="False">
                         <Rectangle x:Name="Marquee" Visibility="Collapsed" RadiusX="3" RadiusY="3" StrokeThickness="1"
                                    Stroke="{DynamicResource Brush.Focus}" Fill="{DynamicResource Brush.DropTarget}" />
+                        <!-- Where dragged items will land in a collection. -->
+                        <Rectangle x:Name="InsertMark" Visibility="Collapsed" Width="3" RadiusX="1.5" RadiusY="1.5"
+                                   Fill="{DynamicResource Brush.Focus}" />
                     </Canvas>
                 </Grid>
             </Grid>
         </Border>
 
         <Grid x:Name="Edges">
-            <Thumb Tag="Left" Style="{StaticResource Edge}" Width="6" HorizontalAlignment="Left" Margin="0,14" Cursor="SizeWE" />
-            <Thumb Tag="Right" Style="{StaticResource Edge}" Width="6" HorizontalAlignment="Right" Margin="0,14" Cursor="SizeWE" />
-            <Thumb Tag="Top" Style="{StaticResource Edge}" Height="5" VerticalAlignment="Top" Margin="14,0" Cursor="SizeNS" />
-            <Thumb Tag="Bottom" Style="{StaticResource Edge}" Height="6" VerticalAlignment="Bottom" Margin="14,0" Cursor="SizeNS" />
-            <Thumb Tag="TopLeft" Style="{StaticResource Edge}" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" />
-            <Thumb Tag="TopRight" Style="{StaticResource Edge}" Width="14" Height="14" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" />
-            <Thumb Tag="BottomLeft" Style="{StaticResource Edge}" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" />
-            <Thumb Tag="BottomRight" Style="{StaticResource Edge}" Width="14" Height="14" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" />
+            <Thumb Tag="Left" Style="{StaticResource Edge}" Width="8" HorizontalAlignment="Left" Margin="0,16" Cursor="SizeWE" />
+            <Thumb Tag="Right" Style="{StaticResource Edge}" Width="8" HorizontalAlignment="Right" Margin="0,16" Cursor="SizeWE" />
+            <Thumb Tag="Top" Style="{StaticResource Edge}" Height="6" VerticalAlignment="Top" Margin="16,0" Cursor="SizeNS" />
+            <Thumb Tag="Bottom" Style="{StaticResource Edge}" Height="8" VerticalAlignment="Bottom" Margin="16,0" Cursor="SizeNS" />
+            <Thumb Tag="TopLeft" Style="{StaticResource Edge}" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" />
+            <Thumb Tag="TopRight" Style="{StaticResource Edge}" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" />
+            <Thumb Tag="BottomLeft" Style="{StaticResource Edge}" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" />
+            <Thumb Tag="BottomRight" Style="{StaticResource Edge}" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" />
         </Grid>
+
+        <!-- Size while resizing, in columns × rows. -->
+        <Border x:Name="SizeHint" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="12,5" CornerRadius="12"
+                Background="{DynamicResource Brush.Accent}" Visibility="Collapsed" IsHitTestVisible="False">
+            <TextBlock x:Name="SizeText" Foreground="{DynamicResource Brush.OnAccent}" FontSize="13" FontWeight="SemiBold" />
+        </Border>
     </Grid>
 </UserControl>

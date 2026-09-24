@@ -42,7 +42,7 @@ namespace Orla
             this.interactive = interactive;
             dispatcher = Dispatcher.CurrentDispatcher;
             messages = new MessageWindow();
-            messages.Hotkey += delegate { setOverlay(!Overlay); };
+            messages.Hotkey += onHotkey;
             messages.ExplorerRestarted += queueRebuild;
             messages.DisplayChanged += delegate {
                 dispatcher.BeginInvoke(new Action(delegate {
@@ -85,8 +85,8 @@ namespace Orla
             if (interactive)
             {
                 tray = new Tray(this, messages.Handle);
-                if (Layout.OverlayHotkey && !messages.setHotkey(true))
-                    tray.notify(Text.get("notice.hotkeyTaken"));
+                if (Layout.OverlayHotkey && !messages.setHotkey(true, Shortcut))
+                    tray.notify(Text.format("notice.hotkeyTaken", Shortcut.display()));
                 // Also points an existing entry at this copy, and replaces the 0.1 preview's Startup shortcut, so an older
                 // version never starts with a newer layout.
                 if (!Layout.StartupConfigured || StartupEnabled || File.Exists(LegacyShortcut))
@@ -145,8 +145,59 @@ namespace Orla
         void showHosts()
         {
             foreach (PanelHost h in hosts)
+            {
                 h.show(Overlay ? PanelMode.Overlay : baseMode, desktop);
+                h.setVisible(!Hidden);
+            }
             settleAll();
+        }
+
+        public bool Hidden { get; private set; }
+
+        // The shortcut does what the moment calls for: with the desktop in view it hides or shows the panels; with an
+        // application on top it brings the panels in front, and pressing it again sends them back.
+        void onHotkey()
+        {
+            if (!Layout.Welcomed)
+                return;
+            if (Overlay)
+                setOverlay(false);
+            else if (Hidden)
+                setHidden(false);
+            else if (desktopInView())
+                setHidden(true);
+            else
+                setOverlay(true);
+        }
+
+        static bool desktopInView()
+        {
+            IntPtr foreground = Native.GetForegroundWindow();
+            if (foreground == IntPtr.Zero || Native.processOf(foreground) == (uint)Process.GetCurrentProcess().Id)
+                return true;
+            string c = Native.windowClass(foreground);
+            return c == "Progman" || c == "WorkerW" || c == "Shell_TrayWnd" || c == "Shell_SecondaryTrayWnd";
+        }
+
+        // Hiding the panels shows the ordinary desktop, Windows icons included, until they come back.
+        public void setHidden(bool value)
+        {
+            if (Hidden == value)
+                return;
+            Hidden = value;
+            if (value && Overlay)
+                setOverlay(false);
+            foreach (PanelHost h in hosts)
+                h.setVisible(!value);
+            if (Layout.CleanDesktop && guard != null)
+            {
+                if (value)
+                    guard.restore();
+                else
+                    guard.hide();
+            }
+            tray?.refreshMenu();
+            central?.refresh();
         }
 
         // Panels never overlap: each one, in order, moves off any panel placed before it.
@@ -173,6 +224,7 @@ namespace Orla
                 var host = new PanelHost(this, g);
                 hosts.Add(host);
                 host.show(Overlay ? PanelMode.Overlay : baseMode, desktop);
+                host.setVisible(!Hidden);
             }
         }
 
@@ -186,6 +238,11 @@ namespace Orla
         {
             if (on == Overlay || !Layout.Welcomed)
                 return;
+            if (on && Hidden)
+            {
+                Hidden = false;
+                applyCleanDesktop();
+            }
             Overlay = on;
             showHosts();
             if (on)
@@ -315,7 +372,10 @@ namespace Orla
                     index++;
             }
             if (moved)
+            {
+                hosts.FirstOrDefault(h => h.Group == target)?.View.selectAfterReload(entryIds);
                 changed();
+            }
         }
 
         public void removeItems(IList<Entry> entries)
@@ -439,6 +499,12 @@ namespace Orla
             changed(g);
         }
 
+        public void setAutoHeight(Group g, bool value)
+        {
+            g.AutoHeight = value;
+            changed(g);
+        }
+
         public void setCollapsed(Group g, bool collapsed)
         {
             g.Collapsed = collapsed;
@@ -523,9 +589,31 @@ namespace Orla
             central?.refresh();
         }
 
+        public Shortcut Shortcut => Orla.Shortcut.parse(Layout.OverlayShortcut);
+
+        // Changes the key combination; the previous one stays if Windows refuses the new one.
+        public bool setShortcut(Shortcut shortcut)
+        {
+            if (!Layout.OverlayHotkey || messages.setHotkey(true, shortcut))
+            {
+                Layout.OverlayShortcut = shortcut.ToString();
+                saveLayout();
+                tray?.refreshMenu();
+                return true;
+            }
+            messages.setHotkey(true, Shortcut);
+            return false;
+        }
+
+        // While the shortcut recorder listens, the current combination must reach it instead of Windows.
+        public void pauseHotkey(bool paused)
+        {
+            messages.setHotkey(!paused && Layout.OverlayHotkey, Shortcut);
+        }
+
         public bool setHotkey(bool value)
         {
-            bool ok = messages.setHotkey(value);
+            bool ok = messages.setHotkey(value, Shortcut);
             Layout.OverlayHotkey = value && ok;
             saveLayout();
             return ok;

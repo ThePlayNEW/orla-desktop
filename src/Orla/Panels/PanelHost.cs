@@ -28,8 +28,9 @@ namespace Orla
         RECT rect, dragStart;
         POINT dragCursor;
         string resizeSide;
-        int resizeRows;
+        RECT resizeLimits;
         bool fitting;
+        System.Windows.Threading.DispatcherTimer settleAnimation;
         double scale = 1;
 
         public PanelView View { get; }
@@ -53,15 +54,12 @@ namespace Orla
             };
             View.ResizeStarted += side => {
                 resizeSide = side;
-                resizeRows = Group.Rows;
                 startDrag();
+                resizeLimits = limitsForResize();
+                View.Resizing = true;
             };
             View.ResizeUpdated += dragResize;
-            View.ResizeEnded += delegate {
-                resizeSide = null;
-                fitHeight();
-                commit();
-            };
+            View.ResizeEnded += endResize;
             // Content changed (a download arrived, a reference was added): grow only into the room below.
             View.SizeNeeded += delegate {
                 if (resizeSide != null || source == null || fitting)
@@ -206,49 +204,143 @@ namespace Orla
             bringToFront();
         }
 
-        // Moving keeps the whole panel inside the work area of the monitor under the pointer.
+        // Moving keeps the whole panel inside the work area of the monitor under the pointer, and lets it stick to
+        // screen margins and neighbouring panels on the way.
         void dragMove()
         {
             Native.GetCursorPos(out POINT now);
             int dx = now.X - dragCursor.X, dy = now.Y - dragCursor.Y;
             var moved = new RECT { Left = dragStart.Left + dx, Top = dragStart.Top + dy, Right = dragStart.Right + dx,
                                    Bottom = dragStart.Bottom + dy };
-            rect = Screens.clampTo(moved, Screens.at(now.X, now.Y).Work);
+            RECT work = Screens.at(now.X, now.Y).Work;
+            rect = Screens.clampTo(Screens.magnet(Screens.clampTo(moved, work), others(), work), work);
             place(false);
         }
 
-        // Resizing moves the grabbed edges in whole icon columns and rows, stays on screen and stops at other panels.
+        // How far each edge may travel: the work area margin, and the nearest panel on that side.
+        RECT limitsForResize()
+        {
+            RECT work = Screens.forRect(dragStart).Work;
+            var l = new RECT { Left = work.Left + Screens.Margin, Top = work.Top + Screens.Margin, Right = work.Right - Screens.Margin,
+                               Bottom = work.Bottom - Screens.Margin };
+            foreach (RECT o in others())
+            {
+                bool rowsOverlap = o.Top < dragStart.Bottom && o.Bottom > dragStart.Top;
+                bool columnsOverlap = o.Left < dragStart.Right && o.Right > dragStart.Left;
+                if (rowsOverlap && o.Right <= dragStart.Left)
+                    l.Left = Math.Max(l.Left, o.Right + Screens.Margin);
+                if (rowsOverlap && o.Left >= dragStart.Right)
+                    l.Right = Math.Min(l.Right, o.Left - Screens.Margin);
+                if (columnsOverlap && o.Bottom <= dragStart.Top)
+                    l.Top = Math.Max(l.Top, o.Bottom + Screens.Margin);
+                if (columnsOverlap && o.Top >= dragStart.Bottom)
+                    l.Bottom = Math.Min(l.Bottom, o.Top - Screens.Margin);
+            }
+            return l;
+        }
+
+        // While resizing, the panel follows the pointer smoothly and shows its size in columns and rows; on release it
+        // settles on whole tiles. Edges stop at the screen margin and at neighbouring panels.
         void dragResize()
         {
             Native.GetCursorPos(out POINT now);
             int dx = now.X - dragCursor.X, dy = now.Y - dragCursor.Y;
-            bool left = resizeSide.Contains("Left"), right = resizeSide.Contains("Right");
-            bool top = resizeSide.Contains("Top"), bottom = resizeSide.Contains("Bottom");
             string size = controller.Layout.IconSize;
-            int columns = Group.Columns, rows = Group.Rows;
-            if (left || right)
-                columns = PanelMetrics.columnsFor((dragStart.Width + (right ? dx : -dx)) / scale, size);
-            // Vertical drags change the most rows the panel may show, counted from where the drag began.
-            if ((top || bottom) && !Group.Collapsed)
-                rows = Math.Max(Group.MinRows, Math.Min(Group.MaxRows,
-                                resizeRows + (int)Math.Round((bottom ? dy : -dy) / scale / PanelMetrics.tile(size))));
-            int w = pixels(PanelMetrics.width(columns, size));
-            int h = Group.Collapsed ? dragStart.Height : pixels(PanelMetrics.height(rows, size));
-            int x = left ? dragStart.Right - w : dragStart.Left, y = top ? dragStart.Bottom - h : dragStart.Top;
-            var next = new RECT { Left = x, Top = y, Right = x + w, Bottom = y + h };
-            RECT work = Screens.forRect(dragStart).Work;
-            bool inside = next.Left >= work.Left + Screens.Margin && next.Right <= work.Right - Screens.Margin &&
-                          next.Top >= work.Top + Screens.Margin && next.Bottom <= work.Bottom - Screens.Margin;
-            if (!inside || others().Any(o => Screens.overlaps(next, o)) || columns == Group.Columns && rows == Group.Rows)
+            int minW = pixels(PanelMetrics.width(Group.MinColumns, size)), maxW = pixels(PanelMetrics.width(Group.MaxColumns, size));
+            int minH = pixels(PanelMetrics.height(Group.MinRows, size)), maxH = pixels(PanelMetrics.height(Group.MaxRows, size));
+            RECT r = dragStart;
+            if (resizeSide.Contains("Left"))
+                r.Left = clamp(dragStart.Left + dx, Math.Max(resizeLimits.Left, dragStart.Right - maxW), dragStart.Right - minW);
+            if (resizeSide.Contains("Right"))
+                r.Right = clamp(dragStart.Right + dx, dragStart.Left + minW, Math.Min(resizeLimits.Right, dragStart.Left + maxW));
+            if (!Group.Collapsed && resizeSide.Contains("Top"))
+                r.Top = clamp(dragStart.Top + dy, Math.Max(resizeLimits.Top, dragStart.Bottom - maxH), dragStart.Bottom - minH);
+            if (!Group.Collapsed && resizeSide.Contains("Bottom"))
+                r.Bottom = clamp(dragStart.Bottom + dy, dragStart.Top + minH, Math.Min(resizeLimits.Bottom, dragStart.Top + maxH));
+            if (others().Any(o => Screens.overlaps(r, o)))
                 return;
-            Group.Columns = columns;
-            Group.Rows = rows;
-            View.RoomRows = Group.MaxRows;
-            View.Width = PanelMetrics.width(columns, size);
-            View.Height = Group.Collapsed ? View.Height : PanelMetrics.height(rows, size);
-            rect = next;
+            rect = r;
+            View.Width = rect.Width / scale;
+            View.Height = rect.Height / scale;
+            View.showSize(PanelMetrics.columnsFor(View.Width, size), Group.Collapsed ? 0 : PanelMetrics.rowsFor(View.Height, size));
             place(true);
         }
+
+        static int clamp(int value, int min, int max) => Math.Max(min, Math.Min(max, value));
+
+        void endResize()
+        {
+            string size = controller.Layout.IconSize;
+            bool vertical = !Group.Collapsed && (resizeSide.Contains("Top") || resizeSide.Contains("Bottom"));
+            int columns = PanelMetrics.columnsFor(rect.Width / scale, size);
+            int rows = vertical ? PanelMetrics.rowsFor(rect.Height / scale, size) : Group.Rows;
+            // Rounding up can cross a limit; step back a tile when it does.
+            RECT target;
+            while (true)
+            {
+                int w = pixels(PanelMetrics.width(columns, size));
+                int h = vertical ? pixels(PanelMetrics.height(rows, size)) : rect.Height;
+                int x = resizeSide.Contains("Left") ? rect.Right - w : rect.Left;
+                int y = resizeSide.Contains("Top") ? rect.Bottom - h : rect.Top;
+                target = new RECT { Left = x, Top = y, Right = x + w, Bottom = y + h };
+                bool fits = target.Left >= resizeLimits.Left && target.Right <= resizeLimits.Right && target.Top >= resizeLimits.Top &&
+                            target.Bottom <= resizeLimits.Bottom && !others().Any(o => Screens.overlaps(target, o));
+                if (fits || columns <= Group.MinColumns && rows <= Group.MinRows)
+                    break;
+                if (target.Width > rect.Width && columns > Group.MinColumns)
+                    columns--;
+                else if (rows > Group.MinRows)
+                    rows--;
+                else
+                    columns--;
+            }
+            Group.Columns = columns;
+            if (vertical)
+            {
+                Group.Rows = rows;
+                Group.AutoHeight = false;
+            }
+            View.showSize(0, 0);
+            animateTo(target, delegate {
+                resizeSide = null;
+                View.Resizing = false;
+                commit();
+            });
+        }
+
+        // A short eased glide into the final size; instant when animations are off.
+        void animateTo(RECT target, Action done)
+        {
+            settleAnimation?.Stop();
+            if (!controller.Layout.Animations || !SystemParameters.ClientAreaAnimation)
+            {
+                rect = target;
+                place(true);
+                done();
+                return;
+            }
+            RECT from = rect;
+            int frame = 0;
+            const int frames = 7;
+            settleAnimation = new System.Windows.Threading.DispatcherTimer(TimeSpan.FromMilliseconds(16),
+                                                                            System.Windows.Threading.DispatcherPriority.Render,
+                                                                            delegate {
+                frame++;
+                double t = 1 - Math.Pow(1 - frame / (double)frames, 3);
+                rect = new RECT { Left = lerp(from.Left, target.Left, t), Top = lerp(from.Top, target.Top, t),
+                                  Right = lerp(from.Right, target.Right, t), Bottom = lerp(from.Bottom, target.Bottom, t) };
+                View.Width = rect.Width / scale;
+                View.Height = rect.Height / scale;
+                place(true);
+                if (frame < frames)
+                    return;
+                settleAnimation.Stop();
+                done();
+            }, View.Dispatcher);
+            settleAnimation.Start();
+        }
+
+        static int lerp(int a, int b, double t) => (int)Math.Round(a + (b - a) * t);
 
         void commit()
         {
@@ -291,6 +383,18 @@ namespace Orla
         {
             if (Mode == PanelMode.Desktop && source != null && desktop.IsValid && !desktop.isAbove(Handle))
                 desktop.placeAbove(Handle);
+        }
+
+        public void setVisible(bool visible)
+        {
+            if (source == null)
+                return;
+            bool now = Native.IsWindowVisible(Handle);
+            if (now == visible)
+                return;
+            Native.ShowWindow(Handle, visible ? Native.SW_SHOWNA : Native.SW_HIDE);
+            if (visible && controller.Layout.Animations && SystemParameters.ClientAreaAnimation)
+                Motion.reveal(View);
         }
 
         public void bringToFront()

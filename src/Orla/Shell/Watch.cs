@@ -9,7 +9,6 @@ namespace Orla
     public class MessageWindow : IDisposable
     {
         const int HotkeyId = 0x4F52;
-        const uint VK_SPACE = 0x20;
         static readonly uint taskbarCreated = Native.RegisterWindowMessage("TaskbarCreated");
 
         readonly HwndSource source;
@@ -27,13 +26,12 @@ namespace Orla
 
         public IntPtr Handle => source.Handle;
 
-        public bool setHotkey(bool enabled)
+        public bool setHotkey(bool enabled, Shortcut shortcut)
         {
             if (hotkeyRegistered)
                 Native.UnregisterHotKey(Handle, HotkeyId);
-            hotkeyRegistered = enabled &&
-                               Native.RegisterHotKey(Handle, HotkeyId, Native.MOD_CONTROL | Native.MOD_ALT | Native.MOD_NOREPEAT,
-                                                     VK_SPACE);
+            hotkeyRegistered = enabled && Native.RegisterHotKey(Handle, HotkeyId, shortcut.nativeModifiers | Native.MOD_NOREPEAT,
+                                                                shortcut.virtualKey);
             return hotkeyRegistered || !enabled;
         }
 
@@ -52,7 +50,7 @@ namespace Orla
 
         public void Dispose()
         {
-            setHotkey(false);
+            setHotkey(false, default(Shortcut));
             source.Dispose();
         }
     }

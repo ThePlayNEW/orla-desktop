@@ -271,7 +271,7 @@ namespace Orla
             try
             {
                 var factory = (IShellItemImageFactory)item;
-                if (factory.GetImage(new SIZE { cx = pixels, cy = pixels }, SIIGBF_BIGGERSIZEOK, out bitmap) != 0)
+                if (factory.GetImage(new SIZE { cx = pixels, cy = pixels }, SIIGBF_RESIZETOFIT, out bitmap) != 0)
                     return null;
                 return toBitmapSource(bitmap);
             }
@@ -302,7 +302,13 @@ namespace Orla
             {
                 DeleteDC(dc);
             }
-            BitmapSource source = BitmapSource.Create(w, h, 96, 96, PixelFormats.Pbgra32, null, pixels, w * 4);
+            // The shell usually hands back straight (not premultiplied) alpha; reading it as premultiplied leaves a pale,
+            // jagged rim around icons. A colour brighter than its alpha can only happen with straight alpha.
+            bool straight = false;
+            for (int i = 0; i < pixels.Length && !straight; i += 4)
+                straight = Math.Max(pixels[i], Math.Max(pixels[i + 1], pixels[i + 2])) > pixels[i + 3];
+            BitmapSource source = BitmapSource.Create(w, h, 96, 96, straight ? PixelFormats.Bgra32 : PixelFormats.Pbgra32, null,
+                                                      pixels, w * 4);
             source.Freeze();
             return source;
         }
@@ -315,7 +321,7 @@ namespace Orla
         }
 
         const uint SIGDN_NORMALDISPLAY = 0;
-        const int SIIGBF_BIGGERSIZEOK = 0x1;
+        const int SIIGBF_RESIZETOFIT = 0x0;
         const uint FO_MOVE = 1, FO_COPY = 2;
         const ushort FOF_ALLOWUNDO = 0x40;
 

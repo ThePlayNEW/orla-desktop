@@ -41,6 +41,8 @@ namespace Orla
         public double Y { get; set; }
         public int Columns { get; set; }
         public int Rows { get; set; }
+        // When on, the panel is as tall as its content, up to Rows. Resizing by hand turns it off.
+        public bool AutoHeight { get; set; }
         public List<Entry> Items { get; set; }
 
         public Group()
@@ -52,6 +54,7 @@ namespace Orla
             Visible = true;
             Columns = DefaultColumns;
             Rows = DefaultRows;
+            AutoHeight = true;
             Items = new List<Entry>();
         }
 
@@ -78,6 +81,7 @@ namespace Orla
         public bool CleanDesktop { get; set; }
         public bool LockLayout { get; set; }
         public bool OverlayHotkey { get; set; }
+        public string OverlayShortcut { get; set; }
         public bool Animations { get; set; }
         public double Opacity { get; set; }
         public string Theme { get; set; }
@@ -92,6 +96,7 @@ namespace Orla
             Groups = new List<Group>();
             StartupEnabled = true;
             OverlayHotkey = true;
+            OverlayShortcut = Orla.Shortcut.Default;
             Animations = true;
             Opacity = DefaultOpacity;
             Theme = "system";

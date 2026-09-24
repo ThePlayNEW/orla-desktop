@@ -77,11 +77,14 @@ namespace Orla
         bool moving, selecting, folderAvailable = true;
         int reloadVersion;
         HashSet<TileItem> marqueeBase;
+        HashSet<string> pendingSelection;
 
         public Group Group { get; }
         public double Scale { get; set; } = 1;
         // The most rows the host lets this panel grow to without covering another panel or leaving the screen.
         public int RoomRows { get; set; } = Group.MaxRows;
+        // While the host is resizing, it sets the size directly.
+        public bool Resizing { get; set; }
 
         public event Action MoveStarted, MoveUpdated, MoveEnded, SizeNeeded;
         public event Action<string> ResizeStarted;
@@ -93,6 +96,14 @@ namespace Orla
             Group = group;
             InitializeComponent();
             Items.ItemsSource = tiles;
+            applyTheme();
+            Theme.Changed += applyTheme;
+            Unloaded += delegate { Theme.Changed -= applyTheme; };
+            Loaded += delegate {
+                Theme.Changed -= applyTheme;
+                Theme.Changed += applyTheme;
+                applyTheme();
+            };
             reloadTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(250), DispatcherPriority.Background, delegate {
                 reloadTimer.Stop();
                 reload();
@@ -120,6 +131,9 @@ namespace Orla
                 edge.DragStarted += delegate { ResizeStarted?.Invoke(side); };
                 edge.DragDelta += delegate { ResizeUpdated?.Invoke(); };
                 edge.DragCompleted += delegate { ResizeEnded?.Invoke(); };
+                // Double-clicking the top or bottom edge fits the height to the content again.
+                if (side == "Top" || side == "Bottom")
+                    edge.MouseDoubleClick += delegate { controller.setAutoHeight(Group, true); };
             }
 
             Items.MouseLeftButtonDown += tileDown;
@@ -137,9 +151,19 @@ namespace Orla
                 e.Handled = true;
             };
 
-            Frame.DragEnter += dragOver;
-            Frame.DragOver += dragOver;
-            Frame.DragLeave += delegate { setDropHighlight(false); };
+            Frame.DragEnter += (s, e) => {
+                dragOver(s, e);
+                DropImages.enter(this, e.Data, e.Effects);
+            };
+            Frame.DragOver += (s, e) => {
+                dragOver(s, e);
+                DropImages.over(e.Effects);
+            };
+            Frame.DragLeave += delegate {
+                setDropHighlight(false);
+                InsertMark.Visibility = Visibility.Collapsed;
+                DropImages.leave();
+            };
             Frame.Drop += drop;
             MouseEnter += delegate { HeaderButtons.Opacity = 1; };
             MouseLeave += delegate {
@@ -170,6 +194,16 @@ namespace Orla
 
         string IconSize => controller.Layout.IconSize;
 
+        // Brings the current palette and panel opacity into this panel's own resources.
+        void applyTheme()
+        {
+            if (Theme.Palette == null)
+                return;
+            Resources.MergedDictionaries.Clear();
+            Resources.MergedDictionaries.Add(Theme.Palette);
+            Resources["Brush.PanelGlass"] = Theme.Glass;
+        }
+
         // Re-reads everything the panel shows from the layout.
         public void refresh()
         {
@@ -190,11 +224,25 @@ namespace Orla
             reload();
         }
 
-        // Width is whole columns; height fits the content, up to the rows people chose and the room available.
+        // Items that just arrived by drag and drop stay selected, so people see where they went.
+        public void selectAfterReload(IEnumerable<string> keys)
+        {
+            pendingSelection = new HashSet<string>(keys);
+        }
+
+        public void showSize(int columns, int rows)
+        {
+            SizeHint.Visibility = columns > 0 ? Visibility.Visible : Visibility.Collapsed;
+            SizeText.Text = rows > 0 ? columns + " × " + rows : columns.ToString();
+        }
+
+        // Width is whole columns; height fits the content (automatic) or is the rows people chose, within the room available.
         public void applySize()
         {
+            if (Resizing)
+                return;
             int contentRows = Math.Max(1, (int)Math.Ceiling(tiles.Count / (double)Group.Columns));
-            int rows = Math.Max(1, Math.Min(contentRows, Math.Min(Group.Rows, RoomRows)));
+            int rows = Math.Max(1, Math.Min(Group.AutoHeight ? contentRows : Group.Rows, Math.Min(Group.Rows, RoomRows)));
             double width = PanelMetrics.width(Group.Columns, IconSize);
             double height = Group.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, IconSize);
             if (width == Width && height == Height)
@@ -240,7 +288,8 @@ namespace Orla
             foreach (TileItem t in tiles)
                 previous[t.Key] = t;
             tiles.Clear();
-            int pixels = (int)Math.Ceiling(PanelMetrics.icon(IconSize) * Scale);
+            // Twice the size on screen: the shell's own downscaling is coarse, WPF's high-quality filter is not.
+            int pixels = Math.Min(256, (int)Math.Ceiling(PanelMetrics.icon(IconSize) * Scale * 2));
             foreach (TileItem tile in next)
             {
                 previous.TryGetValue(tile.Key, out TileItem old);
@@ -252,6 +301,8 @@ namespace Orla
                         tile.Label = old.Label;
                     tile.Selected = old.Selected;
                 }
+                if (pendingSelection != null)
+                    tile.Selected = pendingSelection.Contains(tile.Key);
                 tiles.Add(tile);
                 TileItem target = tile;
                 if (!tile.IsMissing && tile.Icon == null)
@@ -262,6 +313,7 @@ namespace Orla
                 if (Group.IsFolder && old == null)
                     Shell.name(tile.Path, Dispatcher, name => target.Label = name);
             }
+            pendingSelection = null;
             Count.Text = tiles.Count.ToString();
             Empty.Text = Text.get(Group.IsFolder ? available ? "panel.folderEmpty" : "panel.folderMissing" : "panel.empty");
             Empty.Visibility = tiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -542,7 +594,20 @@ namespace Orla
             DragDropEffects allowed = Group.IsFolder ? DragDropEffects.Move | DragDropEffects.Copy | DragDropEffects.Link
                                       : filesOnly    ? DragDropEffects.Copy | DragDropEffects.Link
                                                      : DragDropEffects.Link;
-            DragDrop.DoDragDrop(this, data, allowed);
+            TileItem first = dragged[0];
+            var ghost = new DragGhost(first.Icon, dragged.Count > 1 ? Text.format("central.itemsCount", dragged.Count) : first.Label,
+                                      dragged.Count);
+            GiveFeedbackEventHandler follow = delegate { ghost.follow(); };
+            GiveFeedback += follow;
+            try
+            {
+                DragDrop.DoDragDrop(this, data, allowed);
+            }
+            finally
+            {
+                GiveFeedback -= follow;
+                ghost.close();
+            }
         }
 
         // The focusable tile border inside the generated item container.
@@ -688,6 +753,7 @@ namespace Orla
                 tint.Items.Add(option);
             }
             menu.Items.Add(tint);
+            menu.Items.Add(Menus.check("panel.autoHeight", Group.AutoHeight, () => controller.setAutoHeight(Group, !Group.AutoHeight)));
             menu.Items.Add(Menus.item(Group.Collapsed ? "panel.expand" : "panel.collapse",
                                       Group.Collapsed ? "Glyph.ChevronDown" : "Glyph.ChevronUp",
                                       () => controller.setCollapsed(Group, !Group.Collapsed)));
@@ -738,7 +804,40 @@ namespace Orla
         {
             e.Effects = effectFor(e);
             setDropHighlight(e.Effects != DragDropEffects.None);
+            showInsertMark(e);
+            autoScroll(e);
             e.Handled = true;
+        }
+
+        // A thin line between tiles shows where the items will go in a collection.
+        void showInsertMark(DragEventArgs e)
+        {
+            InsertMark.Visibility = Visibility.Collapsed;
+            if (Group.IsFolder || Group.Collapsed || e.Effects == DragDropEffects.None || tiles.Count == 0)
+                return;
+            int index = dropIndex(e);
+            bool after = index >= tiles.Count;
+            TileItem anchorTile = after ? tiles[tiles.Count - 1] : tiles.FirstOrDefault(t => t.Entry == Group.Items[index]);
+            FrameworkElement c = anchorTile == null ? null : containerOf(anchorTile);
+            if (c == null || !c.IsVisible)
+                return;
+            Rect bounds = c.TransformToAncestor(Body).TransformBounds(new Rect(0, 0, c.ActualWidth, c.ActualHeight));
+            Canvas.SetLeft(InsertMark, (after ? bounds.Right : bounds.Left) - 1.5);
+            Canvas.SetTop(InsertMark, bounds.Top + 8);
+            InsertMark.Height = Math.Max(0, bounds.Height - 16);
+            InsertMark.Visibility = Visibility.Visible;
+        }
+
+        // Dragging near the top or bottom of a panel scrolls it, so items can reach any position.
+        void autoScroll(DragEventArgs e)
+        {
+            if (Group.Collapsed || Scroller.ScrollableHeight <= 0)
+                return;
+            double y = e.GetPosition(Scroller).Y, edge = 28;
+            if (y < edge)
+                Scroller.ScrollToVerticalOffset(Scroller.VerticalOffset - (edge - y) / 2);
+            else if (y > Scroller.ActualHeight - edge)
+                Scroller.ScrollToVerticalOffset(Scroller.VerticalOffset + (y - Scroller.ActualHeight + edge) / 2);
         }
 
         void setDropHighlight(bool on)
@@ -749,7 +848,9 @@ namespace Orla
         void drop(object sender, DragEventArgs e)
         {
             setDropHighlight(false);
+            InsertMark.Visibility = Visibility.Collapsed;
             DragDropEffects effect = effectFor(e);
+            DropImages.drop(e.Data, effect);
             e.Effects = effect;
             e.Handled = true;
             if (effect == DragDropEffects.None)

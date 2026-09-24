@@ -17,7 +17,7 @@ namespace Orla
         public const string Repository = "https://github.com/ThePlayNEW/orla-desktop";
         readonly Controller controller;
         PanelView preview;
-        bool loading;
+        bool loading, recording;
 
         public CentralWindow(Controller controller)
         {
@@ -55,10 +55,19 @@ namespace Orla
                 if (!controller.setHotkey(HotkeySwitch.IsChecked == true))
                 {
                     HotkeySwitch.IsChecked = false;
-                    Dialog.alert(Text.get("general.hotkey"), Text.get("notice.hotkeyTaken"));
+                    Dialog.alert(Text.get("general.hotkey"), Text.format("notice.hotkeyTaken", controller.Shortcut.display()));
                 }
             };
             LockSwitch.Click += delegate { controller.setLock(LockSwitch.IsChecked == true); };
+            ShortcutButton.Click += delegate { startRecording(); };
+            ShortcutButton.LostKeyboardFocus += delegate { stopRecording(); };
+            ShortcutReset.Click += delegate {
+                stopRecording();
+                if (!controller.setShortcut(Shortcut.parse(Shortcut.Default)))
+                    Dialog.alert(Text.get("general.shortcut"), Text.format("notice.hotkeyTaken", Shortcut.parse(Shortcut.Default).display()));
+                refresh();
+            };
+            PreviewKeyDown += recordKey;
             LanguageButton.Click += delegate {
                 var menu = new ContextMenu { PlacementTarget = LanguageButton, Placement = PlacementMode.Bottom };
                 menu.Items.Add(Menus.check("language.system", controller.Layout.Language == "system", () => controller.setLanguage("system")));
@@ -198,6 +207,50 @@ namespace Orla
             })));
         }
 
+        // The next key combination pressed becomes the shortcut. Esc cancels.
+        void startRecording()
+        {
+            recording = true;
+            controller.pauseHotkey(true);
+            ShortcutButton.Content = Text.get("general.shortcutRecording");
+            ShortcutHint.Text = Text.get("general.shortcutHint");
+        }
+
+        void stopRecording()
+        {
+            if (!recording)
+                return;
+            recording = false;
+            controller.pauseHotkey(false);
+            ShortcutButton.Content = controller.Shortcut.display();
+        }
+
+        void recordKey(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (!recording)
+                return;
+            e.Handled = true;
+            if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                stopRecording();
+                return;
+            }
+            Shortcut? pressed = Shortcut.fromKeyPress(e);
+            if (pressed == null)
+                return;
+            if (!pressed.Value.IsValid)
+            {
+                ShortcutHint.Text = Text.get("general.shortcutInvalid");
+                return;
+            }
+            recording = false;
+            bool ok = controller.setShortcut(pressed.Value);
+            controller.pauseHotkey(false);
+            ShortcutButton.Content = controller.Shortcut.display();
+            ShortcutHint.Text = ok ? Text.get("general.shortcutHint") : Text.format("notice.hotkeyTaken", pressed.Value.display());
+            refresh();
+        }
+
         void onChange(Action action)
         {
             if (!loading)
@@ -239,7 +292,15 @@ namespace Orla
             UpdateCard.Visibility = Updates.Ready != null ? Visibility.Visible : Visibility.Collapsed;
             UpdateTitle.Text = Updates.Ready != null ? Text.format("about.updateReady", Updates.Ready) : "";
             FrontLabel.Text = Text.get(controller.Overlay ? "central.back" : "central.front");
+            string shortcut = controller.Shortcut.display();
+            FrontShortcut.Text = shortcut;
             FrontShortcut.Visibility = l.OverlayHotkey ? Visibility.Visible : Visibility.Collapsed;
+            PanelsTip.Text = Text.format("central.panelsTip", shortcut);
+            WelcomeTip.Text = Text.format("welcome.tip", shortcut);
+            HotkeyHint.Text = Text.format("general.hotkeyHint", shortcut);
+            if (!recording)
+                ShortcutButton.Content = shortcut;
+            ShortcutButton.IsEnabled = l.OverlayHotkey;
             StatusText.Text = Text.get(controller.DesktopFound ? "status.integrated" : "status.fallback");
             StatusDot.SetResourceReference(Shape.FillProperty, controller.DesktopFound ? "Brush.Accent" : "Brush.Warning");
             buildPanelList();

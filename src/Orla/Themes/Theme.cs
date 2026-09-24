@@ -12,6 +12,12 @@ namespace Orla
         static ResourceDictionary palette;
 
         public static bool IsDark { get; private set; }
+        public static ResourceDictionary Palette => palette;
+        public static Brush Glass { get; private set; }
+
+        // Panels live in their own native windows, which WPF does not notify when application resources change,
+        // so they listen here and re-apply the palette themselves.
+        public static event Action Changed;
         public static bool IsHighContrast => SystemParameters.HighContrast;
 
         public static void install(Application app)
@@ -29,17 +35,23 @@ namespace Orla
             resources.MergedDictionaries.Add(next);
             palette = next;
             setOpacity(layout.Opacity);
+            Changed?.Invoke();
         }
 
         public static void setOpacity(double opacity)
         {
             if (IsHighContrast)
+            {
+                Glass = (Brush)palette["Brush.PanelGlass"];
                 return;
+            }
             var color = (Color)palette["Color.PanelGlass"];
             color.A = (byte)Math.Round(255 * Math.Max(Layout.MinOpacity, Math.Min(Layout.MaxOpacity, opacity)));
             var brush = new SolidColorBrush(color);
             brush.Freeze();
+            Glass = brush;
             Application.Current.Resources["Brush.PanelGlass"] = brush;
+            Changed?.Invoke();
         }
 
         static ResourceDictionary load(string name)
