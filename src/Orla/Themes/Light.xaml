@@ -1,0 +1,41 @@
+<!-- Linha d'água, light theme. Panel glass alpha is replaced at runtime by the opacity setting (75–95%, default 82%), which keeps text at 6:1 or better over any wallpaper. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Color x:Key="Color.Tide">#0E3B43</Color>
+    <Color x:Key="Color.SeaGlass">#5EC8C0</Color>
+    <Color x:Key="Color.Sand">#E4D6BC</Color>
+    <Color x:Key="Color.Foam">#F2F6F5</Color>
+    <Color x:Key="Color.Ink">#0A2227</Color>
+
+    <Color x:Key="Color.PanelGlass">#D1F2F6F5</Color>
+    <SolidColorBrush x:Key="Brush.PanelGlass" Color="{StaticResource Color.PanelGlass}" />
+    <SolidColorBrush x:Key="Brush.PanelBorder" Color="#240E3B43" />
+    <SolidColorBrush x:Key="Brush.Shoreline" Color="#2F9E96" />
+
+    <SolidColorBrush x:Key="Brush.Text" Color="#0E3B43" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#35575B" />
+    <SolidColorBrush x:Key="Brush.TextDisabled" Color="#8FA5A7" />
+    <SolidColorBrush x:Key="Brush.Glyph" Color="#17605B" />
+
+    <SolidColorBrush x:Key="Brush.ItemHover" Color="#140E3B43" />
+    <SolidColorBrush x:Key="Brush.ItemPressed" Color="#240E3B43" />
+    <SolidColorBrush x:Key="Brush.ItemSelected" Color="#1F1D7F79" />
+    <SolidColorBrush x:Key="Brush.Focus" Color="#1D7F79" />
+    <SolidColorBrush x:Key="Brush.DropTarget" Color="#141D7F79" />
+
+    <SolidColorBrush x:Key="Brush.Accent" Color="#1D7F79" />
+    <SolidColorBrush x:Key="Brush.OnAccent" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.AccentHover" Color="#176A65" />
+
+    <SolidColorBrush x:Key="Brush.Window" Color="#F7FAF9" />
+    <SolidColorBrush x:Key="Brush.Surface" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.SurfaceRaised" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.Control" Color="#E9F0EF" />
+    <SolidColorBrush x:Key="Brush.ControlHover" Color="#DDE8E6" />
+    <SolidColorBrush x:Key="Brush.Line" Color="#D6E2E0" />
+
+    <SolidColorBrush x:Key="Brush.Warning" Color="#8A5A00" />
+    <SolidColorBrush x:Key="Brush.Critical" Color="#B3261E" />
+
+</ResourceDictionary>

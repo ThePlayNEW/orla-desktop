@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs>
+    <linearGradient id="tide" x1=".25" y1="0" x2=".75" y2="1">
+      <stop offset="0" stop-color="#20707A"/>
+      <stop offset="1" stop-color="#0E3B43"/>
+    </linearGradient>
+    <linearGradient id="sand" x1=".25" y1="0" x2=".75" y2="1">
+      <stop offset="0" stop-color="#EDE3CF"/>
+      <stop offset="1" stop-color="#DCCBA9"/>
+    </linearGradient>
+    <clipPath id="plate"><rect x="2" y="2" width="44" height="44" rx="10"/></clipPath>
+  </defs>
+  <g clip-path="url(#plate)">
+    <rect width="48" height="48" fill="url(#tide)"/>
+    <path d="M0 29.5C9 23.5 17 35.5 27 29.5S41 24 48 27.5V48H0Z" fill="url(#sand)"/>
+    <path d="M0 29.5C9 23.5 17 35.5 27 29.5S41 24 48 27.5" fill="none" stroke="#5EC8C0" stroke-width="3.2"/>
+  </g>
+  <rect x="2.5" y="2.5" width="43" height="43" rx="9.5" fill="none" stroke="#FFFFFF" stroke-opacity=".16"/>
+</svg>

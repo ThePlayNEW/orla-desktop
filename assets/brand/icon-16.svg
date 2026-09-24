@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <defs>
+    <clipPath id="plate"><rect x=".5" y=".5" width="15" height="15" rx="3.5"/></clipPath>
+  </defs>
+  <g clip-path="url(#plate)">
+    <rect width="16" height="16" fill="#155761"/>
+    <path d="M0 10.2C3 8 5.5 12.2 9 10.2S14 8.4 16 9.6V16H0Z" fill="#E6D9BF"/>
+    <path d="M0 10.2C3 8 5.5 12.2 9 10.2S14 8.4 16 9.6" fill="none" stroke="#5EC8C0" stroke-width="1.6"/>
+  </g>
+</svg>
