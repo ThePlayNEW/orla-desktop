@@ -2,6 +2,21 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.1.1
+
+- The installed version looks for updates every six hours instead of once a day.
+- German texts for the organizer use the same informal address as the rest of the interface.
+- The guides now say that a downloaded update is also installed at the next start, which Velopack already did.
+
+The 29 automated tests from 1.1 are unchanged and pass.
+
+Update from 1.0 to 1.1, checked by hand on Windows 10 22H2 with the published releases:
+
+1. The installed 1.0.0 asked GitHub for releases about a minute after it started.
+2. It downloaded the 1.1.0 delta in the background and rebuilt the full package.
+3. When Orla was started again, Velopack applied the downloaded version before the app ran and restarted it.
+4. The installed version was then 1.1.0, with the same layout and settings.
+
 ## 1.1
 
 ### What changed

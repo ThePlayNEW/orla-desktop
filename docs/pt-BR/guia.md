@@ -324,7 +324,7 @@ Com o Alto Contraste do Windows ligado, o Orla usa as cores do sistema e desliga
 
 ### Atualizações
 
-A versão instalada procura uma versão nova no GitHub no máximo uma vez por dia. Quando encontra, baixa em segundo plano e aplica na próxima vez que o Orla fechar. A busca pede ao GitHub a lista de versões deste repositório e não envia dados pessoais. Quando uma versão nova estiver pronta, a página **Sobre** mostra o botão **Reiniciar e atualizar**, para instalar na hora. Para desligar as atualizações, use **Atualizações automáticas** em **Geral**.
+A versão instalada procura uma versão nova no GitHub um minuto depois de abrir e, depois, a cada seis horas. Quando encontra, baixa em segundo plano e aplica na próxima vez que o Orla fechar. Se você desligar o Windows com o Orla aberto, a atualização é aplicada na próxima vez que ele abrir, um ou dois segundos antes de os painéis aparecerem. A busca pede ao GitHub a lista de versões deste repositório e não envia dados pessoais. Quando uma versão nova estiver pronta, a página **Sobre** mostra o botão **Reiniciar e atualizar**, para instalar na hora. Para desligar as atualizações, use **Atualizações automáticas** em **Geral**.
 
 A versão portátil não se atualiza sozinha. Para atualizar, saia do Orla, baixe o ZIP novo da [página de versões](https://github.com/ThePlayNEW/orla-desktop/releases/latest) e extraia no lugar da pasta antiga. Seus painéis ficam em `%LOCALAPPDATA%\Orla` e não são afetados.
 

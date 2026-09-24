@@ -176,7 +176,7 @@ Releases are packed by Velopack (`package.ps1`, run by the `release.yml` workflo
 
 **Start with Windows** writes the value `Orla Desktop` under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`. It is on by default until the user changes it.
 
-The installed version checks GitHub Releases at most once a day, downloads a newer release in the background and applies it when Orla exits. The request only lists the repository's releases. **Automatic updates** in **General** turns this off. The portable version never updates itself. There is no other network access and no telemetry.
+The installed version checks GitHub Releases one minute after it starts and then every six hours, downloads a newer release in the background and applies it when Orla exits. If Windows shuts down with Orla open, `VelopackApp.Run` applies the downloaded release at the next start, before any panel is created, and restarts into it. The request only lists the repository's releases. **Automatic updates** in **General** turns this off. The portable version never updates itself. There is no other network access and no telemetry.
 
 ## Localization
 

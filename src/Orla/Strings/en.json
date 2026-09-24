@@ -78,7 +78,7 @@
   "general.startup": "Start with Windows",
   "general.startupHint": "Your panels appear as soon as you sign in.",
   "general.updates": "Automatic updates",
-  "general.updatesHint": "Once a day, Orla checks GitHub for a new version and installs it when you close the app. None of your data is sent.",
+  "general.updatesHint": "Every few hours, Orla checks GitHub for a new version and installs it when you close the app or the next time it starts. None of your data is sent.",
   "icons.large": "Large",
   "icons.medium": "Medium",
   "icons.small": "Small",
