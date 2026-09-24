@@ -52,14 +52,60 @@ namespace Orla
             return new Screen { Bounds = info.rcMonitor, Work = info.rcWork, Dpi = dpi, Primary = (info.dwFlags & 1) != 0 };
         }
 
-        // Keeps a panel fully inside the work area of the monitor it mostly covers.
-        public static RECT clamp(RECT r)
+        // Keeps a panel fully inside the work area of the monitor it mostly covers, with a margin on every side.
+        public static RECT clamp(RECT r) => clampTo(r, forRect(r).Work);
+
+        public static RECT clampTo(RECT r, RECT work)
         {
-            RECT work = forRect(r).Work;
             int w = Math.Min(r.Width, work.Width - 2 * Margin), h = Math.Min(r.Height, work.Height - 2 * Margin);
             int x = Math.Max(work.Left + Margin, Math.Min(r.Left, work.Right - Margin - w));
             int y = Math.Max(work.Top + Margin, Math.Min(r.Top, work.Bottom - Margin - h));
             return new RECT { Left = x, Top = y, Right = x + w, Bottom = y + h };
+        }
+
+        public static bool overlaps(RECT a, RECT b) =>
+            a.Left < b.Right && a.Right > b.Left && a.Top < b.Bottom && a.Bottom > b.Top;
+
+        // The closest place for a panel that stays on its monitor and clear of every other panel. Candidates are the
+        // spots right next to the panels it would cover; a coarse scan of the work area is the last resort.
+        public static RECT free(RECT r, IList<RECT> others)
+        {
+            r = clamp(r);
+            if (!others.Any(o => overlaps(r, o)))
+                return r;
+            RECT work = forRect(r).Work;
+            int w = r.Width, h = r.Height;
+            var xs = new List<int> { r.Left };
+            var ys = new List<int> { r.Top };
+            foreach (RECT o in others)
+            {
+                xs.Add(o.Right + Margin);
+                xs.Add(o.Left - Margin - w);
+                ys.Add(o.Bottom + Margin);
+                ys.Add(o.Top - Margin - h);
+            }
+            RECT? best = null;
+            double bestDistance = Double.MaxValue;
+            void consider(int x, int y)
+            {
+                RECT c = clampTo(new RECT { Left = x, Top = y, Right = x + w, Bottom = y + h }, work);
+                if (others.Any(o => overlaps(c, o)))
+                    return;
+                double d = Math.Pow(c.Left - r.Left, 2) + Math.Pow(c.Top - r.Top, 2);
+                if (d < bestDistance)
+                {
+                    bestDistance = d;
+                    best = c;
+                }
+            }
+            foreach (int x in xs)
+                foreach (int y in ys)
+                    consider(x, y);
+            if (best == null)
+                for (int y = work.Top + Margin; y + h <= work.Bottom - Margin; y += 24)
+                    for (int x = work.Left + Margin; x + w <= work.Right - Margin; x += 24)
+                        consider(x, y);
+            return best ?? r;
         }
 
         // Aligns a dropped panel to an 8 px grid and pulls it to nearby work-area edges and other panels.
@@ -97,13 +143,14 @@ namespace Orla
 
         // Default arrangement: columns from the top-right corner of the primary monitor, leaving the left side,
         // where Windows places its own icons, free.
-        public static void arrange(IList<Group> groups)
+        public static void arrange(IList<Group> groups, string iconSize)
         {
             Screen s = primary();
             int x = s.Work.Right - Margin * 2, y = s.Work.Top + Margin * 2, columnWidth = 0;
             foreach (Group g in groups.Where(g => g.Visible))
             {
-                int w = (int)Math.Round(g.Width * s.Scale), h = (int)Math.Round(g.Height * s.Scale);
+                int w = (int)Math.Round(PanelMetrics.width(g.Columns, iconSize) * s.Scale);
+                int h = (int)Math.Round((g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(g.Rows, iconSize)) * s.Scale);
                 if (y + h > s.Work.Bottom - Margin && y > s.Work.Top + Margin * 2)
                 {
                     x -= columnWidth + Margin;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
@@ -17,14 +18,16 @@ namespace Orla
     }
 
     // Owns the native window of one panel. Switching modes rebuilds the window around the same PanelView, which is
-    // also how panels come back after Explorer restarts.
+    // also how panels come back after Explorer restarts. Panels always stay inside a monitor's work area and never
+    // overlap each other.
     public class PanelHost : IDisposable
     {
         readonly Controller controller;
         HwndSource source;
         Desktop desktop;
-        RECT rect, moveStart;
-        POINT moveCursor;
+        RECT rect, dragStart;
+        POINT dragCursor;
+        string resizeSide;
         double scale = 1;
 
         public PanelView View { get; }
@@ -37,41 +40,38 @@ namespace Orla
         {
             this.controller = controller;
             View = new PanelView(controller, group);
-            View.MoveStarted += delegate {
-                Native.GetCursorPos(out moveCursor);
-                moveStart = rect;
-                bringToFront();
-            };
-            View.MoveUpdated += delegate {
-                Native.GetCursorPos(out POINT now);
-                int dx = now.X - moveCursor.X, dy = now.Y - moveCursor.Y;
-                rect = new RECT { Left = moveStart.Left + dx, Top = moveStart.Top + dy, Right = moveStart.Right + dx,
-                                  Bottom = moveStart.Bottom + dy };
-                place(false);
-            };
+            View.MoveStarted += startDrag;
+            View.MoveUpdated += dragMove;
             View.MoveEnded += delegate {
-                rect = Screens.snap(rect, controller.Hosts.Where(h => h != this).Select(h => h.Rect));
-                Group.X = rect.Left;
-                Group.Y = rect.Top;
-                fit();
-                controller.saveLayout();
+                // A click on the title without dragging leaves the panel exactly where it was.
+                if (rect.Left == dragStart.Left && rect.Top == dragStart.Top)
+                    return;
+                rect = Screens.free(Screens.snap(rect, others()), others());
+                commit();
             };
-            View.Resized += (dx, dy) => {
-                Group.Width = Math.Max(Group.MinWidth, Math.Min(Group.MaxWidth, Group.Width + dx));
-                Group.Height = Math.Max(Group.MinHeight, Math.Min(Group.MaxHeight, Group.Height + dy));
-                View.Width = Group.Width;
-                View.Height = Group.Height;
-                rect.Right = rect.Left + pixels(Group.Width);
-                rect.Bottom = rect.Top + pixels(Group.Height);
-                place(true);
+            View.ResizeStarted += side => {
+                resizeSide = side;
+                startDrag();
             };
+            View.ResizeUpdated += dragResize;
             View.ResizeEnded += delegate {
-                fit();
-                controller.saveLayout();
+                resizeSide = null;
+                fitHeight();
+                commit();
+            };
+            View.SizeNeeded += delegate {
+                if (resizeSide != null || source == null)
+                    return;
+                rect.Right = rect.Left + pixels(View.Width);
+                rect.Bottom = rect.Top + pixels(View.Height);
+                rect = Screens.clamp(rect);
+                place(true);
             };
         }
 
         int pixels(double dip) => (int)Math.Round(dip * scale);
+
+        List<RECT> others() => controller.Hosts.Where(h => h != this).Select(h => h.Rect).ToList();
 
         public void show(PanelMode mode, Desktop target)
         {
@@ -85,11 +85,32 @@ namespace Orla
         // Size and position in physical pixels, on the monitor the panel belongs to.
         void measure()
         {
-            Screen s = Screens.at((int)Group.X + 40, (int)Group.Y + 20);
-            scale = s.Scale;
-            double height = Group.Collapsed ? PanelView.CollapsedHeight : Group.Height;
-            rect = Screens.clamp(new RECT { Left = (int)Group.X, Top = (int)Group.Y, Right = (int)Group.X + pixels(Group.Width),
-                                            Bottom = (int)Group.Y + pixels(height) });
+            scale = Screens.at((int)Group.X + 40, (int)Group.Y + 20).Scale;
+            View.Scale = scale;
+            if (source != null)
+                applyScale();
+            rect = new RECT { Left = (int)Group.X, Top = (int)Group.Y };
+            fitHeight();
+        }
+
+        // Lets the height follow the content, up to the rows chosen and the room left below the panel.
+        void fitHeight()
+        {
+            View.RoomRows = Group.MaxRows;
+            View.applySize();
+            rect.Right = rect.Left + pixels(View.Width);
+            rect.Bottom = rect.Top + pixels(View.Height);
+            rect = Screens.clamp(rect);
+            RECT work = Screens.forRect(rect).Work;
+            int limit = work.Bottom - Screens.Margin;
+            foreach (RECT o in others())
+                if (o.Top >= rect.Top && o.Left < rect.Right && o.Right > rect.Left)
+                    limit = Math.Min(limit, o.Top - Screens.Margin);
+            double room = (limit - rect.Top) / scale - PanelMetrics.ChromeHeight;
+            View.RoomRows = Math.Max(1, (int)Math.Floor(room / PanelMetrics.tile(controller.Layout.IconSize)));
+            View.applySize();
+            rect.Right = rect.Left + pixels(View.Width);
+            rect.Bottom = rect.Top + pixels(View.Height);
         }
 
         void create()
@@ -123,13 +144,10 @@ namespace Orla
             source.CompositionTarget.BackgroundColor = Colors.Transparent;
             applyScale();
             source.RootVisual = View;
-            if (Mode == PanelMode.Desktop)
-                desktop.placeAbove(Handle);
-            else if (Mode == PanelMode.Overlay)
-                Native.SetWindowPos(Handle, Native.HWND_TOPMOST, 0, 0, 0, 0,
-                                    Native.SWP_NOMOVE | Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
-            else
+            if (Mode == PanelMode.Fallback)
                 placeAboveShell();
+            else
+                bringToFront();
             Native.ShowWindow(Handle, Native.SW_SHOWNA);
             if (controller.Layout.Animations && SystemParameters.ClientAreaAnimation)
                 Motion.reveal(View);
@@ -139,7 +157,6 @@ namespace Orla
         // match the monitor they sit on; top-level windows get this from WPF itself.
         void applyScale()
         {
-            View.Scale = scale;
             double factor = Mode == PanelMode.Desktop ? scale * 96.0 / desktop.dpi : 1;
             View.LayoutTransform = Math.Abs(factor - 1) < 0.01 ? Transform.Identity : new ScaleTransform(factor, factor);
         }
@@ -168,22 +185,90 @@ namespace Orla
                                 Native.SWP_NOZORDER | Native.SWP_NOACTIVATE | (resize ? 0 : Native.SWP_NOSIZE));
         }
 
-        // After a move or resize: keep the panel on screen and adopt the scale of the monitor it landed on.
-        void fit()
+        // ---- dragging ----
+
+        void startDrag()
         {
-            double before = scale;
-            Group.X = rect.Left;
-            Group.Y = rect.Top;
-            measure();
-            if (Math.Abs(before - scale) > 0.01)
-                applyScale();
+            Native.GetCursorPos(out dragCursor);
+            dragStart = rect;
+            bringToFront();
+        }
+
+        // Moving keeps the whole panel inside the work area of the monitor under the pointer.
+        void dragMove()
+        {
+            Native.GetCursorPos(out POINT now);
+            int dx = now.X - dragCursor.X, dy = now.Y - dragCursor.Y;
+            var moved = new RECT { Left = dragStart.Left + dx, Top = dragStart.Top + dy, Right = dragStart.Right + dx,
+                                   Bottom = dragStart.Bottom + dy };
+            rect = Screens.clampTo(moved, Screens.at(now.X, now.Y).Work);
+            place(false);
+        }
+
+        // Resizing moves the grabbed edges in whole icon columns and rows, stays on screen and stops at other panels.
+        void dragResize()
+        {
+            Native.GetCursorPos(out POINT now);
+            int dx = now.X - dragCursor.X, dy = now.Y - dragCursor.Y;
+            bool left = resizeSide.Contains("Left"), right = resizeSide.Contains("Right");
+            bool top = resizeSide.Contains("Top"), bottom = resizeSide.Contains("Bottom");
+            string size = controller.Layout.IconSize;
+            int columns = Group.Columns, rows = Group.Rows;
+            if (left || right)
+                columns = PanelMetrics.columnsFor((dragStart.Width + (right ? dx : -dx)) / scale, size);
+            if ((top || bottom) && !Group.Collapsed)
+                rows = PanelMetrics.rowsFor((dragStart.Height + (bottom ? dy : -dy)) / scale, size);
+            int w = pixels(PanelMetrics.width(columns, size));
+            int h = Group.Collapsed ? dragStart.Height : pixels(PanelMetrics.height(rows, size));
+            int x = left ? dragStart.Right - w : dragStart.Left, y = top ? dragStart.Bottom - h : dragStart.Top;
+            var next = new RECT { Left = x, Top = y, Right = x + w, Bottom = y + h };
+            RECT work = Screens.forRect(dragStart).Work;
+            bool inside = next.Left >= work.Left + Screens.Margin && next.Right <= work.Right - Screens.Margin &&
+                          next.Top >= work.Top + Screens.Margin && next.Bottom <= work.Bottom - Screens.Margin;
+            if (!inside || others().Any(o => Screens.overlaps(next, o)) || columns == Group.Columns && rows == Group.Rows)
+                return;
+            Group.Columns = columns;
+            Group.Rows = rows;
+            View.RoomRows = Group.MaxRows;
+            View.Width = PanelMetrics.width(columns, size);
+            View.Height = Group.Collapsed ? View.Height : PanelMetrics.height(rows, size);
+            rect = next;
             place(true);
         }
+
+        void commit()
+        {
+            Group.X = rect.Left;
+            Group.Y = rect.Top;
+            double before = scale;
+            scale = Screens.forRect(rect).Scale;
+            View.Scale = scale;
+            if (Math.Abs(before - scale) > 0.01)
+                applyScale();
+            fitHeight();
+            place(true);
+            controller.saveLayout();
+        }
+
+        // ---- lifetime ----
 
         public void refresh()
         {
             View.refresh();
             measure();
+            place(true);
+        }
+
+        // Moves this panel off any panel it covers, used when panels are first placed or grow.
+        public void settle()
+        {
+            RECT free = Screens.free(rect, others());
+            if (free.Left == rect.Left && free.Top == rect.Top)
+                return;
+            rect = free;
+            Group.X = rect.Left;
+            Group.Y = rect.Top;
+            fitHeight();
             place(true);
         }
 

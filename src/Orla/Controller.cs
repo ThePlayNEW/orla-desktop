@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using Microsoft.Win32;
 using Forms = System.Windows.Forms;
 
 namespace Orla
@@ -18,7 +19,8 @@ namespace Orla
         readonly Dispatcher dispatcher;
         readonly MessageWindow messages;
         readonly DesktopWatch watch;
-        readonly DispatcherTimer rebuildTimer;
+        readonly DispatcherTimer rebuildTimer, referenceTimer;
+        readonly ReferenceWatch references;
         readonly List<PanelHost> hosts = new List<PanelHost>();
         readonly bool interactive;
         Desktop desktop;
@@ -28,6 +30,7 @@ namespace Orla
         bool exiting;
 
         public Layout Layout => store.data;
+        public Dispatcher Dispatcher => dispatcher;
         public IReadOnlyList<PanelHost> Hosts => hosts;
         public bool Overlay { get; private set; }
         public bool DesktopFound => (desktop ?? (desktop = Desktop.find())).IsValid;
@@ -57,6 +60,18 @@ namespace Orla
                 rebuild();
             }, dispatcher);
             rebuildTimer.Stop();
+            references = new ReferenceWatch(dispatcher);
+            references.Renamed += followRename;
+            referenceTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(400), DispatcherPriority.Background, delegate {
+                referenceTimer.Stop();
+                foreach (PanelHost h in hosts.Where(h => !h.Group.IsFolder))
+                    h.View.queueReload();
+            }, dispatcher);
+            referenceTimer.Stop();
+            references.Changed += delegate {
+                referenceTimer.Stop();
+                referenceTimer.Start();
+            };
         }
 
         public void start()
@@ -66,14 +81,24 @@ namespace Orla
                 tray = new Tray(this, messages.Handle);
                 if (Layout.OverlayHotkey && !messages.setHotkey(true))
                     tray.notify(Text.get("notice.hotkeyTaken"));
-                // Also points an existing shortcut at this copy, so an older version never starts with a newer layout.
-                if (!Layout.StartupConfigured || StartupEnabled)
+                // Also points an existing entry at this copy, and replaces version 1's Startup shortcut, so an older
+                // version never starts with a newer layout.
+                if (!Layout.StartupConfigured || StartupEnabled || File.Exists(LegacyShortcut))
                     tryAction(() => setStartup(true));
+                if (Layout.AutoUpdate)
+                    Updates.start(this);
             }
             if (!Layout.Welcomed)
             {
                 showCentral("welcome");
                 return;
+            }
+            // Version 1 hid the Windows icons, so its panels may sit where the icons live. Start them from the
+            // top-right corner instead, leaving the icon column free.
+            if (store.migrated)
+            {
+                Screens.arrange(Layout.Groups, Layout.IconSize);
+                saveLayout();
             }
             rebuild();
             if (store.recoveryNotice != null)
@@ -105,6 +130,7 @@ namespace Orla
                 hosts.Add(new PanelHost(this, g));
             showHosts();
             applyCleanDesktop();
+            followReferences();
             central?.refresh();
         }
 
@@ -114,6 +140,19 @@ namespace Orla
         {
             foreach (PanelHost h in hosts)
                 h.show(Overlay ? PanelMode.Overlay : baseMode, desktop);
+            settleAll();
+        }
+
+        // Panels never overlap: each one, in order, moves off any panel placed before it.
+        void settleAll()
+        {
+            foreach (PanelHost h in hosts)
+                h.settle();
+        }
+
+        void followReferences()
+        {
+            references.follow(Layout.Groups.Where(g => !g.IsFolder).SelectMany(g => g.Items).Select(e => e.Path));
         }
 
         void syncHosts()
@@ -157,10 +196,14 @@ namespace Orla
         {
             if (!DesktopFound)
                 return;
-            if (guard == null || !Native.IsWindow(desktop.IconList))
-                guard = new IconGuard(desktop, DataDirectory);
+            // After Explorer restarts the desktop is a new one, and so is its guard.
+            if (guard == null || guard.Target != desktop)
+            {
+                guard = new IconGuard(desktop, DataDirectory, dispatcher);
+                guard.Failed += delegate { tray?.notify(Text.get("error.guard")); };
+            }
             if (Layout.CleanDesktop && interactive)
-                tryAction(guard.hide);
+                guard.hide();
             else
             {
                 guard.restore();
@@ -183,7 +226,32 @@ namespace Orla
             foreach (PanelHost h in hosts)
                 if (group == null || h.Group == group || h.Group.IsFolder && h.Group.OnlyUnorganized)
                     h.refresh();
+            followReferences();
             central?.refresh();
+        }
+
+        // A collection item follows its file, or the folder it lives in, when it is renamed in File Explorer.
+        void followRename(string oldPath, string newPath)
+        {
+            var touched = new HashSet<Group>();
+            foreach (Group g in Layout.Groups.Where(g => !g.IsFolder))
+                foreach (Entry e in g.Items)
+                {
+                    bool same = String.Equals(e.Path, oldPath, StringComparison.OrdinalIgnoreCase);
+                    bool inside = e.Path.StartsWith(oldPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+                    if (!same && !inside)
+                        continue;
+                    if (same && (e.Name == Path.GetFileNameWithoutExtension(oldPath) || e.Name == Path.GetFileName(oldPath)))
+                        e.Name = Path.GetFileNameWithoutExtension(newPath);
+                    e.Path = same ? newPath : newPath + e.Path.Substring(oldPath.Length);
+                    touched.Add(g);
+                }
+            if (touched.Count == 0)
+                return;
+            saveLayout();
+            foreach (PanelHost h in hosts.Where(h => touched.Contains(h.Group)))
+                h.View.queueReload();
+            followReferences();
         }
 
         // ---- items ----
@@ -191,15 +259,21 @@ namespace Orla
         public void open(string path)
         {
             tryAction(() => Shell.open(path));
-            if (Overlay)
-                setOverlay(false);
+            leaveOverlay();
         }
 
         public void reveal(string path)
         {
             tryAction(() => Shell.reveal(path));
+            leaveOverlay();
+        }
+
+        // Sends the panels back to the desktop once the input event that asked for it has finished, since that
+        // event is still being handled by a window about to be rebuilt.
+        public void leaveOverlay()
+        {
             if (Overlay)
-                setOverlay(false);
+                dispatcher.BeginInvoke(new Action(() => setOverlay(false)));
         }
 
         public void addReferences(Group g, IEnumerable<string> paths, int index = -1)
@@ -216,23 +290,30 @@ namespace Orla
             changed(g);
         }
 
-        public void moveItem(string entryId, Group target, int index)
+        public void moveItems(string[] entryIds, Group target, int index)
         {
-            Group from = store.owner(entryId);
-            if (store.move(entryId, target, index))
-                changed(from == target ? target : null);
+            bool moved = false;
+            foreach (string id in entryIds)
+            {
+                Group from = store.owner(id);
+                int before = from == target ? from.Items.FindIndex(e => e.Id == id) : -1;
+                if (!store.move(id, target, index))
+                    continue;
+                moved = true;
+                if (before < 0 || before >= index)
+                    index++;
+            }
+            if (moved)
+                changed();
         }
 
-        public void moveItem(Entry entry, Group target)
+        public void removeItems(IList<Entry> entries)
         {
-            moveItem(entry.Id, target, target.Items.Count);
-        }
-
-        public void removeItem(Entry entry)
-        {
-            Group from = store.owner(entry.Id);
-            if (store.remove(entry.Id))
-                changed(from);
+            bool removed = false;
+            foreach (Entry e in entries)
+                removed |= store.remove(e.Id);
+            if (removed)
+                changed();
         }
 
         public void renameItem(Entry entry, string name)
@@ -245,45 +326,77 @@ namespace Orla
         {
             string folder = Shell.resolveFolder(g.FolderPath);
             var sources = paths.Where(p => !String.Equals(Path.GetDirectoryName(p), folder, StringComparison.OrdinalIgnoreCase));
-            IntPtr owner = hosts.FirstOrDefault(h => h.Group == g)?.Handle ?? IntPtr.Zero;
-            tryAction(() => Shell.transfer(owner, sources, folder, copy));
+            // Owned by Orla's own window: a dialog owned by a panel would disable Explorer's desktop window.
+            tryAction(() => Shell.transfer(messages.Handle, sources, folder, copy));
         }
 
         public void addFiles(Group g)
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog { Multiselect = true, Title = Text.get("panel.addFiles"),
-                                                              DereferenceLinks = false };
-            if (dialog.ShowDialog() == true)
-                addReferences(g, dialog.FileNames);
+            setOverlay(false);
+            using (var dialog = new Forms.OpenFileDialog { Multiselect = true, Title = Text.get("panel.addFiles"),
+                                                           DereferenceLinks = false })
+                if (dialog.ShowDialog(new Owner(messages.Handle)) == Forms.DialogResult.OK)
+                    addReferences(g, dialog.FileNames);
         }
 
         public void addFolder(Group g)
         {
+            setOverlay(false);
             string folder = pickFolder(Text.get("panel.addFolderHint"));
             if (folder != null)
                 addReferences(g, new[] { folder });
         }
 
-        public static string pickFolder(string description)
+        public string pickFolder(string description)
         {
             using (var dialog = new Forms.FolderBrowserDialog { Description = description, ShowNewFolderButton = true })
-                return dialog.ShowDialog() == Forms.DialogResult.OK ? dialog.SelectedPath : null;
+                return dialog.ShowDialog(new Owner(messages.Handle)) == Forms.DialogResult.OK ? dialog.SelectedPath : null;
+        }
+
+        sealed class Owner : Forms.IWin32Window
+        {
+            public Owner(IntPtr handle)
+            {
+                Handle = handle;
+            }
+
+            public IntPtr Handle { get; }
         }
 
         // ---- panels ----
 
         public Group createPanel(string kind, string name, string folder)
         {
+            return addPanel(new Group { Kind = kind, Name = name, FolderPath = folder,
+                                        Tint = Tints.All[Layout.Groups.Count % Tints.All.Length] });
+        }
+
+        // Presets that scan shortcuts do their reading off the UI thread.
+        public void createFromPreset(Preset preset)
+        {
+            System.Threading.Tasks.Task.Run(preset.Create).ContinueWith(t => dispatcher.BeginInvoke(new Action(delegate {
+                if (!t.IsFaulted)
+                    addPanel(t.Result);
+            })));
+        }
+
+        // A new panel appears in the middle of the main screen, or at the nearest free spot.
+        Group addPanel(Group g)
+        {
             if (Layout.Groups.Count >= Store.MaxGroups)
             {
                 Dialog.alert(Text.get("error.title"), Text.format("error.tooManyPanels", Store.MaxGroups));
                 return null;
             }
-            var g = new Group { Kind = kind, Name = name, FolderPath = folder,
-                                Tint = Tints.All[Layout.Groups.Count % Tints.All.Length] };
             Screen s = Screens.primary();
-            g.X = s.Work.Left + (s.Work.Width - g.Width * s.Scale) / 2;
-            g.Y = s.Work.Top + (s.Work.Height - g.Height * s.Scale) / 3;
+            int w = (int)(PanelMetrics.width(g.Columns, Layout.IconSize) * s.Scale);
+            int h = (int)(PanelMetrics.height(Math.Min(g.Rows, 2), Layout.IconSize) * s.Scale);
+            var spot = new RECT { Left = s.Work.Left + (s.Work.Width - w) / 2, Top = s.Work.Top + (s.Work.Height - h) / 3 };
+            spot.Right = spot.Left + w;
+            spot.Bottom = spot.Top + h;
+            spot = Screens.free(spot, hosts.Select(x => x.Rect).ToList());
+            g.X = spot.Left;
+            g.Y = spot.Top;
             Layout.Groups.Add(g);
             changed(g);
             return g;
@@ -332,8 +445,10 @@ namespace Orla
 
         public void resetPositions()
         {
-            Screens.arrange(Layout.Groups);
+            Screens.arrange(Layout.Groups, Layout.IconSize);
             changed();
+            settleAll();
+            saveLayout();
         }
 
         // ---- settings ----
@@ -357,6 +472,8 @@ namespace Orla
         {
             Layout.IconSize = value;
             changed();
+            settleAll();
+            saveLayout();
         }
 
         public void setAnimations(bool value)
@@ -389,59 +506,95 @@ namespace Orla
             return ok;
         }
 
+        // Applies a new language right away: panels and this window are rebuilt with the new text.
+        public void setAutoUpdate(bool value)
+        {
+            Layout.AutoUpdate = value;
+            saveLayout();
+            if (value)
+                Updates.start(this);
+        }
+
+        public void notifyUpdate(string version)
+        {
+            tray?.notify(Text.format("notice.updateReady", version));
+            central?.refresh();
+        }
+
         public void setLanguage(string value)
         {
             Layout.Language = value;
             saveLayout();
+            Text.load(value);
+            if (Layout.Welcomed)
+                rebuild();
+            if (central != null)
+            {
+                CentralWindow old = central;
+                central = null;
+                showCentral("general");
+                old.Close();
+            }
         }
 
-        public static string StartupShortcut =>
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "Orla.lnk");
+        const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run", RunValue = "Orla Desktop";
 
-        public bool StartupEnabled => File.Exists(StartupShortcut);
+        // Version 1 started through a shortcut in the Startup folder.
+        static string LegacyShortcut => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), "Orla.lnk");
+
+        public bool StartupEnabled
+        {
+            get
+            {
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(RunKey))
+                    return key?.GetValue(RunValue) != null;
+            }
+        }
 
         public void setStartup(bool enabled)
         {
+            removeStartup();
             if (enabled)
-            {
-                Type type = Type.GetTypeFromProgID("WScript.Shell");
-                dynamic shell = Activator.CreateInstance(type);
-                dynamic shortcut = shell.CreateShortcut(StartupShortcut);
-                try
-                {
-                    string exe = Process.GetCurrentProcess().MainModule.FileName;
-                    shortcut.TargetPath = exe;
-                    shortcut.WorkingDirectory = Path.GetDirectoryName(exe);
-                    shortcut.Description = "Orla Desktop";
-                    shortcut.Save();
-                }
-                finally
-                {
-                    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
-                    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
-                }
-            }
-            else if (File.Exists(StartupShortcut))
-                File.Delete(StartupShortcut);
+                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RunKey))
+                    key.SetValue(RunValue, "\"" + Process.GetCurrentProcess().MainModule.FileName + "\"");
             Layout.StartupConfigured = true;
             Layout.StartupEnabled = enabled;
             store.save();
         }
 
-        // Applies the choice made on the welcome screen and puts the first panels on the desktop.
-        public void welcome(bool organize)
+        // Also used when Orla is uninstalled.
+        public static void removeStartup()
         {
-            store.data = organize ? Starter.organized(Layout) : Starter.alongside(Layout);
-            Screens.arrange(Layout.Groups);
-            Layout.Welcomed = true;
-            saveLayout();
-            rebuild();
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey(RunKey, true))
+                key?.DeleteValue(RunValue, false);
+            if (File.Exists(LegacyShortcut))
+                File.Delete(LegacyShortcut);
+        }
+
+        // Applies the choice made on the welcome screen and puts the first panels on the desktop.
+        public void welcome(bool organize, IList<Preset> presets)
+        {
+            System.Threading.Tasks.Task.Run(() => {
+                Layout next = organize ? Starter.organized(Layout) : Starter.alongside(Layout);
+                foreach (Preset p in presets)
+                    next.Groups.Add(p.Create());
+                return next;
+            }).ContinueWith(t => dispatcher.BeginInvoke(new Action(delegate {
+                if (t.IsFaulted)
+                    return;
+                store.data = t.Result;
+                Screens.arrange(Layout.Groups, Layout.IconSize);
+                Layout.Welcomed = true;
+                saveLayout();
+                rebuild();
+            })));
         }
 
         // ---- windows ----
 
         public void showCentral(string page)
         {
+            setOverlay(false);
             if (central == null)
             {
                 central = new CentralWindow(this);
@@ -475,6 +628,7 @@ namespace Orla
             exiting = true;
             guard?.restore();
             watch.Dispose();
+            references.Dispose();
             foreach (PanelHost h in hosts)
                 h.Dispose();
             hosts.Clear();

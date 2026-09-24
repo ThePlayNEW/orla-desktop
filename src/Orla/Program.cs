@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
+using Velopack;
 
 namespace Orla
 {
@@ -18,6 +19,9 @@ namespace Orla
         [STAThread]
         public static int Main(string[] args)
         {
+            // Installer hooks run before anything else. Uninstalling removes the start-with-Windows entry; the icon
+            // guard of a running copy brings the Windows icons back when the uninstaller closes it.
+            VelopackApp.Build().OnBeforeUninstallFastCallback(v => Controller.removeStartup()).Run();
             string mode = args.Length > 0 ? args[0] : "";
             if (mode == "--guard" && args.Length >= 5)
             {

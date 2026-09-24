@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,8 +29,41 @@ namespace Orla
                 await central(controller, "panels", System.IO.Path.Combine(folder, "central-" + theme + ".png"));
                 await central(controller, "appearance", System.IO.Path.Combine(folder, "appearance-" + theme + ".png"));
                 await central(controller, "welcome", System.IO.Path.Combine(folder, "welcome-" + theme + ".png"));
+                await central(controller, "presets", System.IO.Path.Combine(folder, "presets-" + theme + ".png"));
             }
+            controller.Layout.Theme = "dark";
+            Theme.apply(controller.Layout);
+            await social(controller, System.IO.Path.Combine(folder, "social.png"));
             controller.quit();
+        }
+
+        // GitHub's link preview: the mark, the name and one real panel over the night shoreline.
+        static async Task social(Controller controller, string path)
+        {
+            const double width = 1280, height = 640;
+            var canvas = new Canvas { Width = width, Height = height, ClipToBounds = true };
+            canvas.Children.Add(wallpaper(true, width, height, false));
+            var mark = new Image { Source = (ImageSource)Application.Current.FindResource("Brand.Mark"), Width = 88, Height = 88 };
+            Canvas.SetLeft(mark, 96);
+            Canvas.SetTop(mark, 196);
+            canvas.Children.Add(mark);
+            var word = new Path { Data = (Geometry)Application.Current.FindResource("Brand.Word"), Fill = Brushes.White,
+                                  Stretch = Stretch.Uniform, Height = 64 };
+            Canvas.SetLeft(word, 96);
+            Canvas.SetTop(word, 312);
+            canvas.Children.Add(word);
+            var line = new TextBlock { Text = Text.get("about.lead"), Width = 500, TextWrapping = TextWrapping.Wrap, FontSize = 22,
+                                       Foreground = new SolidColorBrush(Color.FromRgb(0xC3, 0xD8, 0xD5)),
+                                       FontFamily = (FontFamily)Application.Current.FindResource("Font.Display") };
+            Canvas.SetLeft(line, 96);
+            Canvas.SetTop(line, 404);
+            canvas.Children.Add(line);
+            var view = new PanelView(controller, controller.Layout.Groups[1]) { Scale = 2 };
+            view.refresh();
+            Canvas.SetLeft(view, 700);
+            Canvas.SetTop(view, 150);
+            canvas.Children.Add(view);
+            await save(canvas, width, height, path);
         }
 
         static async Task scene(Controller controller, string path)
@@ -38,14 +72,26 @@ namespace Orla
             var canvas = new Canvas { Width = width, Height = height, ClipToBounds = true };
             canvas.Children.Add(wallpaper(Theme.IsDark, width, height));
             var groups = controller.Layout.Groups;
-            double[][] places = { new[] { 1044.0, 28 }, new[] { 1044.0, 296 }, new[] { 648.0, 28 }, new[] { 648.0, 296 } };
-            for (int i = 0; i < groups.Count && i < places.Length; i++)
+            var views = new List<PanelView>();
+            foreach (Group g in groups.Take(4))
             {
-                var view = new PanelView(controller, groups[i]) { Scale = 2 };
+                var view = new PanelView(controller, g) { Scale = 2 };
                 view.refresh();
-                Canvas.SetLeft(view, places[i][0]);
-                Canvas.SetTop(view, places[i][1]);
                 canvas.Children.Add(view);
+                views.Add(view);
+            }
+            // Panels size themselves once their content is read; stack them in two columns like on a desktop.
+            await Task.Delay(800);
+            double[] columns = { width - 28, width - 28 };
+            double[] tops = { 28, 28 };
+            for (int i = 0; i < views.Count; i++)
+            {
+                int column = i % 2;
+                PanelView view = views[i];
+                columns[column] = width - 28 - column * (view.Width + 24);
+                Canvas.SetLeft(view, columns[column] - view.Width);
+                Canvas.SetTop(view, tops[column]);
+                tops[column] += view.Height + 24;
             }
             await save(canvas, width, height, path);
         }
@@ -54,8 +100,12 @@ namespace Orla
         {
             var window = new CentralWindow(controller) { WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000,
                                                          Top = 0, ShowActivated = false, Width = 1040, Height = 700 };
-            if (page == "welcome")
+            if (page == "welcome" || page == "presets")
+            {
                 window.show("welcome");
+                if (page == "presets")
+                    window.showPresetChoices();
+            }
             else
             {
                 window.show(null);
@@ -83,7 +133,7 @@ namespace Orla
         }
 
         // A calm shoreline in the brand colours: night for the dark theme, morning for the light one.
-        static Canvas wallpaper(bool dark, double width, double height)
+        static Canvas wallpaper(bool dark, double width, double height, bool withSun = true)
         {
             var c = new Canvas { Width = width, Height = height };
             Brush gradient(string a, string b) => new LinearGradientBrush((Color)ColorConverter.ConvertFromString(a),
@@ -101,7 +151,8 @@ namespace Orla
                                         new GradientStop(Color.FromArgb(0, glow.R, glow.G, glow.B), 1.0) }) };
             Canvas.SetLeft(sun, dark ? 240 : 420);
             Canvas.SetTop(sun, dark ? 150 : 120);
-            c.Children.Add(sun);
+            if (withSun)
+                c.Children.Add(sun);
             c.Children.Add(shape("M0 500 C 240 440 420 480 660 452 S 1120 430 1440 470 L 1440 820 L 0 820 Z",
                                  dark ? gradient("#0E2433", "#07131D") : gradient("#8EC3CB", "#B7D7D8")));
             c.Children.Add(shape("M0 620 C 280 570 500 660 800 610 S 1240 570 1440 612 L 1440 820 L 0 820 Z",

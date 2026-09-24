@@ -26,17 +26,17 @@ namespace Orla
             }
 
             var layout = new Layout { Welcomed = true, StartupConfigured = true, OverlayHotkey = false };
-            var projects = new Group { Name = Text.get("demo.projects"), Tint = Tints.Coral, Width = 372, Height = 248 };
+            var projects = new Group { Name = Text.get("demo.projects"), Tint = Tints.Coral, Columns = 4, Rows = 2 };
             foreach (string name in new[] { "Site novo", "Identidade", "Viagem 2026", "Apresentações" })
                 projects.Items.Add(new Entry { Name = name, Path = folder(name) });
-            var documents = new Group { Name = Text.get("demo.documents"), Tint = Tints.Sand, Width = 372, Height = 248 };
+            var documents = new Group { Name = Text.get("demo.documents"), Tint = Tints.Sand, Columns = 4, Rows = 2 };
             foreach (string name in new[] { "Proposta.pdf", "Orçamento 2026.xlsx", "Contrato.docx", "Notas.txt" })
                 documents.Items.Add(new Entry { Name = Path.GetFileNameWithoutExtension(name), Path = file(name) });
             var inbox = new Group { Kind = PanelKind.Folder, Name = Text.get("demo.inbox"), FolderPath = folder("Entrada"),
-                                    Tint = Tints.Sky, Width = 372, Height = 248 };
+                                    Tint = Tints.Sky, Columns = 4, Rows = 2 };
             foreach (string name in new[] { "Captura de tela.png", "Relatório final.pdf", "Mapa.jpg" })
                 File.WriteAllText(Path.Combine(inbox.FolderPath, name), "");
-            var quick = new Group { Name = Text.get("starter.quickAccess"), Tint = Tints.Moss, Width = 372, Height = 168 };
+            var quick = new Group { Name = Text.get("starter.quickAccess"), Tint = Tints.Moss, Columns = 4, Rows = 1 };
             foreach (string path in new[] { "shell:MyComputerFolder", "shell:Downloads", "shell:RecycleBinFolder" })
                 quick.Items.Add(new Entry { Name = Shell.displayName(path), Path = path });
             layout.Groups.AddRange(new[] { projects, documents, inbox, quick });

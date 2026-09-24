@@ -22,12 +22,12 @@ namespace Orla
         public const string Folder = "folder";
     }
 
-    // One panel on the desktop. X and Y are physical screen pixels; Width and Height are device-independent
-    // units, scaled by the DPI of the monitor the panel sits on.
+    // One panel on the desktop. X and Y are physical screen pixels. Its size is counted in whole icon columns and
+    // rows, so a panel never shows an empty strip; Rows is the most it grows to before scrolling.
     public class Group
     {
-        public const double MinWidth = 240, MaxWidth = 720, MinHeight = 120, MaxHeight = 900;
-        public const double DefaultWidth = 348, DefaultHeight = 292;
+        public const int MinColumns = 2, MaxColumns = 10, MinRows = 1, MaxRows = 10;
+        public const int DefaultColumns = 4, DefaultRows = 3;
 
         public string Id { get; set; }
         public string Name { get; set; }
@@ -39,8 +39,8 @@ namespace Orla
         public bool Collapsed { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
+        public int Columns { get; set; }
+        public int Rows { get; set; }
         public List<Entry> Items { get; set; }
 
         public Group()
@@ -50,8 +50,8 @@ namespace Orla
             Kind = PanelKind.Collection;
             Tint = Tints.SeaGlass;
             Visible = true;
-            Width = DefaultWidth;
-            Height = DefaultHeight;
+            Columns = DefaultColumns;
+            Rows = DefaultRows;
             Items = new List<Entry>();
         }
 
@@ -83,6 +83,8 @@ namespace Orla
         public string Theme { get; set; }
         public string Language { get; set; }
         public string IconSize { get; set; }
+        public bool AutoUpdate { get; set; }
+        public string LastUpdateCheck { get; set; }
 
         public Layout()
         {
@@ -95,6 +97,7 @@ namespace Orla
             Theme = "system";
             Language = "system";
             IconSize = "medium";
+            AutoUpdate = true;
         }
     }
 }

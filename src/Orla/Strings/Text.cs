@@ -10,7 +10,21 @@ namespace Orla
     // any key a translation has not covered yet.
     public static class Text
     {
-        public static readonly string[] Languages = { "pt-BR", "en" };
+        public static readonly string[] Languages = { "pt-BR", "en", "es", "fr", "de", "it" };
+
+        // Each language named in itself, as people look for their own language in a list.
+        public static string nativeName(string language)
+        {
+            switch (language)
+            {
+                case "pt-BR": return "Português (Brasil)";
+                case "es": return "Español";
+                case "fr": return "Français";
+                case "de": return "Deutsch";
+                case "it": return "Italiano";
+                default: return "English";
+            }
+        }
         static Dictionary<string, string> strings, fallback;
 
         public static string Language { get; private set; }
@@ -26,7 +40,12 @@ namespace Orla
         {
             if (Array.IndexOf(Languages, setting) >= 0)
                 return setting;
-            return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "pt" ? "pt-BR" : "en";
+            // Follows the Windows display language; any Portuguese uses the Brazilian text, anything else unknown English.
+            string system = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+            foreach (string language in Languages)
+                if (language.StartsWith(system, StringComparison.OrdinalIgnoreCase))
+                    return language;
+            return "en";
         }
 
         public static Dictionary<string, string> read(string language)

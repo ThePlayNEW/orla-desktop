@@ -79,6 +79,47 @@
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         </Style>
 
+        <!-- Preset card on the welcome screen. -->
+        <Style x:Key="Orla.PresetCard" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Width" Value="210" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource Orla.FocusVisual}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Card" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Line}"
+                                BorderThickness="1" CornerRadius="10" Padding="14,12" MinHeight="96">
+                            <Grid>
+                                <Border x:Name="Tick" Width="18" Height="18" CornerRadius="5" BorderThickness="1.5"
+                                        BorderBrush="{DynamicResource Brush.TextSecondary}" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                    <Path x:Name="Mark" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Check}" Width="20" Height="20"
+                                          Stroke="{DynamicResource Brush.OnAccent}" Margin="-2" Visibility="Hidden">
+                                        <Path.RenderTransform>
+                                            <ScaleTransform ScaleX="0.8" ScaleY="0.8" CenterX="10" CenterY="10" />
+                                        </Path.RenderTransform>
+                                    </Path>
+                                </Border>
+                                <ContentPresenter Margin="0,0,24,0" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource Brush.TextSecondary}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                                <Setter TargetName="Tick" Property="Background" Value="{DynamicResource Brush.Accent}" />
+                                <Setter TargetName="Tick" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                                <Setter TargetName="Mark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Large choice on the welcome screen. -->
         <Style x:Key="Orla.Choice" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
@@ -161,17 +202,13 @@
                     <StackPanel x:Name="PagePanels">
                         <DockPanel>
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button x:Name="NewFolderPanel" Style="{StaticResource Orla.Button}" Margin="0,0,8,0">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.PanelFolder}" Margin="0,0,8,0" />
-                                        <TextBlock Text="{l:T central.newFolderPanel}" />
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="NewCollection" Style="{StaticResource Orla.Button.Accent}">
+                                <Button x:Name="NewPanel" Style="{StaticResource Orla.Button.Accent}">
                                     <StackPanel Orientation="Horizontal">
                                         <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Add}" Margin="0,0,8,0"
                                               Stroke="{DynamicResource Brush.OnAccent}" />
-                                        <TextBlock Text="{l:T central.newCollection}" />
+                                        <TextBlock Text="{l:T central.newPanel}" />
+                                        <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.ChevronDown}" Margin="6,0,-6,0"
+                                              Stroke="{DynamicResource Brush.OnAccent}" />
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
@@ -272,6 +309,14 @@
                             </CheckBox>
                         </Border>
                         <Border Style="{StaticResource Orla.Card}">
+                            <CheckBox x:Name="UpdateSwitch" Style="{StaticResource Orla.Switch}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.updates}" />
+                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.updatesHint}" />
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+                        <Border Style="{StaticResource Orla.Card}">
                             <CheckBox x:Name="CleanSwitch" Style="{StaticResource Orla.Switch}">
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.clean}" />
@@ -297,13 +342,14 @@
                         </Border>
                         <Border Style="{StaticResource Orla.Card}">
                             <DockPanel>
-                                <Border DockPanel.Dock="Right" Style="{StaticResource Orla.SegmentGroup}" VerticalAlignment="Center" Margin="24,0,0,0">
-                                    <StackPanel Orientation="Horizontal">
-                                        <RadioButton x:Name="LanguageSystem" Style="{StaticResource Orla.Segment}" GroupName="language" Content="{l:T language.system}" />
-                                        <RadioButton x:Name="LanguagePt" Style="{StaticResource Orla.Segment}" GroupName="language" Content="Português" />
-                                        <RadioButton x:Name="LanguageEn" Style="{StaticResource Orla.Segment}" GroupName="language" Content="English" />
-                                    </StackPanel>
-                                </Border>
+                                <Button x:Name="LanguageButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button}" VerticalAlignment="Center"
+                                        Margin="24,0,0,0" MinWidth="180" HorizontalContentAlignment="Left">
+                                    <DockPanel>
+                                        <Path DockPanel.Dock="Right" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.ChevronDown}"
+                                              Margin="12,0,-4,0" />
+                                        <TextBlock x:Name="LanguageLabel" />
+                                    </DockPanel>
+                                </Button>
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.language}" />
                                     <TextBlock x:Name="LanguageHint" Style="{StaticResource Orla.CardHint}" Text="{l:T general.languageHint}" />
@@ -338,6 +384,16 @@
                         </StackPanel>
                         <TextBlock Text="{l:T about.lead}" Margin="0,22,0,20" FontSize="15" TextWrapping="Wrap" MaxWidth="560"
                                    HorizontalAlignment="Left" />
+                        <Border x:Name="UpdateCard" Style="{StaticResource Orla.Card}" Visibility="Collapsed">
+                            <DockPanel>
+                                <Button x:Name="UpdateButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button.Accent}"
+                                        VerticalAlignment="Center" Margin="24,0,0,0" Content="{l:T about.updateAction}" />
+                                <StackPanel>
+                                    <TextBlock x:Name="UpdateTitle" Style="{StaticResource Orla.CardTitle}" />
+                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T about.updateHint}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
                         <Border Style="{StaticResource Orla.Card}">
                             <DockPanel>
                                 <Button x:Name="DataButton" DockPanel.Dock="Right" Margin="24,0,0,0" Style="{StaticResource Orla.Button}" VerticalAlignment="Center"
@@ -375,6 +431,24 @@
             </ScrollViewer>
         </Grid>
 
+        <!-- Welcome, second step: first panels -->
+        <Grid x:Name="WelcomePresets" Visibility="Collapsed" Background="{DynamicResource Brush.Window}">
+            <StackPanel MaxWidth="720" VerticalAlignment="Center" Margin="40">
+                <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T welcome.presetsTitle}" Margin="0,0,0,6" />
+                <TextBlock Text="{l:T welcome.presetsLead}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="15" TextWrapping="Wrap" />
+                <WrapPanel x:Name="PresetChoices" Margin="0,24,0,0" />
+                <TextBlock x:Name="PresetsLoading" Text="{l:T welcome.presetsLoading}" Margin="0,24,0,0"
+                           Foreground="{DynamicResource Brush.TextSecondary}" />
+                <DockPanel Margin="0,20,0,0">
+                    <Button x:Name="FinishButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button.Accent}" Content="{l:T welcome.start}"
+                            Padding="22,9" />
+                    <Button x:Name="BackButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button.Quiet}" Content="{l:T welcome.back}"
+                            Margin="0,0,8,0" />
+                    <TextBlock />
+                </DockPanel>
+            </StackPanel>
+        </Grid>
+
         <!-- Welcome -->
         <Grid x:Name="Welcome" Visibility="Collapsed" Background="{DynamicResource Brush.Window}">
             <StackPanel MaxWidth="720" VerticalAlignment="Center" Margin="40">
@@ -382,21 +456,21 @@
                 <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T welcome.title}" Margin="0,22,0,6" />
                 <TextBlock Text="{l:T welcome.lead}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="15" TextWrapping="Wrap" />
                 <UniformGrid Columns="2" Margin="0,28,0,0">
-                    <RadioButton x:Name="ChoiceOrganize" Style="{StaticResource Orla.Choice}" GroupName="start" Margin="0,0,8,0" IsChecked="True">
-                        <StackPanel>
-                            <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.PanelCollection}" HorizontalAlignment="Left"
-                                  Stroke="{DynamicResource Brush.Accent}" />
-                            <TextBlock Text="{l:T welcome.organize}" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,6" />
-                            <TextBlock Text="{l:T welcome.organizeHint}" TextWrapping="Wrap" FontSize="13"
-                                       Foreground="{DynamicResource Brush.TextSecondary}" />
-                        </StackPanel>
-                    </RadioButton>
-                    <RadioButton x:Name="ChoiceAlongside" Style="{StaticResource Orla.Choice}" GroupName="start" Margin="8,0,0,0">
+                    <RadioButton x:Name="ChoiceAlongside" Style="{StaticResource Orla.Choice}" GroupName="start" Margin="0,0,8,0" IsChecked="True">
                         <StackPanel>
                             <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Desktop}" HorizontalAlignment="Left"
                                   Stroke="{DynamicResource Brush.Accent}" />
                             <TextBlock Text="{l:T welcome.alongside}" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,6" />
                             <TextBlock Text="{l:T welcome.alongsideHint}" TextWrapping="Wrap" FontSize="13"
+                                       Foreground="{DynamicResource Brush.TextSecondary}" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="ChoiceOrganize" Style="{StaticResource Orla.Choice}" GroupName="start" Margin="8,0,0,0">
+                        <StackPanel>
+                            <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.PanelCollection}" HorizontalAlignment="Left"
+                                  Stroke="{DynamicResource Brush.Accent}" />
+                            <TextBlock Text="{l:T welcome.organize}" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,6" />
+                            <TextBlock Text="{l:T welcome.organizeHint}" TextWrapping="Wrap" FontSize="13"
                                        Foreground="{DynamicResource Brush.TextSecondary}" />
                         </StackPanel>
                     </RadioButton>

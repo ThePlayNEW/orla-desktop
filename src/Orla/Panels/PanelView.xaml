@@ -9,21 +9,21 @@
 
     <UserControl.Resources>
         <DataTemplate DataType="{x:Type local:TileItem}">
-            <Border x:Name="Tile" Width="{DynamicResource Tile.Width}" Margin="1" Padding="4,8,4,6"
+            <Border x:Name="Tile" Width="{DynamicResource Tile.Body}" Height="{DynamicResource Tile.Body}" Margin="1" Padding="4,8,4,4"
                     CornerRadius="{StaticResource Radius.Item}" Background="Transparent" BorderThickness="1"
                     BorderBrush="Transparent" Focusable="True" FocusVisualStyle="{x:Null}" ToolTip="{Binding Tooltip}"
                     AutomationProperties.Name="{Binding Label}">
-                <StackPanel>
-                    <Grid Width="{DynamicResource Tile.Icon}" Height="{DynamicResource Tile.Icon}">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Width="{DynamicResource Tile.Icon}" Height="{DynamicResource Tile.Icon}">
                         <Image Source="{Binding Icon}" RenderOptions.BitmapScalingMode="HighQuality" />
                         <Path x:Name="Missing" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.ItemMissing}"
                               HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" />
                     </Grid>
                     <TextBlock Text="{Binding Label}" Margin="0,6,0,0" FontSize="{StaticResource Type.ItemLabel}"
                                Foreground="{DynamicResource Brush.Text}" TextAlignment="Center" TextWrapping="Wrap"
-                               TextTrimming="CharacterEllipsis" MaxHeight="32" LineHeight="16"
+                               TextTrimming="CharacterEllipsis" Height="32" LineHeight="16"
                                LineStackingStrategy="BlockLineHeight" />
-                </StackPanel>
+                </DockPanel>
             </Border>
             <DataTemplate.Triggers>
                 <Trigger SourceName="Tile" Property="IsMouseOver" Value="True">
@@ -41,77 +41,89 @@
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
+
+        <!-- Invisible resize zones along every edge and corner. -->
+        <Style x:Key="Edge" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Background="Transparent" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
-    <Border x:Name="Frame" CornerRadius="{StaticResource Radius.Panel}" Background="{DynamicResource Brush.PanelGlass}"
-            BorderBrush="{DynamicResource Brush.PanelBorder}" BorderThickness="1" Padding="{StaticResource Space.Panel}"
-            AllowDrop="True">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+    <Grid>
+        <Border x:Name="Frame" CornerRadius="{StaticResource Radius.Panel}" Background="{DynamicResource Brush.PanelGlass}"
+                BorderBrush="{DynamicResource Brush.PanelBorder}" BorderThickness="1" Padding="8,6,8,10" AllowDrop="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="34" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <Grid x:Name="Header" Height="34" Background="Transparent" Cursor="SizeAll">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,4,0">
-                    <Path x:Name="KindGlyph" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.PanelFolder}"
-                          Margin="-2,0,6,0" Visibility="Collapsed" />
-                    <TextBlock x:Name="Title" FontSize="{StaticResource Type.PanelTitle}" FontWeight="SemiBold"
-                               Foreground="{DynamicResource Brush.Text}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                    <TextBox x:Name="TitleEditor" Style="{StaticResource Orla.TextBox}" FontSize="{StaticResource Type.PanelTitle}"
-                             Padding="4,2" MinWidth="120" MaxLength="60" Visibility="Collapsed" Cursor="IBeam" />
-                    <TextBlock x:Name="Count" FontSize="{StaticResource Type.PanelTitle}" Margin="8,0,0,0"
-                               Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
-                </StackPanel>
-                <StackPanel x:Name="HeaderButtons" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Opacity="0.55">
-                    <Button x:Name="CollapseButton" Style="{StaticResource Orla.IconButton}" Cursor="Hand">
-                        <Path x:Name="CollapseGlyph" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.ChevronUp}" />
-                    </Button>
-                    <Button x:Name="MenuButton" Style="{StaticResource Orla.IconButton}" Cursor="Hand">
-                        <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.More}" />
-                    </Button>
-                </StackPanel>
+                <Grid x:Name="Header" Background="Transparent" Cursor="SizeAll">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,4,0">
+                        <Path x:Name="KindGlyph" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.PanelFolder}"
+                              Margin="-2,0,6,0" Visibility="Collapsed" />
+                        <TextBlock x:Name="Title" FontSize="{StaticResource Type.PanelTitle}" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Brush.Text}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBox x:Name="TitleEditor" Style="{StaticResource Orla.TextBox}" FontSize="{StaticResource Type.PanelTitle}"
+                                 Padding="4,2" MinWidth="120" MaxLength="60" Visibility="Collapsed" Cursor="IBeam" />
+                        <TextBlock x:Name="Count" FontSize="{StaticResource Type.PanelTitle}" Margin="8,0,0,0"
+                                   Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel x:Name="HeaderButtons" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Opacity="0.55">
+                        <Button x:Name="CollapseButton" Style="{StaticResource Orla.IconButton}" Cursor="Hand">
+                            <Path x:Name="CollapseGlyph" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.ChevronUp}" />
+                        </Button>
+                        <Button x:Name="MenuButton" Style="{StaticResource Orla.IconButton}" Cursor="Hand">
+                            <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.More}" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <Path x:Name="Shoreline" Grid.Row="1" Height="6" Margin="6,0,6,4" Stretch="Fill" StrokeThickness="1.5"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" IsHitTestVisible="False"
+                      Data="M 0 3 C 40 0 70 6 110 3 S 190 0 230 3 S 280 6 300 3" />
+
+                <Grid x:Name="Body" Grid.Row="2" Background="Transparent">
+                    <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                  Focusable="False" PanningMode="VerticalOnly">
+                        <ItemsControl x:Name="Items" Focusable="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <TextBlock x:Name="Empty" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{StaticResource Type.Caption}"
+                               TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Margin="16,0" IsHitTestVisible="False" Visibility="Collapsed" />
+                    <Canvas IsHitTestVisible="False">
+                        <Rectangle x:Name="Marquee" Visibility="Collapsed" RadiusX="3" RadiusY="3" StrokeThickness="1"
+                                   Stroke="{DynamicResource Brush.Focus}" Fill="{DynamicResource Brush.DropTarget}" />
+                    </Canvas>
+                </Grid>
             </Grid>
+        </Border>
 
-            <Path x:Name="Shoreline" Grid.Row="1" Height="6" Margin="6,0,6,4" Stretch="Fill" StrokeThickness="1.5"
-                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" IsHitTestVisible="False"
-                  Data="M 0 3 C 40 0 70 6 110 3 S 190 0 230 3 S 280 6 300 3" />
-
-            <Grid x:Name="Body" Grid.Row="2">
-                <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                              Focusable="False" PanningMode="VerticalOnly">
-                    <ItemsControl x:Name="Items" Focusable="False">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                    </ItemsControl>
-                </ScrollViewer>
-                <TextBlock x:Name="Empty" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{StaticResource Type.Caption}"
-                           TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Margin="24,0" MaxWidth="240" IsHitTestVisible="False" Visibility="Collapsed" />
-                <Thumb x:Name="Grip" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-4,-6"
-                       Cursor="SizeNWSE" Opacity="0.6">
-                    <Thumb.Template>
-                        <ControlTemplate TargetType="Thumb">
-                            <Grid Background="Transparent">
-                                <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Resize}" Width="16" Height="16"
-                                      Margin="-2,-2,0,0">
-                                    <Path.RenderTransform>
-                                        <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
-                                    </Path.RenderTransform>
-                                </Path>
-                            </Grid>
-                        </ControlTemplate>
-                    </Thumb.Template>
-                </Thumb>
-            </Grid>
+        <Grid x:Name="Edges">
+            <Thumb Tag="Left" Style="{StaticResource Edge}" Width="6" HorizontalAlignment="Left" Margin="0,14" Cursor="SizeWE" />
+            <Thumb Tag="Right" Style="{StaticResource Edge}" Width="6" HorizontalAlignment="Right" Margin="0,14" Cursor="SizeWE" />
+            <Thumb Tag="Top" Style="{StaticResource Edge}" Height="5" VerticalAlignment="Top" Margin="14,0" Cursor="SizeNS" />
+            <Thumb Tag="Bottom" Style="{StaticResource Edge}" Height="6" VerticalAlignment="Bottom" Margin="14,0" Cursor="SizeNS" />
+            <Thumb Tag="TopLeft" Style="{StaticResource Edge}" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE" />
+            <Thumb Tag="TopRight" Style="{StaticResource Edge}" Width="14" Height="14" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW" />
+            <Thumb Tag="BottomLeft" Style="{StaticResource Edge}" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW" />
+            <Thumb Tag="BottomRight" Style="{StaticResource Edge}" Width="14" Height="14" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE" />
         </Grid>
-    </Border>
+    </Grid>
 </UserControl>

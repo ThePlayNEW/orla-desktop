@@ -225,8 +225,12 @@ namespace Orla
                 }
                 if (image != null)
                     lock (iconCache)
-                        if (iconCache.Count < 1500)
-                            iconCache[key] = image;
+                    {
+                        // Bounded: start over rather than grow without limit on very large folders.
+                        if (iconCache.Count >= 1500)
+                            iconCache.Clear();
+                        iconCache[key] = image;
+                    }
                 dispatcher.BeginInvoke(done, DispatcherPriority.Background, image);
             });
         }
@@ -251,13 +255,6 @@ namespace Orla
             }) { IsBackground = true, Name = "Orla icons" };
             iconThread.SetApartmentState(ApartmentState.STA);
             iconThread.Start();
-        }
-
-        public static void forget(string path)
-        {
-            lock (iconCache)
-                foreach (string key in iconCache.Keys.Where(k => k.EndsWith("|" + path, StringComparison.OrdinalIgnoreCase)).ToList())
-                    iconCache.Remove(key);
         }
 
         static ImageSource loadImage(string path, int pixels)

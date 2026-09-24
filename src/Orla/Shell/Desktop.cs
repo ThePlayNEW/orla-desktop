@@ -107,66 +107,92 @@ namespace Orla
     }
 
     // Hides the Windows icons for "clean desktop" and guarantees they come back: a small companion copy of Orla
-    // waits for this process to exit, however it exits, and restores the original visibility.
+    // waits for this process to exit, however it exits, and restores the icons to the person's Explorer setting.
+    // The companion starts off the UI thread; icons are hidden only once it is ready.
     public class IconGuard
     {
-        readonly Desktop desktop;
         readonly string dataDirectory;
-        bool originalVisible, hidden, guardStarted;
+        readonly System.Windows.Threading.Dispatcher dispatcher;
+        bool originalVisible, hidden, wantHidden, starting, guardStarted;
 
-        public IconGuard(Desktop desktop, string dataDirectory)
+        public Desktop Target { get; }
+        public event Action Failed;
+
+        public IconGuard(Desktop desktop, string dataDirectory, System.Windows.Threading.Dispatcher dispatcher)
         {
-            this.desktop = desktop;
+            Target = desktop;
             this.dataDirectory = dataDirectory;
+            this.dispatcher = dispatcher;
         }
-
-        public bool Hidden => hidden;
 
         public void hide()
         {
-            if (hidden || !desktop.IsValid || desktop.IconList == IntPtr.Zero)
+            wantHidden = true;
+            if (hidden || starting || !Target.IsValid || Target.IconList == IntPtr.Zero)
                 return;
             originalVisible = Desktop.userWantsIcons();
-            startGuard();
-            desktop.setIconsVisible(false);
+            if (guardStarted)
+            {
+                apply();
+                return;
+            }
+            starting = true;
+            long list = Target.IconList.ToInt64();
+            bool visible = originalVisible;
+            System.Threading.Tasks.Task.Run(() => startGuard(list, visible)).ContinueWith(t => {
+                dispatcher.BeginInvoke(new Action(delegate {
+                    starting = false;
+                    guardStarted = !t.IsFaulted && t.Result;
+                    if (guardStarted)
+                        apply();
+                    else if (wantHidden)
+                        Failed?.Invoke();
+                }));
+            });
+        }
+
+        void apply()
+        {
+            if (!wantHidden || hidden)
+                return;
+            Target.setIconsVisible(false);
             hidden = true;
         }
 
         public void restore()
         {
+            wantHidden = false;
             if (!hidden)
                 return;
             hidden = false;
-            desktop.setIconsVisible(originalVisible);
+            Target.setIconsVisible(originalVisible);
         }
 
         // Shows icons that another program left hidden against the person's Explorer setting.
         public void repair()
         {
-            if (!hidden && desktop.IsValid && !desktop.iconsVisible && Desktop.userWantsIcons())
-                desktop.setIconsVisible(true);
+            if (!hidden && Target.IsValid && !Target.iconsVisible && Desktop.userWantsIcons())
+                Target.setIconsVisible(true);
         }
 
-        void startGuard()
+        bool startGuard(long iconList, bool visible)
         {
-            if (guardStarted)
-                return;
             int pid = Process.GetCurrentProcess().Id;
             string ready = Path.Combine(dataDirectory, "guard-" + pid + ".ready");
             Directory.CreateDirectory(dataDirectory);
             if (File.Exists(ready))
                 File.Delete(ready);
             string exe = Process.GetCurrentProcess().MainModule.FileName;
-            var p = Process.Start(new ProcessStartInfo(exe, "--guard " + pid + " " + desktop.IconList.ToInt64() + " " +
-                                                                 (originalVisible ? "1" : "0") + " \"" + ready + "\"") {
+            var p = Process.Start(new ProcessStartInfo(exe, "--guard " + pid + " " + iconList + " " + (visible ? "1" : "0") +
+                                                                 " \"" + ready + "\"") {
                 UseShellExecute = false, CreateNoWindow = true
             });
-            for (int i = 0; i < 60 && !File.Exists(ready) && !p.HasExited; i++)
+            for (int i = 0; i < 100 && !File.Exists(ready) && !p.HasExited; i++)
                 Thread.Sleep(50);
             if (!File.Exists(ready))
-                throw new InvalidOperationException(Text.get("error.guard"));
+                return false;
             File.Delete(ready);
-            guardStarted = true;
+            return true;
         }
 
         // Runs in the companion process.

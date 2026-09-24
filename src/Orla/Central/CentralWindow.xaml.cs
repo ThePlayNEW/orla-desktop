@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -29,17 +31,7 @@ namespace Orla
             NavAbout.Checked += delegate { showPage(PageAbout); };
             FrontButton.Click += delegate { controller.setOverlay(!controller.Overlay); refresh(); };
 
-            NewCollection.Click += delegate {
-                string name = Dialog.prompt(Text.get("central.newCollection"), Text.get("central.collectionDefault"));
-                if (name != null)
-                    controller.createPanel(PanelKind.Collection, name, null);
-            };
-            NewFolderPanel.Click += delegate {
-                string folder = Controller.pickFolder(Text.get("central.folderPick"));
-                if (folder != null)
-                    controller.createPanel(PanelKind.Folder, Shell.displayName(folder), folder);
-            };
-
+            NewPanel.Click += delegate { openPresetMenu(); };
             ThemeSystem.Checked += delegate { onChange(() => controller.setTheme("system")); };
             ThemeLight.Checked += delegate { onChange(() => controller.setTheme("light")); };
             ThemeDark.Checked += delegate { onChange(() => controller.setTheme("dark")); };
@@ -67,9 +59,21 @@ namespace Orla
                 }
             };
             LockSwitch.Click += delegate { controller.setLock(LockSwitch.IsChecked == true); };
-            LanguageSystem.Checked += delegate { onChange(() => setLanguage("system")); };
-            LanguagePt.Checked += delegate { onChange(() => setLanguage("pt-BR")); };
-            LanguageEn.Checked += delegate { onChange(() => setLanguage("en")); };
+            LanguageButton.Click += delegate {
+                var menu = new ContextMenu { PlacementTarget = LanguageButton, Placement = PlacementMode.Bottom };
+                menu.Items.Add(Menus.check("language.system", controller.Layout.Language == "system", () => controller.setLanguage("system")));
+                menu.Items.Add(new Separator());
+                foreach (string language in Text.Languages)
+                {
+                    string value = language;
+                    MenuItem item = Menus.plain(Text.nativeName(language), () => controller.setLanguage(value));
+                    item.IsChecked = controller.Layout.Language == language;
+                    menu.Items.Add(item);
+                }
+                menu.IsOpen = true;
+            };
+            UpdateSwitch.Click += delegate { controller.setAutoUpdate(UpdateSwitch.IsChecked == true); };
+            UpdateButton.Click += delegate { Updates.restartNow(); };
             ArrangeButton.Click += delegate { controller.resetPositions(); };
 
             DataButton.Click += delegate { controller.open(controller.DataDirectory); };
@@ -77,11 +81,18 @@ namespace Orla
             IssueButton.Click += delegate { browse(Repository + "/issues/new/choose"); };
             QuitButton.Click += delegate { controller.quit(); };
             StartButton.Click += delegate {
-                controller.welcome(ChoiceOrganize.IsChecked == true);
-                Welcome.Visibility = Visibility.Collapsed;
-                Main.Visibility = Visibility.Visible;
-                NavPanels.IsChecked = true;
-                refresh();
+                if (ChoiceOrganize.IsChecked == true)
+                    finishWelcome(true, new List<Preset>());
+                else
+                    showPresetChoices();
+            };
+            BackButton.Click += delegate {
+                WelcomePresets.Visibility = Visibility.Collapsed;
+                Welcome.Visibility = Visibility.Visible;
+            };
+            FinishButton.Click += delegate {
+                var chosen = PresetChoices.Children.OfType<CheckBox>().Where(c => c.IsChecked == true).Select(c => (Preset)c.Tag).ToList();
+                finishWelcome(false, chosen);
             };
 
             VersionText.Text = Text.format("about.version", Assembly.GetExecutingAssembly().GetName().Version.ToString(3));
@@ -92,7 +103,8 @@ namespace Orla
         public void show(string page)
         {
             bool welcome = page == "welcome" || !controller.Layout.Welcomed;
-            Welcome.Visibility = welcome ? Visibility.Visible : Visibility.Collapsed;
+            if (WelcomePresets.Visibility != Visibility.Visible)
+                Welcome.Visibility = welcome ? Visibility.Visible : Visibility.Collapsed;
             Main.Visibility = welcome ? Visibility.Collapsed : Visibility.Visible;
             if (!welcome && Nav.Children.OfType<RadioButton>().All(r => r.IsChecked != true))
                 NavPanels.IsChecked = true;
@@ -110,6 +122,80 @@ namespace Orla
                 buildPreview();
         }
 
+        void finishWelcome(bool organize, List<Preset> presets)
+        {
+            controller.welcome(organize, presets);
+            Welcome.Visibility = Visibility.Collapsed;
+            WelcomePresets.Visibility = Visibility.Collapsed;
+            Main.Visibility = Visibility.Visible;
+            NavPanels.IsChecked = true;
+            refresh();
+        }
+
+        // Second welcome step: the presets that make sense on this computer, the most useful ones already ticked.
+        internal void showPresetChoices()
+        {
+            Welcome.Visibility = Visibility.Collapsed;
+            WelcomePresets.Visibility = Visibility.Visible;
+            PresetChoices.Children.Clear();
+            PresetsLoading.Visibility = Visibility.Visible;
+            FinishButton.IsEnabled = false;
+            Task.Run(() => Presets.available().ToList()).ContinueWith(t => Dispatcher.BeginInvoke(new Action(delegate {
+                PresetsLoading.Visibility = Visibility.Collapsed;
+                FinishButton.IsEnabled = true;
+                foreach (Preset p in t.Result)
+                    PresetChoices.Children.Add(presetCard(p));
+            })));
+        }
+
+        FrameworkElement presetCard(Preset p)
+        {
+            var card = new CheckBox { Tag = p, IsChecked = p.Recommended };
+            card.SetResourceReference(StyleProperty, "Orla.PresetCard");
+            var body = new StackPanel();
+            var glyph = Menus.glyph(p.Glyph);
+            glyph.HorizontalAlignment = HorizontalAlignment.Left;
+            glyph.SetResourceReference(Shape.StrokeProperty, "Brush.Tint." + p.Tint);
+            body.Children.Add(glyph);
+            var name = new TextBlock { Text = p.Name, FontSize = 14, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 10, 0, 2) };
+            name.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Text");
+            var hint = new TextBlock { Text = p.Hint, FontSize = 12, TextWrapping = TextWrapping.Wrap };
+            hint.SetResourceReference(TextBlock.ForegroundProperty, "Brush.TextSecondary");
+            body.Children.Add(name);
+            body.Children.Add(hint);
+            card.Content = body;
+            return card;
+        }
+
+        // Everyday entry point for new panels: presets first, then an empty collection or any folder.
+        void openPresetMenu()
+        {
+            NewPanel.IsEnabled = false;
+            Task.Run(() => Presets.available().ToList()).ContinueWith(t => Dispatcher.BeginInvoke(new Action(delegate {
+                NewPanel.IsEnabled = true;
+                var menu = new ContextMenu { PlacementTarget = NewPanel, Placement = PlacementMode.Bottom };
+                foreach (Preset p in t.Result)
+                {
+                    Preset preset = p;
+                    var item = new MenuItem { Header = p.Name, ToolTip = p.Hint, Icon = Menus.glyph(p.Glyph) };
+                    item.Click += delegate { controller.createFromPreset(preset); };
+                    menu.Items.Add(item);
+                }
+                menu.Items.Add(new Separator());
+                menu.Items.Add(Menus.item("central.newCollection", "Glyph.PanelCollection", delegate {
+                    string name = Dialog.prompt(Text.get("central.newCollection"), Text.get("central.collectionDefault"));
+                    if (name != null)
+                        controller.createPanel(PanelKind.Collection, name, null);
+                }));
+                menu.Items.Add(Menus.item("central.newFolderPanel", "Glyph.PanelFolder", delegate {
+                    string folder = controller.pickFolder(Text.get("central.folderPick"));
+                    if (folder != null)
+                        controller.createPanel(PanelKind.Folder, Shell.displayName(folder), folder);
+                }));
+                menu.IsOpen = true;
+            })));
+        }
+
         void onChange(Action action)
         {
             if (!loading)
@@ -120,12 +206,6 @@ namespace Orla
         {
             controller.setIconSize(value);
             buildPreview();
-        }
-
-        void setLanguage(string value)
-        {
-            controller.setLanguage(value);
-            LanguageHint.Text = Text.get("general.languageRestart");
         }
 
         static void browse(string url)
@@ -150,9 +230,12 @@ namespace Orla
             CleanSwitch.IsChecked = l.CleanDesktop;
             HotkeySwitch.IsChecked = l.OverlayHotkey;
             LockSwitch.IsChecked = l.LockLayout;
-            LanguageSystem.IsChecked = l.Language == "system";
-            LanguagePt.IsChecked = l.Language == "pt-BR";
-            LanguageEn.IsChecked = l.Language == "en";
+            LanguageLabel.Text = l.Language == "system"
+                                     ? Text.format("language.systemCurrent", Text.nativeName(Text.Language))
+                                     : Text.nativeName(l.Language);
+            UpdateSwitch.IsChecked = l.AutoUpdate;
+            UpdateCard.Visibility = Updates.Ready != null ? Visibility.Visible : Visibility.Collapsed;
+            UpdateTitle.Text = Updates.Ready != null ? Text.format("about.updateReady", Updates.Ready) : "";
             FrontLabel.Text = Text.get(controller.Overlay ? "central.back" : "central.front");
             FrontShortcut.Visibility = l.OverlayHotkey ? Visibility.Visible : Visibility.Collapsed;
             StatusText.Text = Text.get(controller.DesktopFound ? "status.integrated" : "status.fallback");
@@ -227,6 +310,8 @@ namespace Orla
                                          Text = g.IsFolder ? Text.format("central.folderDetail", folderLabel(g))
                                                            : Text.format(g.Items.Count == 1 ? "central.itemCount" : "central.itemsCount", g.Items.Count) };
             detail.SetResourceReference(TextBlock.ForegroundProperty, "Brush.TextSecondary");
+            if (g.IsFolder)
+                detail.ToolTip = Shell.resolveFolder(g.FolderPath);
             text.Children.Add(title);
             text.Children.Add(detail);
             row.Children.Add(text);
@@ -239,14 +324,14 @@ namespace Orla
         {
             if (g.FolderPath == Shell.DesktopFolder)
                 return Text.get(g.OnlyUnorganized ? "central.desktopUnorganized" : "central.desktopFolder");
-            return Shell.resolveFolder(g.FolderPath);
+            return Shell.displayName(Shell.resolveFolder(g.FolderPath));
         }
 
         // A real panel, drawn with the current settings, over a sample wallpaper.
         void buildPreview()
         {
             PreviewHost.Children.Clear();
-            var sample = new Group { Name = Text.get("starter.quickAccess"), Width = 330, Height = 170, Tint = Tints.SeaGlass };
+            var sample = new Group { Name = Text.get("starter.quickAccess"), Columns = 3, Rows = 1, Tint = Tints.SeaGlass };
             foreach (string path in new[] { "shell:MyComputerFolder", "shell:Downloads", "shell:RecycleBinFolder" })
                 sample.Items.Add(new Entry { Name = Shell.displayName(path), Path = path });
             preview = new PanelView(controller, sample) { IsHitTestVisible = false };

@@ -32,21 +32,27 @@ namespace Orla
         {
             if (File.Exists(filePath))
             {
+                string text = readShared(filePath);
                 try
                 {
-                    data = parse(File.ReadAllText(filePath), legacyScale, out migrated);
+                    data = parse(text, legacyScale, out migrated);
                     if (migrated)
+                    {
+                        // Keep the version 1 file as it was, once, before the first save in the new format.
+                        if (!File.Exists(filePath + ".v1"))
+                            File.Copy(filePath, filePath + ".v1");
                         save();
+                    }
                     return true;
                 }
-                catch (Exception)
+                catch (Exception e) when (!(e is IOException))
                 {
                     string corrupt = filePath + ".corrupt-" + DateTime.Now.ToString("yyyyMMddHHmmssfff");
                     File.Copy(filePath, corrupt, false);
                     if (File.Exists(filePath + ".bak"))
                         try
                         {
-                            data = parse(File.ReadAllText(filePath + ".bak"), legacyScale, out migrated);
+                            data = parse(readShared(filePath + ".bak"), legacyScale, out migrated);
                             File.Copy(filePath + ".bak", filePath, true);
                             recoveryNotice = Text.get("notice.recovered");
                             return true;
@@ -59,6 +65,20 @@ namespace Orla
             }
             data = File.Exists(seed) ? parse(File.ReadAllText(seed), legacyScale, out migrated) : new Layout();
             return File.Exists(seed);
+        }
+
+        // Antivirus and sync tools can hold the file for a moment; that is not corruption, so wait a little.
+        static string readShared(string path)
+        {
+            for (int attempt = 0; ; attempt++)
+                try
+                {
+                    return File.ReadAllText(path);
+                }
+                catch (IOException) when (attempt < 10)
+                {
+                    System.Threading.Thread.Sleep(150);
+                }
         }
 
         public static Layout parse(string text)
@@ -106,8 +126,8 @@ namespace Orla
                     g.Tint = Tints.SeaGlass;
                 g.X = finite(g.X, 24);
                 g.Y = finite(g.Y, 64);
-                g.Width = clamp(g.Width, Group.MinWidth, Group.MaxWidth, Group.DefaultWidth);
-                g.Height = clamp(g.Height, Group.MinHeight, Group.MaxHeight, Group.DefaultHeight);
+                g.Columns = g.Columns == 0 ? Group.DefaultColumns : Math.Max(Group.MinColumns, Math.Min(Group.MaxColumns, g.Columns));
+                g.Rows = g.Rows == 0 ? Group.DefaultRows : Math.Max(Group.MinRows, Math.Min(Group.MaxRows, g.Rows));
                 foreach (Entry e in g.Items)
                 {
                     if (e == null || String.IsNullOrWhiteSpace(e.Path) || String.IsNullOrWhiteSpace(e.Id) ||
@@ -121,8 +141,9 @@ namespace Orla
             return d;
         }
 
-        // Version 1 stored every group as references, positioned in device-independent units on the primary
-        // monitor, and always hid the Windows icons. Keep that experience for people who upgrade.
+        // Version 1 stored every group as references, sized and positioned in device-independent units on the
+        // primary monitor, and always hid the Windows icons. Groups become collections of about the same size, and
+        // the Windows icons come back: Orla now shares the desktop with them unless people choose a clean desktop.
         static void migrate(Layout d, Dictionary<string, object> raw, double legacyScale)
         {
             var oldGroups = raw.TryGetValue("Groups", out object list) ? list as object[] : null;
@@ -137,8 +158,12 @@ namespace Orla
                 g.Tint = legacyTint(color);
                 g.X = finite(g.X, 24) * legacyScale;
                 g.Y = finite(g.Y, 64) * legacyScale;
+                double width = old != null && old.TryGetValue("Width", out object w) ? Convert.ToDouble(w) : 332;
+                double height = old != null && old.TryGetValue("Height", out object h) ? Convert.ToDouble(h) : 306;
+                g.Columns = (int)Math.Round((width - PanelMetrics.ChromeWidth) / PanelMetrics.tile("medium"));
+                g.Rows = (int)Math.Round((height - PanelMetrics.ChromeHeight) / PanelMetrics.tile("medium"));
             }
-            d.CleanDesktop = true;
+            d.CleanDesktop = false;
             d.Welcomed = true;
             d.OverlayHotkey = true;
             d.Theme = "system";

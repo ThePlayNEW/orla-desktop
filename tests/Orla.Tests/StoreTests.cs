@@ -114,13 +114,24 @@ namespace Orla.Tests
         [Fact]
         public void clampsPanelSizeAndOpacity()
         {
-            first.Width = 9000;
-            first.Height = -100;
+            first.Columns = 90;
+            first.Rows = -3;
             store.data.Opacity = 0.2;
             Layout bounded = Store.parse(Store.json().Serialize(store.data));
-            Assert.Equal(Group.MaxWidth, bounded.Groups[0].Width);
-            Assert.Equal(Group.MinHeight, bounded.Groups[0].Height);
+            Assert.Equal(Group.MaxColumns, bounded.Groups[0].Columns);
+            Assert.Equal(Group.MinRows, bounded.Groups[0].Rows);
             Assert.Equal(Layout.MinOpacity, bounded.Opacity);
+        }
+
+        [Fact]
+        public void sizesPanelsInWholeTiles()
+        {
+            double tile = PanelMetrics.tile("medium");
+            Assert.Equal(PanelMetrics.ChromeWidth + 4 * tile, PanelMetrics.width(4, "medium"));
+            Assert.Equal(4, PanelMetrics.columnsFor(PanelMetrics.width(4, "medium") + tile * 0.4, "medium"));
+            Assert.Equal(5, PanelMetrics.columnsFor(PanelMetrics.width(4, "medium") + tile * 0.6, "medium"));
+            Assert.Equal(Group.MinRows, PanelMetrics.rowsFor(0, "large"));
+            Assert.Equal(Group.MaxColumns, PanelMetrics.columnsFor(100000, "small"));
         }
 
         [Fact]
@@ -144,13 +155,15 @@ namespace Orla.Tests
             Layout migrated = Store.parse(v1, 1.5, out bool wasMigrated);
             Assert.True(wasMigrated);
             Assert.Equal(Layout.CurrentVersion, migrated.Version);
-            Assert.True(migrated.CleanDesktop);
+            Assert.False(migrated.CleanDesktop);
             Assert.True(migrated.Welcomed);
             Assert.Equal(PanelKind.Collection, migrated.Groups[0].Kind);
             Assert.Equal(Tints.Sky, migrated.Groups[0].Tint);
             Assert.Equal(36, migrated.Groups[0].X);
             Assert.Equal(96, migrated.Groups[0].Y);
             Assert.Equal(Layout.MinOpacity, migrated.Opacity);
+            Assert.Equal(3, migrated.Groups[0].Columns);
+            Assert.Equal(3, migrated.Groups[0].Rows);
             Assert.Single(migrated.Groups[0].Items);
         }
 

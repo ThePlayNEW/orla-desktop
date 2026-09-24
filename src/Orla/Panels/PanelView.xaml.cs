@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 
 namespace Orla
@@ -63,24 +65,27 @@ namespace Orla
 
     public partial class PanelView : UserControl
     {
-        public const string EntryFormat = "Orla.Entry", SourceFormat = "Orla.Source";
-        public const double CollapsedHeight = 50;
+        public const string EntryFormat = "Orla.Entries", SourceFormat = "Orla.Source";
 
         readonly Controller controller;
         readonly ObservableCollection<TileItem> tiles = new ObservableCollection<TileItem>();
         readonly DispatcherTimer reloadTimer;
         FileSystemWatcher[] watchers = new FileSystemWatcher[0];
         string watchedFolder;
-        Point pressPoint;
-        TileItem pressed;
-        bool moving;
+        Point pressPoint, marqueeStart;
+        TileItem pressed, anchor;
+        bool moving, selecting, folderAvailable = true;
+        int reloadVersion;
+        HashSet<TileItem> marqueeBase;
 
         public Group Group { get; }
         public double Scale { get; set; } = 1;
+        // The most rows the host lets this panel grow to without covering another panel or leaving the screen.
+        public int RoomRows { get; set; } = Group.MaxRows;
 
-        public event Action MoveStarted, MoveUpdated, MoveEnded;
-        public event Action<double, double> Resized;
-        public event Action ResizeEnded;
+        public event Action MoveStarted, MoveUpdated, MoveEnded, SizeNeeded;
+        public event Action<string> ResizeStarted;
+        public event Action ResizeUpdated, ResizeEnded;
 
         public PanelView(Controller controller, Group group)
         {
@@ -109,14 +114,23 @@ namespace Orla
             MenuButton.Click += delegate { openPanelMenu(MenuButton); };
             TitleEditor.KeyDown += titleKey;
             TitleEditor.LostKeyboardFocus += delegate { commitRename(); };
-            Grip.DragDelta += (s, e) => Resized?.Invoke(e.HorizontalChange, e.VerticalChange);
-            Grip.DragCompleted += delegate { ResizeEnded?.Invoke(); };
+            foreach (Thumb edge in Edges.Children.OfType<Thumb>())
+            {
+                string side = (string)edge.Tag;
+                edge.DragStarted += delegate { ResizeStarted?.Invoke(side); };
+                edge.DragDelta += delegate { ResizeUpdated?.Invoke(); };
+                edge.DragCompleted += delegate { ResizeEnded?.Invoke(); };
+            }
 
             Items.MouseLeftButtonDown += tileDown;
             Items.PreviewMouseMove += tileMove;
-            Items.MouseLeftButtonUp += delegate { pressed = null; };
+            Items.MouseLeftButtonUp += tileUp;
             Items.MouseRightButtonUp += tileMenu;
             Items.KeyDown += tileKey;
+            Body.MouseLeftButtonDown += marqueeDown;
+            Body.MouseMove += marqueeMove;
+            Body.MouseLeftButtonUp += delegate { endMarquee(); };
+            Body.LostMouseCapture += delegate { endMarquee(); };
             Body.MouseRightButtonUp += delegate(object s, MouseButtonEventArgs e) {
                 if (!e.Handled)
                     openPanelMenu(null);
@@ -127,10 +141,10 @@ namespace Orla
             Frame.DragOver += dragOver;
             Frame.DragLeave += delegate { setDropHighlight(false); };
             Frame.Drop += drop;
-            MouseEnter += delegate { fadeHeader(1); };
+            MouseEnter += delegate { HeaderButtons.Opacity = 1; };
             MouseLeave += delegate {
                 if (!IsKeyboardFocusWithin)
-                    fadeHeader(0.55);
+                    HeaderButtons.Opacity = 0.55;
             };
             // The view is detached and re-attached when its window is rebuilt; follow the folder only while shown.
             Loaded += delegate {
@@ -148,6 +162,8 @@ namespace Orla
             refresh();
         }
 
+        string IconSize => controller.Layout.IconSize;
+
         // Re-reads everything the panel shows from the layout.
         public void refresh()
         {
@@ -159,47 +175,80 @@ namespace Orla
             MenuButton.ToolTip = Text.get("panel.menu");
             Body.Visibility = Group.Collapsed ? Visibility.Collapsed : Visibility.Visible;
             Shoreline.Margin = new Thickness(6, 0, 6, Group.Collapsed ? 0 : 4);
-            Grip.Visibility = Group.Collapsed || controller.Layout.LockLayout ? Visibility.Collapsed : Visibility.Visible;
+            Edges.Visibility = controller.Layout.LockLayout ? Visibility.Collapsed : Visibility.Visible;
             Header.Cursor = controller.Layout.LockLayout ? Cursors.Arrow : Cursors.SizeAll;
-            double icon = controller.Layout.IconSize == "small" ? 32 : controller.Layout.IconSize == "large" ? 48 : 40;
+            double icon = PanelMetrics.icon(IconSize);
             Resources["Tile.Icon"] = icon;
-            Resources["Tile.Width"] = icon + 52;
-            Width = Group.Width;
-            Height = Group.Collapsed ? CollapsedHeight : Group.Height;
+            Resources["Tile.Body"] = PanelMetrics.tile(IconSize) - 2;
             watch();
             reload();
         }
 
+        // Width is whole columns; height fits the content, up to the rows people chose and the room available.
+        public void applySize()
+        {
+            int contentRows = Math.Max(1, (int)Math.Ceiling(tiles.Count / (double)Group.Columns));
+            int rows = Math.Max(1, Math.Min(contentRows, Math.Min(Group.Rows, RoomRows)));
+            double width = PanelMetrics.width(Group.Columns, IconSize);
+            double height = Group.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, IconSize);
+            if (width == Width && height == Height)
+                return;
+            Width = width;
+            Height = height;
+            SizeNeeded?.Invoke();
+        }
+
+        // Reading folders and checking files happens off the UI thread: panels share their input with Explorer's
+        // desktop, so a slow network drive must never make the desktop stop responding.
         void reload()
         {
-            string selected = tiles.FirstOrDefault(t => t.Selected)?.Key;
-            var next = new List<TileItem>();
-            if (Group.IsFolder)
-            {
-                HashSet<string> organized = Group.OnlyUnorganized ? controller.store.organizedPaths() : null;
-                foreach (string path in Shell.list(Group.FolderPath))
-                    if (organized == null || !organized.Contains(path))
-                        next.Add(new TileItem { Path = path, Label = System.IO.Path.GetFileNameWithoutExtension(path) });
-            }
-            else
-                foreach (Entry e in Group.Items)
-                    next.Add(new TileItem { Entry = e, Path = e.Path, Label = e.Name, IsMissing = !Shell.exists(e.Path) });
+            int version = ++reloadVersion;
+            bool folder = Group.IsFolder, only = Group.OnlyUnorganized;
+            string folderPath = Group.FolderPath;
+            HashSet<string> organized = folder && only ? controller.store.organizedPaths() : null;
+            List<Entry> entries = folder ? null : Group.Items.ToList();
+            Task.Run(() => {
+                var found = new List<TileItem>();
+                bool available = true;
+                if (folder)
+                {
+                    available = Shell.folderDirectories(folderPath).Length > 0;
+                    foreach (string path in Shell.list(folderPath))
+                        if (organized == null || !organized.Contains(path))
+                            found.Add(new TileItem { Path = path, Label = System.IO.Path.GetFileNameWithoutExtension(path) });
+                }
+                else
+                    foreach (Entry e in entries)
+                        found.Add(new TileItem { Entry = e, Path = e.Path, Label = e.Name, IsMissing = !Shell.exists(e.Path) });
+                Dispatcher.BeginInvoke(new Action(delegate {
+                    if (version == reloadVersion)
+                        apply(found, available);
+                }));
+            });
+        }
 
-            var previous = tiles.ToDictionary(t => t.Key, StringComparer.OrdinalIgnoreCase);
+        void apply(List<TileItem> next, bool available)
+        {
+            folderAvailable = available;
+            var previous = new Dictionary<string, TileItem>(StringComparer.OrdinalIgnoreCase);
+            foreach (TileItem t in tiles)
+                previous[t.Key] = t;
             tiles.Clear();
-            int pixels = (int)Math.Ceiling((double)Resources["Tile.Icon"] * Scale);
+            int pixels = (int)Math.Ceiling(PanelMetrics.icon(IconSize) * Scale);
             foreach (TileItem tile in next)
             {
-                if (previous.TryGetValue(tile.Key, out TileItem old))
+                previous.TryGetValue(tile.Key, out TileItem old);
+                if (old != null)
                 {
-                    tile.Icon = old.Icon;
+                    if (old.Path == tile.Path)
+                        tile.Icon = old.Icon;
                     if (Group.IsFolder)
                         tile.Label = old.Label;
+                    tile.Selected = old.Selected;
                 }
-                tile.Selected = tile.Key == selected;
                 tiles.Add(tile);
                 TileItem target = tile;
-                if (!tile.IsMissing)
+                if (!tile.IsMissing && tile.Icon == null)
                     Shell.icon(tile.Path, pixels, Dispatcher, image => {
                         if (image != null)
                             target.Icon = image;
@@ -208,24 +257,22 @@ namespace Orla
                     Shell.name(tile.Path, Dispatcher, name => target.Label = name);
             }
             Count.Text = tiles.Count.ToString();
-            Empty.Text = Text.get(Group.IsFolder ? Shell.folderDirectories(Group.FolderPath).Length == 0
-                                                     ? "panel.folderMissing"
-                                                     : "panel.folderEmpty"
-                                                 : "panel.empty");
+            Empty.Text = Text.get(Group.IsFolder ? available ? "panel.folderEmpty" : "panel.folderMissing" : "panel.empty");
             Empty.Visibility = tiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            applySize();
         }
 
         // Folder panels follow their folder through file system notifications, never by polling.
         void watch()
         {
             string key = Group.IsFolder ? Group.FolderPath : null;
-            if (key == watchedFolder)
+            if (key == watchedFolder && (key == null || watchers.Length > 0))
                 return;
             stopWatching();
             watchedFolder = key;
             if (key == null)
                 return;
-            watchers = Shell.folderDirectories(key).Select(directory => {
+            watchers = Shell.folderDirectories(key).Where(Directory.Exists).Select(directory => {
                 var w = new FileSystemWatcher(directory) {
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Attributes
                 };
@@ -234,6 +281,14 @@ namespace Orla
                 w.Deleted += changed;
                 w.Changed += changed;
                 w.Renamed += (s, e) => Dispatcher.BeginInvoke(new Action(queueReload));
+                // A lost network connection or an overflowing buffer: start over on the next refresh.
+                w.Error += delegate {
+                    Dispatcher.BeginInvoke(new Action(delegate {
+                        stopWatching();
+                        watch();
+                        queueReload();
+                    }));
+                };
                 w.EnableRaisingEvents = true;
                 return w;
             }).ToArray();
@@ -247,15 +302,10 @@ namespace Orla
             watchedFolder = null;
         }
 
-        void queueReload()
+        public void queueReload()
         {
             reloadTimer.Stop();
             reloadTimer.Start();
-        }
-
-        void fadeHeader(double opacity)
-        {
-            HeaderButtons.Opacity = opacity;
         }
 
         // ---- moving and renaming the panel ----
@@ -305,6 +355,7 @@ namespace Orla
             {
                 TitleEditor.Text = Group.Name;
                 commitRename();
+                e.Handled = true;
             }
         }
 
@@ -319,7 +370,7 @@ namespace Orla
                 controller.renamePanel(Group, name);
         }
 
-        // ---- tiles ----
+        // ---- selection ----
 
         static TileItem tileAt(object source)
         {
@@ -327,6 +378,14 @@ namespace Orla
                 if (d is FrameworkElement f && f.DataContext is TileItem t)
                     return t;
             return null;
+        }
+
+        static bool insideScrollBar(DependencyObject d)
+        {
+            for (; d != null; d = VisualTreeHelper.GetParent(d))
+                if (d is ScrollBar)
+                    return true;
+            return false;
         }
 
         static bool isInside(DependencyObject d, DependencyObject ancestor)
@@ -337,10 +396,33 @@ namespace Orla
             return false;
         }
 
-        void select(TileItem tile)
+        List<TileItem> Selection => tiles.Where(t => t.Selected).ToList();
+
+        void selectOnly(TileItem tile)
         {
             foreach (TileItem t in tiles)
                 t.Selected = t == tile;
+            anchor = tile;
+        }
+
+        // Explorer's rules: click selects one, Ctrl toggles, Shift extends from the last clicked tile.
+        void clickSelect(TileItem tile)
+        {
+            bool ctrl = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
+            bool shift = (Keyboard.Modifiers & ModifierKeys.Shift) != 0;
+            if (shift && anchor != null && tiles.Contains(anchor))
+            {
+                int a = tiles.IndexOf(anchor), b = tiles.IndexOf(tile);
+                for (int i = 0; i < tiles.Count; i++)
+                    tiles[i].Selected = i >= Math.Min(a, b) && i <= Math.Max(a, b) || ctrl && tiles[i].Selected;
+            }
+            else if (ctrl)
+            {
+                tile.Selected = !tile.Selected;
+                anchor = tile;
+            }
+            else if (!tile.Selected)
+                selectOnly(tile);
         }
 
         void tileDown(object sender, MouseButtonEventArgs e)
@@ -348,20 +430,73 @@ namespace Orla
             TileItem tile = tileAt(e.OriginalSource);
             if (tile == null)
                 return;
-            select(tile);
             controller.focusPanel(this);
             containerOf(tile)?.Focus();
             if (e.ClickCount == 2)
             {
                 pressed = null;
+                selectOnly(tile);
                 controller.open(tile.Path);
             }
             else
             {
+                clickSelect(tile);
                 pressed = tile;
                 pressPoint = e.GetPosition(this);
             }
             e.Handled = true;
+        }
+
+        void tileUp(object sender, MouseButtonEventArgs e)
+        {
+            // A plain click on a tile that was part of a larger selection narrows it to that tile.
+            if (pressed != null && Keyboard.Modifiers == ModifierKeys.None && Selection.Count > 1)
+                selectOnly(pressed);
+            pressed = null;
+        }
+
+        void marqueeDown(object sender, MouseButtonEventArgs e)
+        {
+            if (tileAt(e.OriginalSource) != null || insideScrollBar(e.OriginalSource as DependencyObject))
+                return;
+            controller.focusPanel(this);
+            marqueeBase = (Keyboard.Modifiers & ModifierKeys.Control) != 0 ? new HashSet<TileItem>(Selection) : new HashSet<TileItem>();
+            if (marqueeBase.Count == 0)
+                foreach (TileItem t in tiles)
+                    t.Selected = false;
+            marqueeStart = e.GetPosition(Body);
+            selecting = Body.CaptureMouse();
+            e.Handled = true;
+        }
+
+        void marqueeMove(object sender, MouseEventArgs e)
+        {
+            if (!selecting)
+                return;
+            Point now = e.GetPosition(Body);
+            var area = new Rect(marqueeStart, now);
+            Canvas.SetLeft(Marquee, area.X);
+            Canvas.SetTop(Marquee, area.Y);
+            Marquee.Width = area.Width;
+            Marquee.Height = area.Height;
+            Marquee.Visibility = Visibility.Visible;
+            foreach (TileItem t in tiles)
+            {
+                FrameworkElement c = containerOf(t);
+                if (c == null || !c.IsVisible)
+                    continue;
+                Rect bounds = c.TransformToAncestor(Body).TransformBounds(new Rect(0, 0, c.ActualWidth, c.ActualHeight));
+                t.Selected = marqueeBase.Contains(t) || bounds.IntersectsWith(area);
+            }
+        }
+
+        void endMarquee()
+        {
+            if (!selecting)
+                return;
+            selecting = false;
+            Marquee.Visibility = Visibility.Collapsed;
+            Body.ReleaseMouseCapture();
         }
 
         void tileMove(object sender, MouseEventArgs e)
@@ -372,18 +507,22 @@ namespace Orla
             if (Math.Abs(now.X - pressPoint.X) < SystemParameters.MinimumHorizontalDragDistance &&
                 Math.Abs(now.Y - pressPoint.Y) < SystemParameters.MinimumVerticalDragDistance)
                 return;
-            TileItem tile = pressed;
             pressed = null;
+            List<TileItem> dragged = Selection;
             var data = new DataObject();
             data.SetData(SourceFormat, Group.Id);
-            if (tile.Entry != null)
-                data.SetData(EntryFormat, tile.Entry.Id);
-            if (!Shell.isVirtual(tile.Path) && Shell.exists(tile.Path))
-                data.SetFileDropList(new System.Collections.Specialized.StringCollection { tile.Path });
-            // A reference never lets another program move the file away; only a folder panel's own files can move.
-            DragDropEffects allowed = Group.IsFolder
-                                          ? DragDropEffects.Move | DragDropEffects.Copy | DragDropEffects.Link
-                                          : DragDropEffects.Copy | DragDropEffects.Link;
+            if (!Group.IsFolder)
+                data.SetData(EntryFormat, dragged.Select(t => t.Entry.Id).ToArray());
+            var files = new StringCollection();
+            files.AddRange(dragged.Where(t => !Shell.isVirtual(t.Path) && Shell.exists(t.Path)).Select(t => t.Path).ToArray());
+            if (files.Count > 0)
+                data.SetFileDropList(files);
+            // A reference never lets another program move the file away, and folders or special places can only be
+            // linked, so a slip onto the desktop never copies a whole folder. Only a folder panel's own files move.
+            bool filesOnly = dragged.All(t => !Shell.isVirtual(t.Path) && File.Exists(t.Path));
+            DragDropEffects allowed = Group.IsFolder ? DragDropEffects.Move | DragDropEffects.Copy | DragDropEffects.Link
+                                      : filesOnly    ? DragDropEffects.Copy | DragDropEffects.Link
+                                                     : DragDropEffects.Link;
             DragDrop.DoDragDrop(this, data, allowed);
         }
 
@@ -401,18 +540,25 @@ namespace Orla
             TileItem tile = tileAt(e.OriginalSource);
             if (tile == null)
                 return;
+            List<TileItem> selection = Selection.Count > 0 ? Selection : new List<TileItem> { tile };
             switch (e.Key)
             {
             case Key.Enter:
-                controller.open(tile.Path);
+                foreach (TileItem t in selection.Take(12))
+                    controller.open(t.Path);
                 break;
             case Key.F2:
                 if (tile.Entry != null)
                     renameItem(tile);
                 break;
             case Key.Delete:
-                if (tile.Entry != null)
-                    controller.removeItem(tile.Entry);
+                controller.removeItems(selection.Where(t => t.Entry != null).Select(t => t.Entry).ToList());
+                break;
+            case Key.A:
+                if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
+                    return;
+                foreach (TileItem t in tiles)
+                    t.Selected = true;
                 break;
             case Key.Left:
             case Key.Right:
@@ -423,7 +569,11 @@ namespace Orla
                                 : e.Key == Key.Up    ? FocusNavigationDirection.Up
                                                      : FocusNavigationDirection.Down;
                 if (e.OriginalSource is UIElement u && u.MoveFocus(new TraversalRequest(direction)))
-                    select(tileAt(Keyboard.FocusedElement));
+                {
+                    TileItem next = tileAt(Keyboard.FocusedElement);
+                    if (next != null)
+                        clickSelect(next);
+                }
                 break;
             case Key.Apps:
                 showMenu(tileMenuFor(tile), e.OriginalSource as UIElement);
@@ -446,44 +596,55 @@ namespace Orla
             TileItem tile = tileAt(e.OriginalSource);
             if (tile == null)
                 return;
-            select(tile);
+            if (!tile.Selected)
+                selectOnly(tile);
             showMenu(tileMenuFor(tile), null);
             e.Handled = true;
         }
 
         ContextMenu tileMenuFor(TileItem tile)
         {
+            List<TileItem> selection = Selection.Count > 0 ? Selection : new List<TileItem> { tile };
+            bool many = selection.Count > 1;
+            var entries = selection.Where(t => t.Entry != null).Select(t => t.Entry).ToList();
             var menu = new ContextMenu();
-            menu.Items.Add(Menus.item("tile.open", "Glyph.Open", () => controller.open(tile.Path), "Enter"));
-            if (!Shell.isVirtual(tile.Path))
+            MenuItem open = Menus.item("tile.open", "Glyph.Open", () => {
+                foreach (TileItem t in selection.Take(12))
+                    controller.open(t.Path);
+            }, "Enter");
+            if (many)
+                open.Header = Text.format("tile.openMany", selection.Count);
+            menu.Items.Add(open);
+            if (!many && !Shell.isVirtual(tile.Path))
                 menu.Items.Add(Menus.item("tile.reveal", "Glyph.Reveal", () => controller.reveal(tile.Path)));
             var collections = controller.Layout.Groups.Where(g => !g.IsFolder && g != Group).ToList();
-            if (tile.Entry != null)
+            if (entries.Count > 0)
             {
                 menu.Items.Add(new Separator());
-                menu.Items.Add(Menus.item("tile.rename", "Glyph.Rename", () => renameItem(tile), "F2"));
+                if (!many)
+                    menu.Items.Add(Menus.item("tile.rename", "Glyph.Rename", () => renameItem(tile), "F2"));
                 if (collections.Count > 0)
                 {
                     MenuItem move = Menus.item("tile.moveTo", "Glyph.MoveTo", null);
                     foreach (Group g in collections)
-                        move.Items.Add(Menus.plain(g.Name, () => controller.moveItem(tile.Entry, g)));
+                        move.Items.Add(Menus.plain(g.Name, () => controller.moveItems(entries.Select(x => x.Id).ToArray(), g, g.Items.Count)));
                     menu.Items.Add(move);
                 }
                 menu.Items.Add(new Separator());
-                menu.Items.Add(Menus.item("tile.remove", "Glyph.Remove", () => controller.removeItem(tile.Entry), "Del"));
+                menu.Items.Add(Menus.item("tile.remove", "Glyph.Remove", () => controller.removeItems(entries), "Del"));
             }
             else if (collections.Count > 0)
             {
                 menu.Items.Add(new Separator());
                 MenuItem add = Menus.item("tile.addTo", "Glyph.Add", null);
                 foreach (Group g in collections)
-                    add.Items.Add(Menus.plain(g.Name, () => controller.addReferences(g, new[] { tile.Path })));
+                    add.Items.Add(Menus.plain(g.Name, () => controller.addReferences(g, selection.Select(t => t.Path).ToArray())));
                 menu.Items.Add(add);
             }
             return menu;
         }
 
-        void openPanelMenu(UIElement anchor)
+        void openPanelMenu(UIElement anchorElement)
         {
             var menu = new ContextMenu();
             if (Group.IsFolder)
@@ -498,6 +659,11 @@ namespace Orla
                 menu.Items.Add(Menus.item("panel.addFiles", "Glyph.Add", () => controller.addFiles(Group)));
                 menu.Items.Add(Menus.item("panel.addFolder", "Glyph.PanelFolder", () => controller.addFolder(Group)));
             }
+            if (tiles.Count > 0)
+                menu.Items.Add(Menus.item("panel.selectAll", "Glyph.Check", () => {
+                    foreach (TileItem t in tiles)
+                        t.Selected = true;
+                }, "Ctrl+A"));
             menu.Items.Add(new Separator());
             menu.Items.Add(Menus.item("panel.rename", "Glyph.Rename", startRename));
             MenuItem tint = Menus.item("panel.tint", "Glyph.PanelCollection", null);
@@ -516,14 +682,14 @@ namespace Orla
             menu.Items.Add(Menus.item("panel.hide", "Glyph.EyeOff", () => controller.setVisible(Group, false)));
             menu.Items.Add(Menus.item("panel.settings", "Glyph.Settings", () => controller.showCentral(null)));
             menu.Items.Add(Menus.item("panel.remove", "Glyph.Remove", () => controller.removePanel(Group)));
-            showMenu(menu, anchor);
+            showMenu(menu, anchorElement);
         }
 
-        void showMenu(ContextMenu menu, UIElement anchor)
+        void showMenu(ContextMenu menu, UIElement anchorElement)
         {
             controller.focusPanel(this);
-            menu.PlacementTarget = anchor ?? this;
-            menu.Placement = anchor != null ? PlacementMode.Bottom : PlacementMode.MousePoint;
+            menu.PlacementTarget = anchorElement ?? this;
+            menu.Placement = anchorElement != null ? PlacementMode.Bottom : PlacementMode.MousePoint;
             menu.IsOpen = true;
         }
 
@@ -531,9 +697,7 @@ namespace Orla
 
         DragDropEffects effectFor(DragEventArgs e)
         {
-            bool fromOrla = e.Data.GetDataPresent(SourceFormat);
-            if (fromOrla && (string)e.Data.GetData(SourceFormat) == Group.Id && Group.IsFolder)
-                return DragDropEffects.None;
+            bool fromHere = e.Data.GetDataPresent(SourceFormat) && (string)e.Data.GetData(SourceFormat) == Group.Id;
             if (!Group.IsFolder)
             {
                 if (e.Data.GetDataPresent(EntryFormat) || e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -541,7 +705,7 @@ namespace Orla
                                                                           : e.AllowedEffects & DragDropEffects.Copy;
                 return DragDropEffects.None;
             }
-            if (!e.Data.GetDataPresent(DataFormats.FileDrop) || Shell.folderDirectories(Group.FolderPath).Length == 0)
+            if (fromHere || !e.Data.GetDataPresent(DataFormats.FileDrop) || !folderAvailable)
                 return DragDropEffects.None;
             bool copy = (e.KeyStates & DragDropKeyStates.ControlKey) != 0;
             bool move = (e.KeyStates & DragDropKeyStates.ShiftKey) != 0;
@@ -566,10 +730,7 @@ namespace Orla
 
         void setDropHighlight(bool on)
         {
-            if (on)
-                Frame.SetResourceReference(Border.BorderBrushProperty, "Brush.Focus");
-            else
-                Frame.SetResourceReference(Border.BorderBrushProperty, "Brush.PanelBorder");
+            Frame.SetResourceReference(Border.BorderBrushProperty, on ? "Brush.Focus" : "Brush.PanelBorder");
         }
 
         void drop(object sender, DragEventArgs e)
@@ -584,13 +745,16 @@ namespace Orla
             {
                 int index = dropIndex(e);
                 if (e.Data.GetDataPresent(EntryFormat))
-                    controller.moveItem((string)e.Data.GetData(EntryFormat), Group, index);
+                    controller.moveItems((string[])e.Data.GetData(EntryFormat), Group, index);
                 else
                     controller.addReferences(Group, (string[])e.Data.GetData(DataFormats.FileDrop), index);
                 return;
             }
+            // Orla performs the move or copy itself, after the drag has finished, and reports no effect to the source,
+            // so the source never deletes originals for a move that was skipped or cancelled.
             var paths = (string[])e.Data.GetData(DataFormats.FileDrop);
-            controller.transfer(Group, paths, effect == DragDropEffects.Copy);
+            e.Effects = DragDropEffects.None;
+            Dispatcher.BeginInvoke(new Action(() => controller.transfer(Group, paths, effect == DragDropEffects.Copy)));
         }
 
         int dropIndex(DragEventArgs e)
