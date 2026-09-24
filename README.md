@@ -83,7 +83,9 @@ Na primeira vez, ou depois em **Painéis > Organizar para mim**, o Orla lê o de
 - Uma categoria com um item só entra na mais próxima, para não sobrar painel com um ícone.
 - As ferramentas ficam à esquerda da tela principal, o trabalho à direita, e o centro fica livre.
 - Você vê a prévia antes. Nada muda de lugar no disco: os painéis guardam atalhos para os arquivos.
-- Se você já tinha painéis, eles são substituídos. Uma cópia fica na pasta de dados, e **Voltar aos painéis anteriores** desfaz, mesmo depois de reiniciar.
+- Organizando de novo, **Completar meus painéis** só acrescenta o que é novo: nomes, cores, posições e o que você moveu ficam como estão. **Refazer do zero** monta tudo de novo; uma cópia fica na pasta de dados, e **Voltar aos painéis anteriores** desfaz, mesmo depois de reiniciar.
+- O Orla aprende com você: arraste um item para outro painel, ou do desktop para um painel, e da próxima vez ele vai direto para lá.
+- Com dois monitores, as ferramentas podem ir para o outro monitor, e o trabalho fica na tela principal.
 
 Com **Esconder os ícones do Windows** ligado, o painel **Novos no desktop** mostra o que ainda não está em nenhum painel. Com **Manter organizado** ligado, cada item novo no desktop entra sozinho no painel da categoria dele, e o que for apagado sai do painel. O que não se encaixar em nada fica em **Novos no desktop**.
 

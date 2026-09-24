@@ -156,9 +156,10 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Brush.ItemHover}" />
                         </Trigger>
+                        <!-- A raised chip with accent text, so a chosen segment never competes with the page's main button. -->
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Brush.Accent}" />
-                            <Setter Property="Foreground" Value="{DynamicResource Brush.OnAccent}" />
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Brush.SurfaceRaised}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                     </ControlTemplate.Triggers>

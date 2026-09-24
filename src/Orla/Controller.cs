@@ -343,18 +343,22 @@ namespace Orla
             int before = g.Items.Count;
             foreach (string p in paths)
                 store.add(g, p);
+            var added = g.Items.Skip(before).ToList();
             if (index >= 0 && index < before)
             {
-                var added = g.Items.Skip(before).ToList();
                 g.Items.RemoveRange(before, added.Count);
                 g.Items.InsertRange(index, added);
             }
             changed(g);
+            // Putting something from the desktop into a panel by hand teaches the organizer, as moving it would.
+            string[] desktops = Shell.desktopDirectories();
+            learn(added.Where(e => desktops.Any(d => Shell.within(e.Path, d))).Select(e => e.Id).ToArray(), g);
         }
 
         public void moveItems(string[] entryIds, Group target, int index)
         {
             bool moved = false;
+            var fromElsewhere = new List<string>();
             foreach (string id in entryIds)
             {
                 Group from = store.owner(id);
@@ -362,6 +366,8 @@ namespace Orla
                 if (!store.move(id, target, index))
                     continue;
                 moved = true;
+                if (from != target)
+                    fromElsewhere.Add(id);
                 if (before < 0 || before >= index)
                     index++;
             }
@@ -369,8 +375,30 @@ namespace Orla
             {
                 hosts.FirstOrDefault(h => h.Group == target)?.View.selectAfterReload(entryIds);
                 changed();
+                learn(fromElsewhere.ToArray(), target);
             }
         }
+
+        // Moving items into another panel teaches the organizer where they belong. Reading what a shortcut opens can
+        // take a moment, so it happens off the UI thread.
+        void learn(string[] entryIds, Group target)
+        {
+            var paths = target.Items.Where(e => entryIds.Contains(e.Id) && !Shell.isVirtual(e.Path)).Select(e => e.Path).ToList();
+            if (paths.Count == 0)
+                return;
+            System.Threading.Tasks.Task.Run(() => paths.Select(Organizer.identity).ToList()).ContinueWith(t => dispatcher.BeginInvoke(new Action(delegate {
+                if (t.IsFaulted || !Layout.Groups.Contains(target))
+                    return;
+                foreach (string id in t.Result)
+                    Layout.Learned[id] = target.Id;
+                saveLayout();
+            })));
+        }
+
+        // For a fresh plan: what each learned item's panel is about, or null when it is a panel people made themselves.
+        public Dictionary<string, string> learnedCategories() =>
+            Layout.Learned.ToDictionary(r => r.Key, r => Layout.Groups.FirstOrDefault(g => g.Id == r.Value)?.AutoCategory,
+                                        StringComparer.OrdinalIgnoreCase);
 
         public void removeItems(IList<Entry> entries)
         {
@@ -526,6 +554,8 @@ namespace Orla
             if (!Dialog.confirm(Text.format("panel.removeTitle", g.Name), message, Text.get("panel.removeAction")))
                 return;
             Layout.Groups.Remove(g);
+            foreach (string rule in Layout.Learned.Where(r => r.Value == g.Id).Select(r => r.Key).ToList())
+                Layout.Learned.Remove(rule);
             changed();
         }
 
@@ -799,12 +829,13 @@ namespace Orla
         {
             if (!Layout.AutoOrganize)
                 return;
-            var auto = Layout.Groups.Where(g => !g.IsFolder && g.AutoCategory != null).ToList();
+            var groups = Layout.Groups.ToList();
+            var learned = new Dictionary<string, string>(Layout.Learned, StringComparer.OrdinalIgnoreCase);
             Organized organized = store.organized();
             System.Threading.Tasks.Task.Run(() => paths.Select(p => {
                 bool exists = Shell.exists(p);
                 bool fresh = exists && !Shell.isHidden(p) && !organized.Contains(p);
-                return new { Path = p, Gone = !exists, Home = fresh ? Organizer.home(p, auto) : null,
+                return new { Path = p, Gone = !exists, Home = fresh ? Organizer.home(p, groups, learned) : null,
                              Name = fresh ? Shell.displayName(p) : null };
             }).ToList()).ContinueWith(t => dispatcher.BeginInvoke(new Action(delegate {
                 if (t.IsFaulted || !Layout.AutoOrganize)
@@ -815,8 +846,8 @@ namespace Orla
                 {
                     if (r.Gone)
                     {
-                        // A deleted folder of shortcuts takes the shortcuts sorted from it along.
-                        foreach (Group g in Layout.Groups.Where(g => g.AutoCategory != null && !g.IsFolder))
+                        // A deleted folder of shortcuts takes the shortcuts sorted from it along, from every collection.
+                        foreach (Group g in Layout.Groups.Where(g => !g.IsFolder))
                             any |= g.Items.RemoveAll(e => Shell.within(e.Path, r.Path)) > 0;
                     }
                     else if (r.Home != null && Layout.Groups.Contains(r.Home) && r.Home.Items.Count < Store.MaxItems &&

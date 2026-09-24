@@ -104,6 +104,98 @@ namespace Orla.Tests
             }
         }
 
+        static Organizer.Plan planOf(params (string key, string[] names)[] panels)
+        {
+            var plan = new Organizer.Plan();
+            foreach (var p in panels)
+                plan.add(Organizer.panel(p.key, p.names.Select(n => @"C:\Desk\" + n)));
+            return plan;
+        }
+
+        static readonly Screen screen = new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = 1920, Bottom = 1040 } };
+
+        [Fact]
+        public void organizingAgainAddsOnlyWhatIsNewAndKeepsPeoplesWork()
+        {
+            Layout current = Organizer.build(planOf((Organizer.Apps, new[] { "a.lnk", "b.lnk" })), new Layout(), true, true, screen);
+            Group apps = current.Groups.First(g => g.AutoCategory == Organizer.Apps);
+            apps.Name = "Meus apps";
+            apps.Tint = Tints.Coral;
+            double x = apps.X, y = apps.Y;
+            var done = new Organizer.Completion();
+            Layout next = Organizer.complete(planOf((Organizer.Apps, new[] { "a.lnk", "b.lnk", "c.lnk" }),
+                                                   (Organizer.Play, new[] { "g1.url", "g2.url" })), current, true, true, new[] { screen }, done);
+            Group sameApps = next.Groups.First(g => g.Id == apps.Id);
+            Assert.Equal(new[] { "a", "b", "c" }, sameApps.Items.Select(e => e.Name));
+            Assert.Equal("Meus apps", sameApps.Name);
+            Assert.Equal(Tints.Coral, sameApps.Tint);
+            Assert.Equal(x, sameApps.X);
+            Assert.Equal(y, sameApps.Y);
+            Group games = next.Groups.Single(g => g.AutoCategory == Organizer.Play);
+            Assert.Contains(games.Id, done.Fresh);
+            Assert.Equal(3, done.Added);
+            // The live layout is untouched until the preview is applied.
+            Assert.Equal(2, apps.Items.Count);
+            var rects = next.Groups.Where(g => g.Visible).Select(g => Screens.rectOf(g, next.IconSize, 1)).ToList();
+            for (int i = 0; i < rects.Count; i++)
+                for (int j = i + 1; j < rects.Count; j++)
+                    Assert.False(Screens.overlaps(rects[i], rects[j]));
+        }
+
+        [Fact]
+        public void whatPeopleMovedGoesWhereTheyPutIt()
+        {
+            Layout current = Organizer.build(planOf((Organizer.Apps, new[] { "a.lnk", "b.lnk" }), (Organizer.Play, new[] { "g1.url", "g2.url" })),
+                                             new Layout(), true, true, screen);
+            Group games = current.Groups.First(g => g.AutoCategory == Organizer.Play);
+            current.Learned["wallpaper.exe"] = games.Id;
+            Organizer.Plan again = planOf((Organizer.Apps, new[] { "a.lnk", "b.lnk", "Wallpaper.lnk" }), (Organizer.Play, new[] { "g1.url", "g2.url" }));
+            again.Identities[@"C:\Desk\Wallpaper.lnk"] = "wallpaper.exe";
+            Layout next = Organizer.complete(again, current, true, true, new[] { screen }, new Organizer.Completion());
+            Assert.Contains("Wallpaper", next.Groups.First(g => g.Id == games.Id).Items.Select(e => e.Name));
+            Assert.DoesNotContain("Wallpaper", next.Groups.First(g => g.AutoCategory == Organizer.Apps).Items.Select(e => e.Name));
+        }
+
+        [Fact]
+        public void rulesFollowTheirCategoryToAFreshLayoutAndRulesAboutGonePanelsGoAway()
+        {
+            Layout current = Organizer.build(planOf((Organizer.Play, new[] { "g1.url", "g2.url" })), new Layout(), true, true, screen);
+            Group games = current.Groups.First(g => g.AutoCategory == Organizer.Play);
+            current.Learned["x"] = games.Id;
+            current.Learned["y"] = "a panel that is gone";
+            Layout fresh = Organizer.build(planOf((Organizer.Play, new[] { "g1.url", "g2.url" })), current, true, true, screen);
+            Assert.Equal(fresh.Groups.First(g => g.AutoCategory == Organizer.Play).Id, fresh.Learned["x"]);
+            Assert.False(fresh.Learned.ContainsKey("y"));
+            Layout loaded = Store.parse(Store.json().Serialize(current));
+            Assert.True(loaded.Learned.ContainsKey("x"));
+            Assert.False(loaded.Learned.ContainsKey("y"));
+        }
+
+        [Fact]
+        public void organizingAgainNeverGoesPastThePanelLimit()
+        {
+            var current = new Layout { Welcomed = true };
+            for (int i = 0; i < Store.MaxGroups - 1; i++)
+                current.Groups.Add(new Group { Name = "P" + i, X = 24, Y = 24 });
+            Layout next = Organizer.complete(planOf((Organizer.Play, new[] { "g1.url", "g2.url" }), (Organizer.Dev, new[] { "d1.lnk", "d2.lnk" })),
+                                             current, true, true, new[] { screen }, new Organizer.Completion());
+            Assert.True(next.Groups.Count <= Store.MaxGroups);
+            Store.parse(Store.json().Serialize(next));
+        }
+
+        [Fact]
+        public void withASecondMonitorTheToolsMoveThereAndWorkStaysOnTheMainScreen()
+        {
+            var main = new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = 2560, Bottom = 1040 } };
+            var other = new Screen { Dpi = 96, Work = new RECT { Left = -1920, Right = 0, Bottom = 1040 } };
+            Layout next = Organizer.build(planOf((Organizer.Apps, new[] { "a.lnk", "b.lnk" }), (Organizer.Documents, new[] { "d.pdf", "e.pdf" })),
+                                          new Layout(), true, true, new[] { main, other }, true);
+            Group apps = next.Groups.First(g => g.AutoCategory == Organizer.Apps);
+            Group docs = next.Groups.First(g => g.AutoCategory == Organizer.Documents);
+            Assert.True(apps.X < 0 && Screens.rectOf(apps, next.IconSize, 1).Right <= 0);
+            Assert.True(docs.X >= 0);
+        }
+
         [Fact]
         public void aLayoutFromBeforeTheOrganizerStillLoads()
         {

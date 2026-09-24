@@ -534,10 +534,22 @@
         <!-- Let Orla organize: a map of the screen with the planned panels, before anything changes -->
         <Grid x:Name="OrganizePreview" Visibility="Collapsed" Background="{DynamicResource Brush.Window}">
             <DockPanel MaxWidth="820" Margin="40,28">
-                <StackPanel DockPanel.Dock="Top">
-                    <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T organize.title}" Margin="0,0,0,6" />
-                    <TextBlock x:Name="OrganizeLead" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="15" TextWrapping="Wrap" />
-                </StackPanel>
+                <DockPanel DockPanel.Dock="Top">
+                    <!-- With panels already organized: add what is new, or start the layout again. -->
+                    <Border x:Name="OrganizeModes" DockPanel.Dock="Right" Style="{StaticResource Orla.SegmentGroup}" VerticalAlignment="Top"
+                            Margin="24,6,0,0" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="OrganizeComplete" Style="{StaticResource Orla.Segment}" GroupName="organizeMode"
+                                         Content="{l:T organize.complete}" IsChecked="True" />
+                            <RadioButton x:Name="OrganizeRedo" Style="{StaticResource Orla.Segment}" GroupName="organizeMode"
+                                         Content="{l:T organize.redo}" />
+                        </StackPanel>
+                    </Border>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T organize.title}" Margin="0,0,0,6" />
+                        <TextBlock x:Name="OrganizeLead" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="15" TextWrapping="Wrap" />
+                    </StackPanel>
+                </DockPanel>
                 <DockPanel DockPanel.Dock="Bottom" Margin="0,18,0,0">
                     <Button x:Name="OrganizeApply" DockPanel.Dock="Right" Style="{StaticResource Orla.Button.Accent}"
                             Content="{l:T organize.apply}" Padding="22,9" />
@@ -546,8 +558,8 @@
                     <TextBlock x:Name="OrganizeNote" TextWrapping="Wrap" FontSize="12" VerticalAlignment="Center" Margin="0,0,24,0"
                                Foreground="{DynamicResource Brush.TextSecondary}" />
                 </DockPanel>
-                <UniformGrid DockPanel.Dock="Bottom" Columns="2" Margin="0,16,0,0">
-                    <Border Style="{StaticResource Orla.Card}" Margin="0,0,4,0">
+                <UniformGrid x:Name="OrganizeOptions" DockPanel.Dock="Bottom" Rows="1" Margin="-4,16,-4,0">
+                    <Border Style="{StaticResource Orla.Card}" Margin="4,0">
                         <CheckBox x:Name="OrganizeClean" Style="{StaticResource Orla.Switch}" IsChecked="True">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T organize.clean}" />
@@ -555,7 +567,7 @@
                             </StackPanel>
                         </CheckBox>
                     </Border>
-                    <Border Style="{StaticResource Orla.Card}" Margin="4,0,0,0">
+                    <Border Style="{StaticResource Orla.Card}" Margin="4,0">
                         <CheckBox x:Name="OrganizeKeep" Style="{StaticResource Orla.Switch}" IsChecked="True">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T organize.keep}" />
@@ -564,13 +576,19 @@
                         </CheckBox>
                     </Border>
                 </UniformGrid>
-                <!-- The main screen in miniature, centred in a card that takes the room left. -->
+                <!-- The screens the plan uses, in miniature and where they really are, centred in a card that takes the room left. -->
                 <Border x:Name="OrganizeStage" Style="{StaticResource Orla.Card}" Margin="0,20,0,0" Padding="12">
-                    <Border x:Name="OrganizeScreen" CornerRadius="8" ClipToBounds="True" HorizontalAlignment="Center"
-                            VerticalAlignment="Center" BorderThickness="1" BorderBrush="{DynamicResource Brush.Line}"
-                            Background="{StaticResource Orla.Shore}">
-                        <Canvas x:Name="OrganizeMap" />
-                    </Border>
+                    <DockPanel>
+                        <!-- Only with more than one monitor; it belongs with the map it changes. -->
+                        <CheckBox x:Name="OrganizeSecond" DockPanel.Dock="Top" Style="{StaticResource Orla.Switch}" IsChecked="True"
+                                  Margin="6,0,6,12" Visibility="Collapsed">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T organize.second}" />
+                                <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T organize.secondHint}" />
+                            </StackPanel>
+                        </CheckBox>
+                        <Canvas x:Name="OrganizeMap" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True" />
+                    </DockPanel>
                 </Border>
             </DockPanel>
         </Grid>

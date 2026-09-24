@@ -63,6 +63,53 @@ namespace Orla
             return new RECT { Left = x, Top = y, Right = x + w, Bottom = y + h };
         }
 
+        // The monitor a panel belongs to: the one holding its top-left area, or else the closest one.
+        public static Screen nearest(Group g, IList<Screen> screens)
+        {
+            double x = g.X + 40, y = g.Y + 20;
+            double distance(Screen s) => Math.Pow(Math.Max(s.Work.Left - x, Math.Max(0, x - s.Work.Right)), 2) +
+                                         Math.Pow(Math.Max(s.Work.Top - y, Math.Max(0, y - s.Work.Bottom)), 2);
+            return screens.OrderBy(distance).First();
+        }
+
+        // Where a panel sits, in physical pixels, from its saved position and size.
+        public static RECT rectOf(Group g, string iconSize, double scale)
+        {
+            int x = (int)g.X, y = (int)g.Y;
+            return new RECT { Left = x, Top = y, Right = x + (int)Math.Round(PanelMetrics.width(g.Columns, iconSize) * scale),
+                              Bottom = y + (int)Math.Round(PanelMetrics.height(g, PanelMetrics.plannedRows(g), iconSize) * scale) };
+        }
+
+        // A spot for a new panel next to the panels already on a screen: the first free place in the column nearest the
+        // chosen edge, then the next column inward, keeping the usual gap. It never covers a panel.
+        public static void place(Group g, IList<RECT> taken, Screen s, string iconSize, bool fromLeft)
+        {
+            const int edge = Margin * 2;
+            RECT work = s.Work;
+            RECT size = rectOf(g, iconSize, s.Scale);
+            int w = size.Width, h = size.Height;
+            for (int i = 0; ; i += Grid * 2)
+            {
+                int x = fromLeft ? work.Left + edge + i : work.Right - edge - w - i;
+                if (x < work.Left + edge || x + w > work.Right - edge)
+                    break;
+                for (int y = work.Top + edge; y + h <= work.Bottom - edge; y += Grid * 2)
+                {
+                    var r = new RECT { Left = x, Top = y, Right = x + w, Bottom = y + h };
+                    var gap = new RECT { Left = x - Margin, Top = y - Margin, Right = x + w + Margin, Bottom = y + h + Margin };
+                    if (taken.Any(o => overlaps(gap, o)))
+                        continue;
+                    g.X = x;
+                    g.Y = y;
+                    taken.Add(r);
+                    return;
+                }
+            }
+            // No free place big enough: the corner, and the desktop settles it next to the others.
+            g.X = fromLeft ? work.Left + edge : work.Right - edge - w;
+            g.Y = work.Top + edge;
+        }
+
         public static bool overlaps(RECT a, RECT b) =>
             a.Left < b.Right && a.Right > b.Left && a.Top < b.Bottom && a.Bottom > b.Top;
 

@@ -82,6 +82,23 @@ Como ele separa os itens:
 - As ferramentas ficam em colunas a partir da esquerda da tela principal; pastas, arquivos e **Novos no desktop**, a partir da direita. O centro fica livre.
 - Os painéis mostram atalhos. Nenhum arquivo muda de lugar.
 
+### Organizar de novo
+
+Se você já usou o **Deixe o Orla organizar**, a prévia mostra duas formas no alto:
+
+| Forma | O que faz |
+| --- | --- |
+| **Completar meus painéis** (padrão) | Só acrescenta o que é novo no desktop. Os itens entram nos painéis que você já tem; um painel novo só aparece para uma categoria que nenhum deles cobre, num espaço livre. Nomes, cores, posições, tamanhos e o que você moveu ficam como estão. No mapa, os painéis novos ficam em destaque, os que recebem itens mostram quantos (por exemplo, **+3**), e os outros ficam apagados. |
+| **Refazer do zero** | Monta todos os painéis de novo, como na primeira vez. |
+
+### O Orla aprende com você
+
+Quando você arrasta um item de um painel para outro, ou do desktop (e do **Novos no desktop**) para um painel, o Orla guarda para onde ele foi, pelo que o atalho abre, com os argumentos, ou pelo nome do arquivo. Da próxima vez que organizar, e com **Manter organizado** ligado, esse item vai direto para aquele painel, mesmo que seja um painel que você criou. **Refazer do zero** leva as regras para o painel novo da mesma categoria; as regras de um painel que você apagou somem com ele.
+
+### Com dois monitores
+
+Com mais de um monitor, a prévia mostra todos eles e oferece **Usar o segundo monitor**, já ligado. As ferramentas vão para o outro monitor, no lado que fica perto da tela principal, e pastas, arquivos e **Novos no desktop** ficam na tela principal. **Completar meus painéis** não muda nada de monitor.
+
 As duas opções da prévia:
 
 | Opção | O que faz |
@@ -89,7 +106,7 @@ As duas opções da prévia:
 | **Esconder os ícones do Windows** | Liga o [Desktop limpo](#desktop-limpo) e cria o painel **Novos no desktop**, com o que ainda não está em nenhum painel. Se você desligar, os ícones do Windows continuam e esse painel não é criado, porque os próprios ícones já mostram o que é novo. |
 | **Manter organizado** | Cada item novo no desktop entra sozinho no painel da categoria dele, uns segundos depois de chegar. Um item apagado ou tirado do desktop sai do painel. O que não se encaixar fica em **Novos no desktop**. Dá para ligar e desligar depois em **Painéis**. |
 
-Se você já tinha painéis, eles são substituídos. Uma cópia do layout anterior fica na [pasta de dados](#onde-ficam-seus-dados) com o nome `layout.json.before-organize-` seguido da data, e **Painéis > Voltar aos painéis anteriores** desfaz a organização, mesmo depois de fechar e abrir o Orla. Cada cópia serve para desfazer uma vez.
+Com **Refazer do zero**, os painéis que você tinha são substituídos. Uma cópia do layout anterior fica na [pasta de dados](#onde-ficam-seus-dados) com o nome `layout.json.before-organize-` seguido da data, e **Painéis > Voltar aos painéis anteriores** desfaz a organização, mesmo depois de fechar e abrir o Orla. Cada cópia serve para desfazer uma vez.
 
 ## Painéis prontos
 
