@@ -20,6 +20,19 @@ namespace Orla
         {
             string folder = args.Length > 0 ? args[0] : ".";
             Directory.CreateDirectory(folder);
+            if (args.Contains("--crowded"))
+            {
+                // Not for the documentation: the organizer's preview with a crowded desktop on common screen sizes.
+                controller.store.data = Demo.create();
+                foreach (var size in new[] { new { Name = "1080p", W = 1920, H = 1040 }, new { Name = "ultrawide", W = 2560, H = 1040 },
+                                             new { Name = "laptop", W = 1366, H = 728 } })
+                {
+                    var screen = new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = size.W, Bottom = size.H } };
+                    await central(controller, "crowded", System.IO.Path.Combine(folder, "crowded-" + size.Name + ".png"), screen);
+                }
+                controller.quit();
+                return;
+            }
             controller.store.data = Demo.create();
             foreach (string theme in new[] { "dark", "light" })
             {
@@ -97,17 +110,19 @@ namespace Orla
             await save(canvas, width, height, path);
         }
 
-        static async Task central(Controller controller, string page, string path)
+        static async Task central(Controller controller, string page, string path, Screen screen = null)
         {
-            var window = new CentralWindow(controller) { WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000,
+            var window = new CentralWindow(controller) { PreviewScreen = screen, WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000,
                                                          Top = 0, ShowActivated = false, Width = 1040, Height = 700 };
-            if (page == "welcome" || page == "presets" || page == "organize")
+            if (page == "welcome" || page == "presets" || page == "organize" || page == "crowded")
             {
                 window.show("welcome");
                 if (page == "presets")
                     window.showPresetChoices();
                 if (page == "organize")
                     window.showOrganize(true, Demo.plan);
+                if (page == "crowded")
+                    window.showOrganize(true, Demo.crowded);
             }
             else
             {
