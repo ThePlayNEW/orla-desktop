@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using Xunit;
 
@@ -36,7 +37,7 @@ namespace Orla.Tests
         }
 
         [Fact]
-        public void reportsNewItemsOnTheDesktopAndInSortedFoldersOnly()
+        public async Task reportsNewItemsOnTheDesktopAndInSortedFoldersOnly()
         {
             var batches = new List<List<string>>();
             var got = new ManualResetEventSlim();
@@ -47,7 +48,7 @@ namespace Orla.Tests
                     batches.Add(paths);
                 got.Set();
             };
-            Assert.True(arrivals.start().Wait(10000));
+            await arrivals.start();
             File.WriteAllText(Path.Combine(root, "Notas.txt"), "");
             File.WriteAllText(Path.Combine(root, "Shortcuts", "Games", "Jogo.url"), "");
             File.WriteAllText(Path.Combine(root, "Work", "Deep", "build.log"), "");
