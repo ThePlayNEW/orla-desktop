@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 
 namespace Orla
 {
@@ -41,6 +42,24 @@ namespace Orla
                 quick.Items.Add(new Entry { Name = Shell.displayName(path), Path = path });
             layout.Groups.AddRange(new[] { projects, documents, inbox, quick });
             return layout;
+        }
+
+        // What "Let Orla organize" would find on a typical desktop, for the documentation images.
+        public static Organizer.Plan plan()
+        {
+            var plan = new Organizer.Plan { QuickAccess = Presets.All[0].Create() };
+            var sample = new[] {
+                new { Key = Organizer.Apps, Names = new[] { "Navegador", "Discord", "Spotify", "WhatsApp", "VLC", "Notion" } },
+                new { Key = Organizer.Dev, Names = new[] { "VS Code", "GitHub Desktop", "Docker", "Postman", "Terminal" } },
+                new { Key = Organizer.Utilities, Names = new[] { "Limpeza", "Mouse", "Teclado" } },
+                new { Key = Organizer.Play, Names = new[] { "Steam", "Epic Games", "Minecraft", "EA", "Battle.net", "Riot", "GOG" } },
+                new { Key = Organizer.Folders, Names = new[] { "Site novo", "Identidade", "Viagem 2026", "Apresentações" } },
+                new { Key = Organizer.Documents, Names = new[] { "Proposta.pdf", "Contrato.docx", "Orçamento.xlsx", "Notas.txt" } },
+                new { Key = Organizer.Media, Names = new[] { "Captura.png", "Logo.svg", "Vídeo.mp4" } },
+            };
+            foreach (var s in sample)
+                plan.add(Organizer.panel(s.Key, s.Names.Select(n => Path.Combine(Path.GetTempPath(), n))));
+            return plan;
         }
     }
 }

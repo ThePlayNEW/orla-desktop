@@ -307,7 +307,7 @@ namespace Orla
             int version = ++reloadVersion;
             bool folder = Group.IsFolder, only = Group.OnlyUnorganized;
             string folderPath = Group.FolderPath;
-            HashSet<string> organized = folder && only ? controller.store.organizedPaths() : null;
+            Organized organized = folder && only ? controller.store.organized() : null;
             List<Entry> entries = folder ? null : Group.Items.ToList();
             Task.Run(() => {
                 var found = new List<TileItem>();
@@ -363,7 +363,8 @@ namespace Orla
             }
             pendingSelection = null;
             Count.Text = tiles.Count.ToString();
-            Empty.Text = Text.get(Group.IsFolder ? available ? "panel.folderEmpty" : "panel.folderMissing" : "panel.empty");
+            Empty.Text = Text.get(!Group.IsFolder ? "panel.empty" : !available ? "panel.folderMissing"
+                                  : Group.OnlyUnorganized ? "panel.inboxEmpty" : "panel.folderEmpty");
             Empty.Visibility = tiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             applySize();
         }

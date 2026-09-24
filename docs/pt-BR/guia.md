@@ -6,6 +6,7 @@ O Orla coloca painéis translúcidos no desktop do Windows. Cada painel mostra a
 
 - [Como os painéis funcionam](#como-os-painéis-funcionam)
 - [Primeira vez](#primeira-vez)
+- [Deixe o Orla organizar](#deixe-o-orla-organizar)
 - [Painéis prontos](#painéis-prontos)
 - [Coleções e painéis de pasta](#coleções-e-painéis-de-pasta)
 - [Mover, redimensionar e organizar](#mover-redimensionar-e-organizar)
@@ -45,10 +46,51 @@ Na primeira vez que o Orla abre, a tela **Bem-vindo ao Orla Desktop** oferece du
 
 | Opção | O que acontece |
 | --- | --- |
-| **Manter meus ícones** (já vem marcada) | Os ícones do Windows continuam como estão. No passo seguinte, **Escolha seus primeiros painéis**, você marca os [painéis prontos](#painéis-prontos) que quer e clica em **Começar**. **Voltar** retorna ao primeiro passo. |
-| **Organizar meu desktop** | Os itens do desktop viram coleções: **Aplicativos** para atalhos, **Pastas** para pastas e **Arquivos** para o resto. O Orla também cria o painel **Acesso rápido** e um painel **Na área de trabalho**, que mostra só o que ainda não está em outro painel. O **Desktop limpo** fica ligado. |
+| **Deixe o Orla organizar** (recomendado, já vem marcada) | O Orla lê o desktop, monta os painéis por categoria e mostra uma prévia antes de aplicar. Veja [Deixe o Orla organizar](#deixe-o-orla-organizar). |
+| **Manter meus ícones** | Os ícones do Windows continuam como estão. No passo seguinte, **Escolha seus primeiros painéis**, você marca os [painéis prontos](#painéis-prontos) que quer e clica em **Começar**. **Voltar** retorna ao primeiro passo. |
 
 Nenhuma das opções move, renomeia ou apaga arquivos. Você pode mudar tudo depois.
+
+## Deixe o Orla organizar
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/organize-dark.png">
+  <img src="../images/organize-light.png" width="720" alt="Prévia Seu desktop, organizado, com o mapa da tela e os painéis planejados">
+</picture>
+
+O Orla pode montar os painéis para você, do jeito que uma pessoa arrumaria o desktop. Use na primeira vez, com **Deixe o Orla organizar**, ou a qualquer momento em **Painéis > Organizar para mim**.
+
+1. O Orla lê o desktop e a área de trabalho pública do Windows.
+2. A tela **Seu desktop, organizado** mostra um mapa da sua tela principal com cada painel onde ele vai ficar.
+3. Escolha as opções e clique em **Organizar**. **Voltar** sai sem mudar nada.
+
+Como ele separa os itens:
+
+| Painel | O que entra |
+| --- | --- |
+| **Apps** | Navegadores, comunicação, música e os demais programas |
+| **Desenvolvimento** | Editores de código, Git, Docker, bancos de dados, terminais |
+| **Criação** | Edição de imagem e vídeo, design, transmissão |
+| **Utilitários** | Scripts (`.bat`, `.cmd`, `.ps1`), periféricos, drivers e ferramentas do sistema |
+| **Jogos** | Jogos e lançadores (Steam, Epic, EA, Riot, Rockstar, FiveM, Minecraft e outros) |
+| **Pastas** | As pastas do desktop |
+| **Documentos**, **Imagens e vídeos**, **Arquivos** | Arquivos soltos no desktop, por tipo. Instaladores e compactados vão para **Arquivos**. |
+| **Acesso rápido** | Este Computador, Downloads, Documentos, Imagens e Lixeira |
+
+- Um atalho é classificado pelo programa que ele abre, não pelo nome.
+- Uma pasta que só guarda atalhos e scripts, como `Atalhos\Jogos`, é lida por dentro. Se o nome dela indica uma categoria (Jogos, Dev, Utilitários, Periféricos, Aplicativos…), essa categoria vale para o que está dentro.
+- Uma categoria com um item só entra na mais próxima: um jogo sozinho vai para **Apps**, um PDF sozinho vai para **Arquivos**.
+- As ferramentas ficam em colunas a partir da esquerda da tela principal; pastas, arquivos e **Novos no desktop**, a partir da direita. O centro fica livre.
+- Os painéis mostram atalhos. Nenhum arquivo muda de lugar.
+
+As duas opções da prévia:
+
+| Opção | O que faz |
+| --- | --- |
+| **Esconder os ícones do Windows** | Liga o [Desktop limpo](#desktop-limpo) e cria o painel **Novos no desktop**, com o que ainda não está em nenhum painel. Se você desligar, os ícones do Windows continuam e esse painel não é criado, porque os próprios ícones já mostram o que é novo. |
+| **Manter organizado** | Cada item novo no desktop entra sozinho no painel da categoria dele, uns segundos depois de chegar. Um item apagado ou tirado do desktop sai do painel. O que não se encaixar fica em **Novos no desktop**. Dá para ligar e desligar depois em **Painéis**. |
+
+Se você já tinha painéis, eles são substituídos. Uma cópia do layout anterior fica na [pasta de dados](#onde-ficam-seus-dados) com o nome `layout.json.before-organize-` seguido da data, e **Painéis > Voltar aos painéis anteriores** desfaz a organização enquanto o Orla estiver aberto.
 
 ## Painéis prontos
 
@@ -68,7 +110,7 @@ Painéis prontos ajudam a começar rápido. Eles aparecem no segundo passo da pr
 | **Documentos** | Painel de pasta | A pasta Documentos |
 | **Imagens** | Painel de pasta | A pasta Imagens, com miniaturas |
 | **Capturas de tela** | Painel de pasta | A pasta de capturas de tela dentro de Imagens. Só aparece se ela existir. |
-| **Na área de trabalho** | Painel de pasta | O que está no desktop e ainda não foi para nenhum painel |
+| **Novos no desktop** | Painel de pasta | O que está no desktop e ainda não foi para nenhum painel. Combina com o Desktop limpo. |
 | **Trabalho** | Coleção | Vazia, para você preencher |
 | **Estudos** | Coleção | Vazia, para você preencher |
 
@@ -99,7 +141,7 @@ Para adicionar itens sem arrastar, abra o menu **···** do painel e escolha **
 
 Um painel de pasta mostra o que está dentro de uma pasta, com pastas primeiro e em ordem alfabética, como no Explorador. Arquivos ocultos e de sistema não aparecem. O painel se atualiza sozinho quando algo é criado, apagado ou renomeado na pasta.
 
-O painel **Na área de trabalho**, criado pela opção **Organizar meu desktop**, mostra a sua área de trabalho e a área de trabalho pública do Windows. No menu **···** dele, **Mostrar só o que não está em outro painel** esconde os itens que já estão em alguma coleção. Assim, o que você salvar no desktop depois aparece ali até você organizar.
+O painel **Novos no desktop** mostra a sua área de trabalho e a área de trabalho pública do Windows. No menu **···** dele, **Mostrar só o que não está em outro painel** esconde o que já aparece em outro painel: o próprio item, uma pasta cujos atalhos estão em coleções ou uma pasta que tem um painel próprio. Assim, o que você salvar no desktop depois aparece ali até você organizar.
 
 Se a pasta de um painel não for encontrada, por exemplo porque o disco foi desconectado, o painel avisa: "A pasta deste painel não foi encontrada. Verifique se o disco está conectado."
 
@@ -208,12 +250,12 @@ Se outro programa já usa a combinação escolhida, o Orla mantém a anterior e 
 
 ## Desktop limpo
 
-**Desktop limpo** esconde os ícones do Windows e deixa só os painéis. Ele vem desligado, a não ser que você escolha **Organizar meu desktop** na primeira vez. Para ligar ou desligar, use **Geral > Desktop limpo** ou o item **Desktop limpo** no menu da bandeja.
+**Desktop limpo** esconde os ícones do Windows e deixa só os painéis. Ele vem desligado, a não ser que você use **Deixe o Orla organizar** com **Esconder os ícones do Windows** ligado. Para ligar ou desligar, use **Geral > Desktop limpo** ou o item **Desktop limpo** no menu da bandeja.
 
 Com ele ligado:
 
 - Os ícones do Windows e a seleção com o mouse no desktop ficam indisponíveis.
-- Os arquivos continuam na pasta da área de trabalho. Para vê-los, use o painel **Na área de trabalho**, criado por **Organizar meu desktop**, ou crie um **Painel de pasta** da área de trabalho.
+- Os arquivos continuam na pasta da área de trabalho. Para vê-los, use o painel **Novos no desktop**, em **Novo painel**, ou crie um **Painel de pasta** da área de trabalho.
 
 ### Como o Orla protege seus ícones
 

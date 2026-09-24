@@ -25,6 +25,7 @@
 
 ## What it changes
 
+- **Let Orla organize.** It reads your desktop and builds panels by category (apps, development, games, utilities, folders, documents), with tools on the left, work on the right and the middle left free for your wallpaper. With **Keep organized**, each new item on the desktop goes to the right panel by itself.
 - **Panels on the desktop layer.** They live with the Windows desktop icons, so **Win+D** and the show desktop button leave them in place, and they never cover an application.
 - **The desktop keeps working.** In empty areas, rubber-band selection, the right-click menu and dragging files onto the desktop behave as they do in Windows.
 - **Collections.** They hold shortcuts to files and folders from anywhere. If you rename the file in File Explorer, the shortcut follows it. Removing an item from a collection never deletes the file.
@@ -50,8 +51,8 @@ Requirements: Windows 10 22H2 or Windows 11, 64-bit, with .NET Framework 4.8 (in
 ## Getting started
 
 1. Open Orla. On the **Welcome to Orla Desktop** screen, choose how to start and click **Start**:
-   - **Keep my icons** (selected by default): the Windows icons stay where they are, and you pick your first panels in the next step.
-   - **Organize my desktop**: what is on your desktop becomes collections, the Windows icons are hidden, and an **On the desktop** panel shows whatever is not organized yet.
+   - **Let Orla organize** (recommended, selected by default): Orla builds panels by category and shows a preview before anything changes. See [Let Orla organize](#let-orla-organize).
+   - **Keep my icons**: the Windows icons stay where they are, and you pick your first panels in the next step.
 2. If you chose **Keep my icons**, tick the panels you want under **Choose your first panels** and click **Start**. Neither option moves any file.
 3. Drag a panel by its title to place it. It sticks to the screen margins and to the edges of other panels.
 4. To change the size, drag any edge or corner of the panel. When you let go, it fits whole columns and rows of icons.
@@ -59,6 +60,32 @@ Requirements: Windows 10 22H2 or Windows 11, 64-bit, with .NET Framework 4.8 (in
 6. To add panels, click the Orla icon in the notification area and use **New panel**.
 
 Orla starts with **Start with Windows** turned on. You can turn it off in **General**.
+
+## Let Orla organize
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/organize-dark.png">
+  <img src="docs/images/organize-light.png" width="720" alt="The Your desktop, organized preview: a map of the screen with tool panels on the left and work panels on the right">
+</picture>
+
+On first run, or later from **Panels > Organize for me**, Orla reads the desktop and sorts what it finds. The screenshot shows the Portuguese interface.
+
+| Panel | What goes in |
+| --- | --- |
+| **Apps** | Browsers, chat, music and every other program |
+| **Development** | Code editors, Git, Docker, databases, terminals |
+| **Creative** | Image and video editing, design, streaming |
+| **Utilities** | Scripts (`.bat`, `.cmd`, `.ps1`), peripherals, drivers and system tools |
+| **Games** | Games and launchers (Steam, Epic, EA, Riot, Rockstar, FiveM, Minecraft and more) |
+| **Folders**, **Documents**, **Pictures and videos**, **Files** | Folders and loose files on the desktop, by type |
+
+- A folder that only holds shortcuts, such as `Shortcuts\Games`, is read from the inside, and its name counts as the category.
+- A category with a single item joins the closest one, so no panel is left with one icon.
+- Tools go on the left of the main screen, work on the right, and the middle stays free.
+- You see a preview first. Nothing moves on disk: panels hold shortcuts to your files.
+- If you already had panels, they are replaced. A copy stays in the data folder, and **Restore previous panels** undoes it while Orla is open.
+
+With **Hide the Windows icons** on, the **New on desktop** panel shows what is not in any panel yet. With **Keep organized** on, each new item on the desktop goes to its category's panel by itself, and deleted items leave their panel. Anything that fits nowhere stays in **New on desktop**.
 
 ## Ready-made panels
 
@@ -76,7 +103,7 @@ On first run, and later from **New panel**, Orla offers ready-made panels. Only 
 | **Apps** | The program shortcuts on your desktop, if there are any |
 | **Games** | Games and launchers found on the desktop and in the Start menu: Steam, Epic, Riot, EA, Ubisoft, Battle.net, GOG, Rockstar and Xbox |
 | **Documents**, **Pictures**, **Screenshots** | Those folders, always up to date |
-| **On the desktop** | What is on the desktop and not in any panel yet |
+| **New on desktop** | What is on the desktop and not in any panel yet. Pairs well with hidden Windows icons |
 | **Work**, **Study** | Empty collections for you to fill |
 
 **Quick access**, **Downloads** and **Apps** come ticked. Building a ready-made panel never moves or copies a file.

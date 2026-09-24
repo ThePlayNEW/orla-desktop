@@ -43,6 +43,8 @@ namespace Orla
         public int Rows { get; set; }
         // When on, the panel is as tall as its content, up to Rows. Resizing by hand turns it off.
         public bool AutoHeight { get; set; }
+        // Set on panels made by "Let Orla organize": the kind of item that belongs here, so new ones can follow.
+        public string AutoCategory { get; set; }
         public List<Entry> Items { get; set; }
 
         public Group()
@@ -79,6 +81,10 @@ namespace Orla
         public bool StartupConfigured { get; set; }
         public bool StartupEnabled { get; set; }
         public bool CleanDesktop { get; set; }
+        public bool AutoOrganize { get; set; }
+        // Folders of shortcuts the organizer read from the inside, such as Shortcuts\Games. New items there are kept
+        // organized like items on the desktop itself.
+        public List<string> SortedFolders { get; set; }
         public bool LockLayout { get; set; }
         public bool OverlayHotkey { get; set; }
         public string OverlayShortcut { get; set; }
@@ -94,6 +100,7 @@ namespace Orla
         {
             Version = CurrentVersion;
             Groups = new List<Group>();
+            SortedFolders = new List<string>();
             StartupEnabled = true;
             OverlayHotkey = true;
             OverlayShortcut = Orla.Shortcut.Default;

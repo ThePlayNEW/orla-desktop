@@ -31,6 +31,18 @@ namespace Orla
             return File.Exists(path) || Directory.Exists(path);
         }
 
+        public static bool isHidden(string path)
+        {
+            try
+            {
+                return (File.GetAttributes(path) & (FileAttributes.Hidden | FileAttributes.System)) != 0;
+            }
+            catch (Exception)
+            {
+                return true;
+            }
+        }
+
         // The user's desktop and the shared public desktop, which Windows shows together.
         public static string[] desktopDirectories()
         {

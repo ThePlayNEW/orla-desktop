@@ -6,6 +6,7 @@ Orla places translucent panels on the Windows desktop. Each panel shows shortcut
 
 - [How panels work](#how-panels-work)
 - [First run](#first-run)
+- [Let Orla organize](#let-orla-organize)
 - [Ready-made panels](#ready-made-panels)
 - [Collections and folder panels](#collections-and-folder-panels)
 - [Moving, resizing and arranging](#moving-resizing-and-arranging)
@@ -45,10 +46,51 @@ The first time Orla opens, the **Welcome to Orla Desktop** screen offers two way
 
 | Option | What happens |
 | --- | --- |
-| **Keep my icons** (selected by default) | The Windows icons stay as they are. In the next step, **Choose your first panels**, you tick the [ready-made panels](#ready-made-panels) you want and click **Start**. **Back** returns to the first step. |
-| **Organize my desktop** | Desktop items become collections: **Apps** for shortcuts, **Folders** for folders and **Files** for everything else. Orla also creates the **Quick access** panel and an **On the desktop** panel that shows only what is not in another panel yet. **Clean desktop** is turned on. |
+| **Let Orla organize** (recommended, selected by default) | Orla reads the desktop, builds panels by category and shows a preview before anything changes. See [Let Orla organize](#let-orla-organize). |
+| **Keep my icons** | The Windows icons stay as they are. In the next step, **Choose your first panels**, you tick the [ready-made panels](#ready-made-panels) you want and click **Start**. **Back** returns to the first step. |
 
 Neither option moves, renames or deletes a file. You can change everything later.
+
+## Let Orla organize
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/organize-dark.png">
+  <img src="../images/organize-light.png" width="720" alt="The Your desktop, organized preview, with a map of the screen and the planned panels">
+</picture>
+
+Orla can build the panels for you, the way a person would tidy the desktop. Use it on first run with **Let Orla organize**, or at any time from **Panels > Organize for me**.
+
+1. Orla reads your desktop and the Windows public desktop.
+2. The **Your desktop, organized** screen shows a map of your main screen with each panel where it will go.
+3. Choose the options and click **Organize**. **Back** leaves without changing anything.
+
+How it sorts items:
+
+| Panel | What goes in |
+| --- | --- |
+| **Apps** | Browsers, chat, music and every other program |
+| **Development** | Code editors, Git, Docker, databases, terminals |
+| **Creative** | Image and video editing, design, streaming |
+| **Utilities** | Scripts (`.bat`, `.cmd`, `.ps1`), peripherals, drivers and system tools |
+| **Games** | Games and launchers (Steam, Epic, EA, Riot, Rockstar, FiveM, Minecraft and more) |
+| **Folders** | The folders on your desktop |
+| **Documents**, **Pictures and videos**, **Files** | Loose files on the desktop, by type. Installers and archives go to **Files**. |
+| **Quick access** | This PC, Downloads, Documents, Pictures and Recycle Bin |
+
+- A shortcut is sorted by the program it opens, not by its name.
+- A folder that only holds shortcuts and scripts, such as `Shortcuts\Games`, is read from the inside. If its name points to a category (Games, Dev, Utilities, Peripherals, Apps…), that category applies to what is inside.
+- A category with a single item joins the closest one: a lone game goes to **Apps**, a lone PDF goes to **Files**.
+- Tools are stacked in columns from the left of the main screen; folders, files and **New on desktop** from the right. The middle stays free.
+- Panels show shortcuts. No file moves.
+
+The two options in the preview:
+
+| Option | What it does |
+| --- | --- |
+| **Hide the Windows icons** | Turns on [Clean desktop](#clean-desktop) and creates the **New on desktop** panel with what is not in any panel yet. If you turn it off, the Windows icons stay and that panel is not created, because the icons already show what is new. |
+| **Keep organized** | Each new item on the desktop goes to its category's panel by itself, a few seconds after it arrives. An item deleted or moved off the desktop leaves its panel. Anything that fits nowhere stays in **New on desktop**. You can turn it on or off later in **Panels**. |
+
+If you already had panels, they are replaced. A copy of the previous layout stays in the [data folder](#where-your-data-lives) as `layout.json.before-organize-` followed by the date, and **Panels > Restore previous panels** undoes the organization while Orla is open.
 
 ## Ready-made panels
 
@@ -68,7 +110,7 @@ Ready-made panels help you start quickly. They appear in the second step of the 
 | **Documents** | Folder panel | Your Documents folder |
 | **Pictures** | Folder panel | Your Pictures folder, with thumbnails |
 | **Screenshots** | Folder panel | The Screenshots folder inside Pictures. Listed only if it exists. |
-| **On the desktop** | Folder panel | What is on the desktop and not in any panel yet |
+| **New on desktop** | Folder panel | What is on the desktop and not in any panel yet. Pairs well with Clean desktop. |
 | **Work** | Collection | Empty, for you to fill |
 | **Study** | Collection | Empty, for you to fill |
 
@@ -99,7 +141,7 @@ To add items without dragging, open the panel's **···** menu and choose **Add
 
 A folder panel shows what is inside a folder, folders first and in alphabetical order, as File Explorer sorts them. Hidden and system files are not shown. The panel updates on its own when something in the folder is created, deleted or renamed.
 
-The **On the desktop** panel, created by **Organize my desktop**, shows your desktop and the Windows public desktop. In its **···** menu, **Show only what is not in another panel** hides items that are already in a collection. Anything you save to the desktop later appears there until you organize it.
+The **New on desktop** panel shows your desktop and the Windows public desktop. In its **···** menu, **Show only what is not in another panel** hides what another panel already shows: the item itself, a folder whose shortcuts are in collections, or a folder that has its own panel. Anything you save to the desktop later appears there until you organize it.
 
 If a panel's folder cannot be found, for example because the drive is disconnected, the panel says: "This panel's folder was not found. Check that the drive is connected."
 
@@ -208,12 +250,12 @@ If another program already uses the combination you pick, Orla keeps the previou
 
 ## Clean desktop
 
-**Clean desktop** hides the Windows icons and leaves only the panels. It is off unless you choose **Organize my desktop** on first run. To turn it on or off, use **General > Clean desktop** or the **Clean desktop** item in the notification area menu.
+**Clean desktop** hides the Windows icons and leaves only the panels. It is off unless you use **Let Orla organize** with **Hide the Windows icons** on. To turn it on or off, use **General > Clean desktop** or the **Clean desktop** item in the notification area menu.
 
 While it is on:
 
 - The Windows icons and rubber-band selection on the desktop are unavailable.
-- Your files stay in the desktop folder. To see them, use the **On the desktop** panel created by **Organize my desktop**, or create a **Folder panel** for the desktop.
+- Your files stay in the desktop folder. To see them, use the **New on desktop** panel from **New panel**, or create a **Folder panel** for the desktop.
 
 ### How Orla protects your icons
 

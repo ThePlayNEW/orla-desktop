@@ -30,6 +30,7 @@ namespace Orla
                 await central(controller, "appearance", System.IO.Path.Combine(folder, "appearance-" + theme + ".png"));
                 await central(controller, "welcome", System.IO.Path.Combine(folder, "welcome-" + theme + ".png"));
                 await central(controller, "presets", System.IO.Path.Combine(folder, "presets-" + theme + ".png"));
+                await central(controller, "organize", System.IO.Path.Combine(folder, "organize-" + theme + ".png"));
             }
             controller.Layout.Theme = "dark";
             Theme.apply(controller.Layout);
@@ -100,11 +101,13 @@ namespace Orla
         {
             var window = new CentralWindow(controller) { WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000,
                                                          Top = 0, ShowActivated = false, Width = 1040, Height = 700 };
-            if (page == "welcome" || page == "presets")
+            if (page == "welcome" || page == "presets" || page == "organize")
             {
                 window.show("welcome");
                 if (page == "presets")
                     window.showPresetChoices();
+                if (page == "organize")
+                    window.showOrganize(true, Demo.plan);
             }
             else
             {

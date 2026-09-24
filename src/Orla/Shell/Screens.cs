@@ -159,10 +159,19 @@ namespace Orla
 
         // Default arrangement: columns from the top-right corner of the primary monitor, leaving the left side,
         // where Windows places its own icons, free.
-        public static void arrange(IList<Group> groups, string iconSize)
+        public static void arrange(IList<Group> groups, string iconSize) => arrange(new Group[0], groups, iconSize);
+
+        // Columns of panels from both top corners of the primary monitor, growing toward the middle, which stays free.
+        public static void arrange(IList<Group> left, IList<Group> right, string iconSize)
         {
             Screen s = primary();
-            int x = s.Work.Right - Margin * 2, y = s.Work.Top + Margin * 2, columnWidth = 0;
+            stack(left, s, iconSize, true);
+            stack(right, s, iconSize, false);
+        }
+
+        static void stack(IList<Group> groups, Screen s, string iconSize, bool fromLeft)
+        {
+            int x = fromLeft ? s.Work.Left + Margin * 2 : s.Work.Right - Margin * 2, y = s.Work.Top + Margin * 2, columnWidth = 0;
             foreach (Group g in groups.Where(g => g.Visible))
             {
                 int w = (int)Math.Round(PanelMetrics.width(g.Columns, iconSize) * s.Scale);
@@ -171,11 +180,11 @@ namespace Orla
                 int h = (int)Math.Round((g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, iconSize)) * s.Scale);
                 if (y + h > s.Work.Bottom - Margin && y > s.Work.Top + Margin * 2)
                 {
-                    x -= columnWidth + Margin;
+                    x += (fromLeft ? 1 : -1) * (columnWidth + Margin);
                     y = s.Work.Top + Margin * 2;
                     columnWidth = 0;
                 }
-                g.X = x - w;
+                g.X = fromLeft ? x : x - w;
                 g.Y = y;
                 y += h + Margin;
                 columnWidth = Math.Max(columnWidth, w);

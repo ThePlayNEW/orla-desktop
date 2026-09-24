@@ -13,6 +13,7 @@ This document describes Orla Desktop 1.0. User-facing behaviour is covered in th
 | `Desktop`, `IconGuard` | `Shell/Desktop.cs` | Locates Explorer's icon host; hides and restores the icon list; runs the companion process |
 | `MessageWindow`, `DesktopWatch` | `Shell/Watch.cs` | Global hotkey, `TaskbarCreated`, theme and display broadcasts; WinEvent hooks on the desktop windows |
 | `ReferenceWatch` | `Shell/ReferenceWatch.cs` | Follows the folders that hold collection items, so references survive renames |
+| `DesktopArrivals` | `Shell/DesktopArrivals.cs` | Tells **Keep organized** what arrives on the desktop and what leaves it |
 | `Shell` | `Shell/Shell.cs` | Shell names, icons and thumbnails on a background thread; open, reveal, native file operations |
 | `Screens` | `Shell/Screens.cs` | Monitor geometry, clamping, snapping, free-spot search, default arrangement |
 | `Tray` | `Shell/Tray.cs` | Notification area icon and menu |
@@ -22,7 +23,8 @@ This document describes Orla Desktop 1.0. User-facing behaviour is covered in th
 | `CentralWindow` | `Central/CentralWindow.xaml(.cs)` | The Orla window: welcome and preset choice, panels, appearance, general, about |
 | `Layout`, `Group`, `Entry` | `Model/Layout.cs` | The saved data |
 | `Store` | `Model/Store.cs` | Validation, atomic persistence, recovery, migration from the 0.1 preview |
-| `Starter` | `Model/Starter.cs` | The two first-run layouts |
+| `Starter` | `Model/Starter.cs` | The first-run layout built from presets, and copying settings into a new layout |
+| `Organizer` | `Model/Organizer.cs` | **Let Orla organize**: sorting desktop items into categories and laying the panels out |
 | `Presets`, `Games` | `Model/Presets.cs` | Ready-made panels, and recognition of game and launcher shortcuts |
 | `PanelMetrics` | `Model/PanelMetrics.cs` | Panel geometry in columns and rows of tiles |
 | `Text` | `Strings/Text.cs` | Interface strings from embedded JSON |
@@ -100,6 +102,25 @@ The process is per-monitor DPI aware (PerMonitorV2). Positions are stored in phy
 `Presets.All` lists the ready-made panels. Each preset has an availability check, so the welcome step and the **New panel** menu list only what exists on the computer: **Apps** needs non-game shortcuts on the desktop, **Games** needs at least one detected game, and the folder presets need their folder. Folder presets create folder panels; the others create collections of references. Building a preset never moves, copies or creates a file.
 
 `Games.isGame` reads where a shortcut points: the `URL=` line of a `.url` file, or the target of a `.lnk` through `WScript.Shell`. A shortcut counts as a game if the target uses a store scheme (`steam://`, `com.epicgames.launcher://`, `uplay://`, `battlenet://`, `riotclient://`, `goggalaxy://`, `rockstar://` and others), lies in a known install folder (`steamapps\common`, `Epic Games`, `Riot Games`, `XboxGames` and others), or is a known launcher executable. `Games.find` scans the desktop folders and, recursively, the per-user and all-users Start menu, keeping one shortcut per name.
+
+## Let Orla organize
+
+`Organizer.plan` runs on a background thread. It lists the user and public desktops. A top-level folder that holds only shortcuts and scripts, directly or one level down, is treated as a way of sorting programs: its contents are classified instead of the folder, and a folder name such as `Jogos`, `Games`, `Dev` or `Utilitários` (accents and case ignored, six languages) becomes a hint that wins over guessing. Anything else is a work folder.
+
+`Organizer.classify` decides the category of one item:
+
+- A folder, or a shortcut to a folder, goes to **Folders**.
+- A shortcut is judged by its target, through `Games.targetOf`: games and launchers first (`Games.isGameTarget`), then known executables and install folders for development, creative and utility tools, and **Apps** for the rest. Uninstallers go to **Utilities**.
+- Scripts go to **Utilities** unless a folder hint says otherwise.
+- Loose files are sorted by extension into **Documents**, **Pictures and videos** or **Files**. Installers and archives go to **Files**.
+
+A category with a single item joins its fallback (**Apps** for tools, **Files** for documents and media). Each panel gets at most five columns and as many whole rows as its items need, up to four before scrolling. The panels remember their category in `Group.AutoCategory`.
+
+`Organizer.build` makes a layout with the current settings. Tool panels and **Quick access** are stacked in columns from the top-left corner of the primary monitor, and work panels and the desktop inbox from the top-right corner, by `Screens.arrange(left, right)`. The inbox is added only with a clean desktop, because visible Windows icons already show what is new. `CentralWindow` draws the plan as a map of the primary work area with the same panel geometry, then `Controller.applyOrganized` replaces the layout. The previous file is copied to `layout.json.before-organize-<timestamp>` and the previous panels are kept in memory for **Restore previous panels** until Orla closes.
+
+With **Keep organized** (`Layout.AutoOrganize`), `DesktopArrivals` watches the desktop folders with `FileSystemWatcher`, including subfolders but acting only on the top level and two levels down. It ignores partial downloads and temporary names, and waits two seconds after the last change. `Controller.keepOrganized` then looks only at paths on the desktop itself or in a folder whose shortcuts are already in organized panels. An item that exists and is not shown by any panel is classified off the UI thread and added to the panel for its category, or its fallback; an item that is gone is removed from organized panels. A panel with automatic height gains a row, up to four, when it needs one.
+
+The inbox, a desktop folder panel with **Show only what is not in another panel**, asks `Store.organized()` what to leave out. An item counts as shown when a panel points at it, or at something inside it, such as a folder of shortcuts whose shortcuts are in collections or a folder that has a folder panel.
 
 ## Threading
 

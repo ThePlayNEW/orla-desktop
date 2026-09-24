@@ -21,6 +21,7 @@ namespace Orla
         readonly DesktopWatch watch;
         readonly DispatcherTimer rebuildTimer, referenceTimer;
         readonly ReferenceWatch references;
+        readonly DesktopArrivals arrivals;
         readonly List<PanelHost> hosts = new List<PanelHost>();
         readonly bool interactive;
         Desktop desktop;
@@ -78,6 +79,8 @@ namespace Orla
                 referenceTimer.Stop();
                 referenceTimer.Start();
             };
+            arrivals = new DesktopArrivals(dispatcher);
+            arrivals.Changed += keepOrganized;
         }
 
         public void start()
@@ -137,6 +140,7 @@ namespace Orla
             showHosts();
             applyCleanDesktop();
             followReferences();
+            followArrivals();
             central?.refresh();
         }
 
@@ -633,6 +637,7 @@ namespace Orla
             guard?.restore();
             watch.Dispose();
             references.Dispose();
+            arrivals.Dispose();
             foreach (PanelHost h in hosts)
                 h.Dispose();
             hosts.Clear();
@@ -697,10 +702,10 @@ namespace Orla
         }
 
         // Applies the choice made on the welcome screen and puts the first panels on the desktop.
-        public void welcome(bool organize, IList<Preset> presets)
+        public void welcome(IList<Preset> presets)
         {
             System.Threading.Tasks.Task.Run(() => {
-                Layout next = organize ? Starter.organized(Layout) : Starter.alongside(Layout);
+                Layout next = Starter.alongside(Layout);
                 foreach (Preset p in presets)
                     next.Groups.Add(p.Create());
                 return next;
@@ -715,19 +720,130 @@ namespace Orla
             })));
         }
 
+        // ---- let Orla organize ----
+
+        Layout beforeOrganize;
+
+        public bool CanUndoOrganize => beforeOrganize != null;
+
+        public bool Organized => Layout.Groups.Any(g => g.AutoCategory != null);
+
+        // Replaces the panels with the organizer's plan. The panels it replaces stay in a copy next to the layout and,
+        // until Orla closes, one click away.
+        public void applyOrganized(Layout next)
+        {
+            if (Layout.Welcomed && Layout.Groups.Count > 0)
+            {
+                backupLayout("before-organize");
+                beforeOrganize = store.data;
+            }
+            store.data = next;
+            saveLayout();
+            rebuild();
+        }
+
+        public void undoOrganize()
+        {
+            if (beforeOrganize == null)
+                return;
+            Layout previous = beforeOrganize;
+            beforeOrganize = null;
+            // Settings changed since then stay; only the panels and how the desktop looks go back.
+            Layout current = Layout;
+            current.Groups = previous.Groups;
+            current.CleanDesktop = previous.CleanDesktop;
+            current.AutoOrganize = previous.AutoOrganize;
+            current.SortedFolders = previous.SortedFolders;
+            saveLayout();
+            rebuild();
+        }
+
+        public void setAutoOrganize(bool on)
+        {
+            Layout.AutoOrganize = on;
+            saveLayout();
+            followArrivals();
+            central?.refresh();
+        }
+
+        void followArrivals()
+        {
+            arrivals.follow(Layout.SortedFolders);
+            if (interactive && Layout.Welcomed && Layout.AutoOrganize && Organized)
+                arrivals.start();
+            else if (arrivals.Running)
+                arrivals.stop();
+        }
+
+        // "Keep organized": something new on the desktop joins the panel for its kind, and a desktop item that is gone
+        // leaves the panels the organizer made. What fits nowhere stays in the desktop inbox. The watcher only reports
+        // the desktop itself and the folders of shortcuts the organizer sorted; disk and shell work runs off the UI thread.
+        void keepOrganized(List<string> paths)
+        {
+            if (!Layout.AutoOrganize)
+                return;
+            var auto = Layout.Groups.Where(g => !g.IsFolder && g.AutoCategory != null).ToList();
+            Organized organized = store.organized();
+            System.Threading.Tasks.Task.Run(() => paths.Select(p => {
+                bool exists = Shell.exists(p);
+                bool fresh = exists && !Shell.isHidden(p) && !organized.Contains(p);
+                return new { Path = p, Gone = !exists, Home = fresh ? Organizer.home(p, auto) : null,
+                             Name = fresh ? Shell.displayName(p) : null };
+            }).ToList()).ContinueWith(t => dispatcher.BeginInvoke(new Action(delegate {
+                if (t.IsFaulted || !Layout.AutoOrganize)
+                    return;
+                bool any = false;
+                foreach (var r in t.Result)
+                {
+                    if (r.Gone)
+                    {
+                        // A deleted folder of shortcuts takes the shortcuts sorted from it along.
+                        string inside = r.Path.TrimEnd('\\') + "\\";
+                        foreach (Group g in Layout.Groups.Where(g => g.AutoCategory != null && !g.IsFolder))
+                            any |= g.Items.RemoveAll(e => String.Equals(e.Path, r.Path, StringComparison.OrdinalIgnoreCase) ||
+                                                          e.Path.StartsWith(inside, StringComparison.OrdinalIgnoreCase)) > 0;
+                    }
+                    else if (r.Home != null && Layout.Groups.Contains(r.Home) && r.Home.Items.Count < Store.MaxItems &&
+                             !Layout.Groups.Any(g => g.Items.Any(e => String.Equals(e.Path, r.Path, StringComparison.OrdinalIgnoreCase))))
+                    {
+                        r.Home.Items.Add(new Entry { Name = r.Name, Path = r.Path });
+                        any = true;
+                        int rows = (r.Home.Items.Count + r.Home.Columns - 1) / r.Home.Columns;
+                        if (r.Home.AutoHeight && rows > r.Home.Rows && r.Home.Rows < 4)
+                            r.Home.Rows++;
+                    }
+                }
+                if (any)
+                {
+                    changed();
+                    settleAll();
+                }
+            })));
+        }
+
+        void backupLayout(string reason)
+        {
+            try
+            {
+                if (File.Exists(store.filePath))
+                    File.Copy(store.filePath, store.filePath + "." + reason + "-" + DateTime.Now.ToString("yyyyMMddHHmmss"), true);
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+
         // Back to the first run, as after a fresh install: panels and settings return to their defaults and the welcome
         // screen opens. A copy of the current layout is kept next to it, and no file on the desktop is touched.
         // Starting with Windows stays as it is.
         public void resetToWelcome()
         {
-            try
-            {
-                if (File.Exists(store.filePath))
-                    File.Copy(store.filePath, store.filePath + ".before-reset-" + DateTime.Now.ToString("yyyyMMddHHmmss"), true);
-            }
-            catch (IOException)
-            {
-            }
+            backupLayout("before-reset");
+            beforeOrganize = null;
+            arrivals.stop();
             Overlay = false;
             Hidden = false;
             guard?.restore();

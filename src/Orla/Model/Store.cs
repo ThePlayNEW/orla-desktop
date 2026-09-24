@@ -101,6 +101,8 @@ namespace Orla
                 throw new InvalidDataException("Unsupported layout version.");
 
             Layout d = json().Deserialize<Layout>(text);
+            if (d != null && d.SortedFolders == null)
+                d.SortedFolders = new List<string>();
             if (d == null || d.Groups == null || d.Groups.Count > MaxGroups)
                 throw new InvalidDataException("Invalid layout.");
             if (migrated)
@@ -272,10 +274,34 @@ namespace Orla
         }
 
         // Paths already placed in a collection panel, used by folder panels that show only what is left over.
-        public HashSet<string> organizedPaths()
+        public Organized organized()
         {
-            return new HashSet<string>(data.Groups.Where(g => !g.IsFolder).SelectMany(g => g.Items).Select(e => e.Path),
-                                       StringComparer.OrdinalIgnoreCase);
+            var shown = data.Groups.Where(g => !g.IsFolder).SelectMany(g => g.Items).Select(e => e.Path)
+                            .Concat(data.Groups.Where(g => g.IsFolder && g.FolderPath != Shell.DesktopFolder).Select(g => g.FolderPath));
+            return new Organized(shown.Where(p => !Shell.isVirtual(p)));
+        }
+    }
+
+    // What the panels already show, so the desktop inbox lists only what is new. An item counts when a panel points at
+    // it or at something inside it, such as a folder of shortcuts whose shortcuts are in panels.
+    public class Organized
+    {
+        readonly HashSet<string> exact;
+        readonly List<string> paths;
+
+        public Organized(IEnumerable<string> shown)
+        {
+            paths = shown.Where(p => !String.IsNullOrEmpty(p)).Select(p => p.TrimEnd('\\')).ToList();
+            exact = new HashSet<string>(paths, StringComparer.OrdinalIgnoreCase);
+        }
+
+        public bool Contains(string path)
+        {
+            path = path.TrimEnd('\\');
+            if (exact.Contains(path))
+                return true;
+            string inside = path + "\\";
+            return paths.Any(p => p.StartsWith(inside, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

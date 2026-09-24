@@ -25,6 +25,7 @@
 
 ## O que muda
 
+- **Deixe o Orla organizar.** Ele lê o seu desktop e monta painéis por categoria (programas, desenvolvimento, jogos, utilitários, pastas, documentos), com as ferramentas à esquerda, o trabalho à direita e o centro livre para o papel de parede. Com **Manter organizado**, cada item novo no desktop entra sozinho no painel certo.
 - **Painéis na camada do desktop.** Eles ficam junto dos ícones do Windows, então **Win+D** e o botão de mostrar a área de trabalho não os escondem, e nenhum aplicativo fica coberto por eles.
 - **O desktop continua funcionando.** Nas áreas livres, a seleção com o mouse, o menu do botão direito e o arrastar de arquivos para o desktop se comportam como no Windows.
 - **Coleções.** Guardam atalhos para arquivos e pastas de qualquer lugar. Se você renomear o arquivo no Explorador, o atalho acompanha. Tirar um item da coleção nunca apaga o arquivo.
@@ -50,8 +51,8 @@ Requisitos: Windows 10 22H2 ou Windows 11, 64 bits, com o .NET Framework 4.8 (j�
 ## Primeiros passos
 
 1. Abra o Orla. Na tela **Bem-vindo ao Orla Desktop**, escolha como começar e clique em **Começar**:
-   - **Manter meus ícones** (já vem marcada): os ícones do Windows continuam onde estão, e você escolhe os primeiros painéis no passo seguinte.
-   - **Organizar meu desktop**: o que está no desktop vira coleções, os ícones do Windows ficam ocultos e um painel **Na área de trabalho** mostra o que ainda não foi organizado.
+   - **Deixe o Orla organizar** (recomendado, já vem marcada): o Orla monta os painéis por categoria e mostra uma prévia antes de aplicar. Veja [Deixe o Orla organizar](#deixe-o-orla-organizar).
+   - **Manter meus ícones**: os ícones do Windows continuam onde estão, e você escolhe os primeiros painéis no passo seguinte.
 2. Se escolheu **Manter meus ícones**, marque os painéis que quer em **Escolha seus primeiros painéis** e clique em **Começar**. Nenhum arquivo muda de lugar em nenhuma das opções.
 3. Arraste um painel pelo título para posicioná-lo. Ele gruda nas margens da tela e nas bordas dos outros painéis.
 4. Para mudar o tamanho, arraste qualquer borda ou canto do painel. Ao soltar, ele se ajusta a colunas e linhas inteiras de ícones.
@@ -59,6 +60,32 @@ Requisitos: Windows 10 22H2 ou Windows 11, 64 bits, com o .NET Framework 4.8 (j�
 6. Para criar mais painéis, clique no ícone do Orla na bandeja e use **Novo painel**.
 
 O Orla começa com **Iniciar com o Windows** ligado. Você pode desligar em **Geral**.
+
+## Deixe o Orla organizar
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/organize-dark.png">
+  <img src="docs/images/organize-light.png" width="720" alt="Prévia de Seu desktop, organizado: um mapa da tela com os painéis Apps, Desenvolvimento, Utilitários e Jogos à esquerda e Pastas, Documentos e Novos no desktop à direita">
+</picture>
+
+Na primeira vez, ou depois em **Painéis > Organizar para mim**, o Orla lê o desktop e separa o que encontra:
+
+| Painel | O que entra |
+| --- | --- |
+| **Apps** | Navegadores, comunicação, música e os demais programas |
+| **Desenvolvimento** | Editores de código, Git, Docker, bancos de dados, terminais |
+| **Criação** | Edição de imagem e vídeo, design, transmissão |
+| **Utilitários** | Scripts (`.bat`, `.cmd`, `.ps1`), periféricos, drivers e ferramentas do sistema |
+| **Jogos** | Jogos e lançadores (Steam, Epic, EA, Riot, Rockstar, FiveM, Minecraft e outros) |
+| **Pastas**, **Documentos**, **Imagens e vídeos**, **Arquivos** | Pastas e arquivos soltos no desktop, por tipo |
+
+- Uma pasta que só guarda atalhos, como `Atalhos\Jogos`, é lida por dentro, e o nome dela vale como categoria.
+- Uma categoria com um item só entra na mais próxima, para não sobrar painel com um ícone.
+- As ferramentas ficam à esquerda da tela principal, o trabalho à direita, e o centro fica livre.
+- Você vê a prévia antes. Nada muda de lugar no disco: os painéis guardam atalhos para os arquivos.
+- Se você já tinha painéis, eles são substituídos. Uma cópia fica na pasta de dados, e **Voltar aos painéis anteriores** desfaz enquanto o Orla estiver aberto.
+
+Com **Esconder os ícones do Windows** ligado, o painel **Novos no desktop** mostra o que ainda não está em nenhum painel. Com **Manter organizado** ligado, cada item novo no desktop entra sozinho no painel da categoria dele, e o que for apagado sai do painel. O que não se encaixar em nada fica em **Novos no desktop**.
 
 ## Painéis prontos
 
@@ -76,7 +103,7 @@ Na primeira vez, e depois em **Novo painel**, o Orla oferece painéis prontos. S
 | **Aplicativos** | Os atalhos de programas do desktop, se houver |
 | **Jogos** | Jogos e lançadores encontrados no desktop e no menu Iniciar: Steam, Epic, Riot, EA, Ubisoft, Battle.net, GOG, Rockstar e Xbox |
 | **Documentos**, **Imagens**, **Capturas de tela** | As pastas correspondentes, sempre atualizadas |
-| **Na área de trabalho** | O que está no desktop e ainda não foi para nenhum painel |
+| **Novos no desktop** | O que está no desktop e ainda não foi para nenhum painel. Combina com os ícones do Windows ocultos |
 | **Trabalho**, **Estudos** | Coleções vazias para você preencher |
 
 **Acesso rápido**, **Downloads** e **Aplicativos** já vêm marcados. Montar um painel pronto nunca move nem copia arquivos.

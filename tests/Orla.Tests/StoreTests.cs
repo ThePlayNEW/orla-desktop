@@ -184,7 +184,7 @@ namespace Orla.Tests
             store.add(first, file);
             Assert.False(store.add(folder, file));
             Assert.False(store.move(first.Items[0].Id, folder, 0));
-            Assert.Contains(file, store.organizedPaths());
+            Assert.True(store.organized().Contains(file));
         }
 
         [Fact]
