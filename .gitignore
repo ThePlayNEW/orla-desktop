@@ -38,3 +38,9 @@ Desktop.ini
 
 # Tooling dependencies
 node_modules/
+
+# Packaging outputs (vpk writes to Releases/ when no output folder is given) and tool caches
+/Releases/
+*.nupkg
+.nuget/
+.dotnet/

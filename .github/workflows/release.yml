@@ -1,0 +1,93 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+permissions:
+  contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      TAG: ${{ github.ref_name }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check tag against AssemblyVersion
+        run: |
+          $version = $env:TAG.Substring(1)
+          $info = Get-Content src/Orla/AssemblyInfo.cs -Raw
+          if ($info -notmatch 'AssemblyVersion\("(\d+\.\d+\.\d+)') { throw 'AssemblyVersion not found.' }
+          if (($version -replace '-.*') -ne $Matches[1]) { throw "Tag $env:TAG does not match AssemblyVersion $($Matches[1])." }
+          "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Build
+        run: ./build.ps1
+      - name: Test
+        run: ./test.ps1
+
+      - name: Install vpk
+        run: |
+          # Use the same version as the Velopack package the app references.
+          $vpk = ([xml](Get-Content src/Orla/Orla.csproj)).Project.ItemGroup.PackageReference |
+              Where-Object Include -eq 'Velopack' | ForEach-Object Version
+          dotnet tool install -g vpk --version $vpk
+          "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
+
+      - name: Download previous release
+        run: |
+          # Needed for delta packages. There is nothing to download before the first release.
+          vpk download github --repoUrl $env:REPO_URL --token $env:GITHUB_TOKEN --outputDir artifacts/releases
+          if ($LASTEXITCODE -ne 0) { Write-Warning 'No previous release downloaded; delta packages will not be built.' }
+          exit 0
+
+      - name: Publish
+        run: dotnet publish src/Orla/Orla.csproj -c Release -o artifacts/publish --nologo
+
+      # Code signing through SignPath Foundation. Disabled until the project is accepted.
+      # To enable, uncomment both steps and set up:
+      #   - secret   SIGNPATH_API_TOKEN        (API token of the SignPath CI user)
+      #   - variable SIGNPATH_ORGANIZATION_ID  (SignPath organization id)
+      #   - in SignPath: project "orla", signing policy "release-signing" and an artifact
+      #     configuration "publish" that signs Orla.exe and Velopack.dll inside the uploaded zip.
+      # This signs the application files before packing. Setup.exe, Update.exe and the portable
+      # launcher are created by vpk and need a second signing request after the Pack step.
+      #
+      # - name: Upload unsigned files
+      #   id: unsigned
+      #   uses: actions/upload-artifact@v7
+      #   with:
+      #     name: unsigned-publish
+      #     path: artifacts/publish
+      # - name: Sign with SignPath
+      #   uses: signpath/github-action-submit-signing-request@v2
+      #   with:
+      #     api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+      #     organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+      #     project-slug: orla
+      #     signing-policy-slug: release-signing
+      #     artifact-configuration-slug: publish
+      #     github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+      #     wait-for-completion: true
+      #     output-artifact-directory: artifacts/publish
+
+      - name: Pack
+        run: ./package.ps1 -Version $env:VERSION -SkipPublish -KeepReleases
+
+      - name: Create draft release
+        run: |
+          # Without --publish, vpk leaves the release as a draft.
+          $pre = @(if ($env:VERSION.Contains('-')) { '--pre' })
+          vpk upload github --repoUrl $env:REPO_URL --token $env:GITHUB_TOKEN --outputDir artifacts/releases `
+              --tag $env:TAG --releaseName "Orla Desktop $env:VERSION" @pre

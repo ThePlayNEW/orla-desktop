@@ -1,0 +1,31 @@
+# Template. Replace __VERSION__ before submitting. See packaging/README.md.
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.9.0.schema.json
+
+PackageIdentifier: ThePlayNEW.OrlaDesktop
+PackageVersion: __VERSION__
+PackageLocale: en-US
+Publisher: Eduardo Torres
+PublisherUrl: https://github.com/ThePlayNEW
+PublisherSupportUrl: https://github.com/ThePlayNEW/orla/issues
+Author: Eduardo Torres
+PackageName: Orla Desktop
+PackageUrl: https://github.com/ThePlayNEW/orla
+License: MIT
+LicenseUrl: https://github.com/ThePlayNEW/orla/blob/main/LICENSE
+Copyright: Copyright (c) 2026 Eduardo Torres
+ShortDescription: Translucent panels that organize the Windows desktop.
+Description: |-
+  Orla Desktop places translucent panels on the Windows desktop layer to group shortcuts and show folders,
+  without moving any of your files. Panels stay in place with Win+D, the desktop keeps its usual selection,
+  context menu and drag and drop, and Ctrl+Alt+Space brings the panels in front of your windows.
+  Runs without administrator rights and does not inject code into Explorer.
+Tags:
+- desktop
+- desktop-organizer
+- organizer
+- icons
+- productivity
+- wpf
+ReleaseNotesUrl: https://github.com/ThePlayNEW/orla/releases/tag/v__VERSION__
+ManifestType: defaultLocale
+ManifestVersion: 1.9.0
