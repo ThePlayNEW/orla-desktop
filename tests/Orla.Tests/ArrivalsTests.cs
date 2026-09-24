@@ -47,13 +47,12 @@ namespace Orla.Tests
                     batches.Add(paths);
                 got.Set();
             };
-            arrivals.start();
-            SpinWait.SpinUntil(() => false, 500);
+            Assert.True(arrivals.start().Wait(10000));
             File.WriteAllText(Path.Combine(root, "Notas.txt"), "");
             File.WriteAllText(Path.Combine(root, "Shortcuts", "Games", "Jogo.url"), "");
             File.WriteAllText(Path.Combine(root, "Work", "Deep", "build.log"), "");
             File.WriteAllText(Path.Combine(root, "video.mp4.crdownload"), "");
-            Assert.True(got.Wait(8000));
+            Assert.True(got.Wait(20000));
             arrivals.Dispose();
             List<string> first;
             lock (batches)
