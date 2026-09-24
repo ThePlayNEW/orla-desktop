@@ -138,7 +138,7 @@ O [guia de uso](docs/pt-BR/guia.md) explica cada recurso e traz soluções para 
 
 O Orla não coleta dados e não tem telemetria. Os painéis ficam em `%LOCALAPPDATA%\Orla\layout.json`, com uma cópia anterior em `layout.json.bak`.
 
-O único acesso à rede é a busca por atualizações da versão instalada: no máximo uma vez por dia, o Orla pede ao GitHub a lista de versões deste repositório, sem enviar dados pessoais. Você pode desligar em **Geral > Atualizações automáticas**. Links como **Guia de uso** e **Relatar um problema** abrem no seu navegador só quando você clica.
+O único acesso à rede é a busca por atualizações da versão instalada: a cada poucas horas, o Orla pede ao GitHub a lista de versões deste repositório, sem enviar dados pessoais. Você pode desligar em **Geral > Atualizações automáticas**. Links como **Guia de uso** e **Relatar um problema** abrem no seu navegador só quando você clica.
 
 ## Compatibilidade
 

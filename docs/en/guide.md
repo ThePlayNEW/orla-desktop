@@ -324,7 +324,7 @@ With Windows High Contrast on, Orla uses the system colours and turns off transp
 
 ### Updates
 
-The installed version looks for a new release on GitHub at most once a day. When it finds one, it downloads it in the background and applies it the next time Orla closes. The check asks GitHub for this repository's list of releases and sends no personal data. When a new version is ready, the **About** page shows a **Restart and update** button to install it right away. To turn updates off, use **Automatic updates** in **General**.
+The installed version looks for a new release on GitHub a minute after it starts and then every six hours. When it finds one, it downloads it in the background and applies it the next time Orla closes. If you shut down Windows with Orla open, the update is applied the next time Orla starts, which takes a second or two before the panels appear. The check asks GitHub for this repository's list of releases and sends no personal data. When a new version is ready, the **About** page shows a **Restart and update** button to install it right away. To turn updates off, use **Automatic updates** in **General**.
 
 The portable version does not update itself. To update it, quit Orla, download the new ZIP from the [releases page](https://github.com/ThePlayNEW/orla-desktop/releases/latest) and extract it in place of the old folder. Your panels live in `%LOCALAPPDATA%\Orla` and are not affected.
 

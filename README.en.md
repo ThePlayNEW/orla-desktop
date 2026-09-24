@@ -138,7 +138,7 @@ The [user guide](docs/en/guide.md) covers every feature and the most common prob
 
 Orla collects no data and has no telemetry. Your panels are stored in `%LOCALAPPDATA%\Orla\layout.json`, with the previous copy in `layout.json.bak`.
 
-The only network access is the installed version's update check: at most once a day, Orla asks GitHub for this repository's list of releases, without sending personal data. You can turn it off in **General > Automatic updates**. Links such as **User guide** and **Report a problem** open in your browser only when you click them.
+The only network access is the installed version's update check: every few hours, Orla asks GitHub for this repository's list of releases, without sending personal data. You can turn it off in **General > Automatic updates**. Links such as **User guide** and **Report a problem** open in your browser only when you click them.
 
 ## Compatibility
 

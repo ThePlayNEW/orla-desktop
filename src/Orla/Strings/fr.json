@@ -78,7 +78,7 @@
   "general.startup": "Démarrer avec Windows",
   "general.startupHint": "Vos panneaux apparaissent dès que vous vous connectez.",
   "general.updates": "Mises à jour automatiques",
-  "general.updatesHint": "Une fois par jour, Orla recherche une nouvelle version sur GitHub et l'installe quand vous fermez l'application. Aucune de vos données n'est envoyée.",
+  "general.updatesHint": "Toutes les quelques heures, Orla recherche une nouvelle version sur GitHub et l'installe quand vous fermez l'application ou à son prochain démarrage. Aucune de vos données n'est envoyée.",
   "icons.large": "Grandes",
   "icons.medium": "Moyennes",
   "icons.small": "Petites",

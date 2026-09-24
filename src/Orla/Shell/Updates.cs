@@ -6,12 +6,13 @@ using Velopack.Sources;
 
 namespace Orla
 {
-    // For the installed version: at most once a day, asks GitHub Releases whether there is a newer version,
-    // downloads it in the background and installs it when Orla closes. This is Orla's only network access, and it
+    // For the installed version: every few hours, asks GitHub Releases whether there is a newer version, downloads it
+    // in the background and installs it when Orla closes. If Windows shuts down first, Velopack installs the downloaded
+    // version at the next start, before Main runs. This is Orla's only network access, and it
     // sends nothing about the person or their files.
     public static class Updates
     {
-        static readonly TimeSpan interval = TimeSpan.FromHours(20);
+        static readonly TimeSpan interval = TimeSpan.FromHours(6);
         static DispatcherTimer timer;
         static UpdateManager manager;
         static UpdateInfo pending;
@@ -19,12 +20,12 @@ namespace Orla
 
         public static string Ready { get; private set; }
 
-        // Safe to call more than once: there is a single timer, and each tick checks only when a day has passed.
+        // Safe to call more than once: there is a single timer, and each tick checks only when the interval has passed.
         public static void start(Controller controller)
         {
             if (timer == null)
             {
-                timer = new DispatcherTimer(TimeSpan.FromHours(3), DispatcherPriority.Background, delegate { tick(controller); },
+                timer = new DispatcherTimer(TimeSpan.FromHours(1), DispatcherPriority.Background, delegate { tick(controller); },
                                             controller.Dispatcher);
                 Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(_ => controller.Dispatcher.BeginInvoke(new Action(() => tick(controller))));
             }

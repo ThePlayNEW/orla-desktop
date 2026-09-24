@@ -78,7 +78,7 @@
   "general.startup": "Avvia con Windows",
   "general.startupHint": "I tuoi pannelli compaiono appena accedi.",
   "general.updates": "Aggiornamenti automatici",
-  "general.updatesHint": "Una volta al giorno, Orla cerca una nuova versione su GitHub e la installa quando chiudi l'app. Nessuno dei tuoi dati viene inviato.",
+  "general.updatesHint": "Ogni poche ore, Orla cerca una nuova versione su GitHub e la installa quando chiudi l'app o al suo prossimo avvio. Nessuno dei tuoi dati viene inviato.",
   "icons.large": "Grandi",
   "icons.medium": "Medie",
   "icons.small": "Piccole",
