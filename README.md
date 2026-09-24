@@ -54,7 +54,7 @@ See [validation](docs/validation.md) for measured results and known limits. Memo
 
 ## Build and test
 
-The quick build uses the C# compiler included with .NET Framework and requires no package restore:
+Requires the [.NET SDK](https://dotnet.microsoft.com/download) (10 or newer) and the .NET Framework 4.8 runtime included with Windows:
 
 ```powershell
 ./build.ps1
@@ -62,16 +62,15 @@ The quick build uses the C# compiler included with .NET Framework and requires n
 ./package.ps1
 ```
 
-Alternatively, open `Orla.csproj` in Visual Studio with the .NET desktop development workload and the .NET Framework 4.8 targeting pack.
+Alternatively, open `Orla.slnx` in Visual Studio 2022 17.13 or newer with the .NET desktop development workload.
 
-The portable archive is written to `artifacts/orla-windows-x64.zip`. `test.ps1` covers grouping, reference deduplication, file preservation, persistence, bounds and backup recovery. Desktop integration tests are intentionally separate from headless CI.
+The portable archive is written to `artifacts/orla-windows-x64.zip`. The tests in `tests/Orla.Tests` cover grouping, reference deduplication, file preservation, persistence, bounds and backup recovery. Desktop integration tests are intentionally separate from headless CI.
 
 Useful options:
 
 ```text
 Orla.exe                         start the desktop panels
 Orla.exe --settings              open the organization window
-Orla.exe --self-test report.txt   run non-destructive model tests
 Orla.exe --smoke report.json      test shell integration and restoration
 Orla.exe --render preview.png --demo
 ```

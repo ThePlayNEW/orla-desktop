@@ -6,7 +6,7 @@ Windows 10 Pro 22H2, build 19045, x64. Tested on 24 September 2026.
 
 ## Automated checks
 
-All 16 model/persistence checks pass:
+All model and persistence tests pass (11 xUnit tests):
 
 - Unicode paths and duplicate-reference protection.
 - Missing-path rejection.

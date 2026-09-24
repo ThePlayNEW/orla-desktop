@@ -12,7 +12,7 @@ Orla is a portable x64 WPF application targeting .NET Framework 4.8. It uses the
 | `Model` | Layout, references, validation and atomic persistence |
 | `Discovery` | Shallow import of visible desktop items |
 | `Native` | Shell icons, foreground events, z-order and icon restoration |
-| `Tests` | Standalone model and persistence checks |
+| `Orla.Tests` | xUnit model and persistence tests |
 | `Demo` | Non-personal fixtures for documentation previews |
 
 ## Desktop integration

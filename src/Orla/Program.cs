@@ -25,19 +25,6 @@ namespace Orla
                 return 0;
             }
             string dir = AppDomain.CurrentDomain.BaseDirectory;
-            if (args.Length > 0 && args[0] == "--self-test")
-            {
-                try
-                {
-                    Tests.run(args[1]);
-                    return 0;
-                }
-                catch (Exception e)
-                {
-                    File.WriteAllText(args[1], e.ToString());
-                    return 1;
-                }
-            }
             if (args.Length > 0 && args[0] == "--inspect")
             {
                 IntPtr h = Native.desktopList();

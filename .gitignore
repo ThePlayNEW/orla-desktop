@@ -34,3 +34,7 @@ layout*.json.corrupt-*
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+
+# Tooling dependencies
+node_modules/
