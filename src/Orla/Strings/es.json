@@ -153,7 +153,7 @@
   "tray.open": "Abrir Orla",
   "tray.quit": "Salir y restaurar el escritorio",
   "welcome.alongside": "Conservar mis iconos",
-  "welcome.alongsideHint": "Tu escritorio sigue igual: iconos, selección con el mouse y menú del botón derecho. Orla agrega paneles al lado, con tus Descargas y un espacio para favoritos.",
+  "welcome.alongsideHint": "Tu escritorio sigue igual: iconos, selección con el ratón y menú contextual. En el siguiente paso eliges los paneles que irán al lado.",
   "welcome.back": "Atrás",
   "welcome.lead": "Elige cómo empezar. Puedes cambiarlo todo después.",
   "welcome.organize": "Organizar mi escritorio",

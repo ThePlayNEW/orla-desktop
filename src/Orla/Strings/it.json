@@ -153,7 +153,7 @@
   "tray.open": "Apri Orla",
   "tray.quit": "Esci e ripristina il desktop",
   "welcome.alongside": "Mantieni le mie icone",
-  "welcome.alongsideHint": "Il desktop resta com'è: icone, selezione con il mouse e menu del tasto destro. Orla aggiunge pannelli accanto, con i tuoi Download e uno spazio per i preferiti.",
+  "welcome.alongsideHint": "Il desktop resta com’è: icone, selezione con il mouse e menu contestuale. Nel passaggio successivo scegli i pannelli da affiancare.",
   "welcome.back": "Indietro",
   "welcome.lead": "Scegli come iniziare. Puoi cambiare tutto in seguito.",
   "welcome.organize": "Organizza il mio desktop",

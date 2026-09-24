@@ -153,7 +153,7 @@
   "tray.open": "Ouvrir Orla",
   "tray.quit": "Quitter et rétablir le bureau",
   "welcome.alongside": "Garder mes icônes",
-  "welcome.alongsideHint": "Votre bureau reste le même : icônes, sélection à la souris et menu du clic droit. Orla ajoute des panneaux à côté, avec vos Téléchargements et un espace pour les favoris.",
+  "welcome.alongsideHint": "Votre bureau reste le même : icônes, sélection à la souris et menu contextuel. À l’étape suivante, vous choisissez les panneaux à placer à côté.",
   "welcome.back": "Retour",
   "welcome.lead": "Choisissez comment commencer. Vous pourrez tout modifier plus tard.",
   "welcome.organize": "Organiser mon bureau",

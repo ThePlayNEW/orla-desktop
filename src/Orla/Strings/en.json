@@ -153,7 +153,7 @@
   "tray.open": "Open Orla",
   "tray.quit": "Quit and restore the desktop",
   "welcome.alongside": "Keep my icons",
-  "welcome.alongsideHint": "Your desktop stays the same: icons, mouse selection and the right-click menu. Orla adds panels next to them, with your Downloads and a place for favorites.",
+  "welcome.alongsideHint": "Your desktop stays the same: icons, mouse selection and the right-click menu. In the next step, you choose the panels that go next to them.",
   "welcome.back": "Back",
   "welcome.lead": "Choose how to start. You can change everything later.",
   "welcome.organize": "Organize my desktop",

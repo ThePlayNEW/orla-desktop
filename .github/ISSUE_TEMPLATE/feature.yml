@@ -1,0 +1,45 @@
+name: Sugerir uma melhoria / Suggest an improvement
+description: Uma ideia para o Orla. / An idea for Orla.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Pode escrever em português ou em inglês. Antes, veja se já existe uma [issue parecida](https://github.com/ThePlayNEW/orla/issues?q=is%3Aissue).
+        You can write in Portuguese or English. First, check whether a [similar issue](https://github.com/ThePlayNEW/orla/issues?q=is%3Aissue) already exists.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: O que você está tentando fazer / What you are trying to do
+      description: Descreva a situação do dia a dia, sem ainda propor a solução. / Describe the everyday situation before proposing a solution.
+      placeholder: Todo dia eu baixo arquivos e preciso... / Every day I download files and need to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Como poderia funcionar / How it could work
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: O que você faz hoje / What you do today
+      description: Como você resolve isso agora, com o Orla ou com outro programa. / How you handle it now, with Orla or another program.
+
+  - type: input
+    id: windows
+    attributes:
+      label: Versão do Windows / Windows version
+      placeholder: Windows 10 22H2
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacidade / Privacy
+      options:
+        - label: As capturas de tela e textos não mostram nomes de usuário, caminhos pessoais ou arquivos privados. / My screenshots and text do not show user names, personal paths or private files.
+          required: true
