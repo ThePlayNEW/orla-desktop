@@ -71,6 +71,8 @@
   "icons.large": "Groß",
   "icons.medium": "Mittel",
   "icons.small": "Klein",
+  "key.delete": "Entf",
+  "key.selectAll": "Strg+A",
   "language.system": "System",
   "language.systemCurrent": "System ({0})",
   "notice.hidden": "Das Panel {0} ist ausgeblendet. Unter Panels in Orla kannst du es wieder anzeigen.",

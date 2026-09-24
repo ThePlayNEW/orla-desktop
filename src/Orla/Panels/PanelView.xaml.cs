@@ -155,7 +155,13 @@ namespace Orla
             PreviewKeyDown += (s, e) => {
                 if (e.Key == Key.Escape && controller.Overlay && !TitleEditor.IsVisible)
                 {
-                    controller.setOverlay(false);
+                    controller.leaveOverlay();
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.A && Keyboard.Modifiers == ModifierKeys.Control && !TitleEditor.IsVisible)
+                {
+                    foreach (TileItem t in tiles)
+                        t.Selected = true;
                     e.Handled = true;
                 }
             };
@@ -272,14 +278,27 @@ namespace Orla
             watchedFolder = key;
             if (key == null)
                 return;
-            watchers = Shell.folderDirectories(key).Where(Directory.Exists).Select(directory => {
+            System.Threading.Tasks.Task.Run(() => Shell.folderDirectories(key).Where(Directory.Exists).ToList())
+                .ContinueWith(t => Dispatcher.BeginInvoke(new Action(delegate {
+                    if (watchedFolder == key && !t.IsFaulted)
+                        startWatchers(t.Result);
+                })));
+        }
+
+        void startWatchers(List<string> directories)
+        {
+            watchers = directories.Select(directory => {
                 var w = new FileSystemWatcher(directory) {
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Attributes
                 };
                 FileSystemEventHandler changed = delegate { Dispatcher.BeginInvoke(new Action(queueReload)); };
                 w.Created += changed;
                 w.Deleted += changed;
-                w.Changed += changed;
+                // A file rewritten in place (a new screenshot with the same name) needs a fresh thumbnail.
+                w.Changed += (s, e) => {
+                    Shell.forget(e.FullPath);
+                    Dispatcher.BeginInvoke(new Action(queueReload));
+                };
                 w.Renamed += (s, e) => Dispatcher.BeginInvoke(new Action(queueReload));
                 // A lost network connection or an overflowing buffer: start over on the next refresh.
                 w.Error += delegate {
@@ -554,12 +573,6 @@ namespace Orla
             case Key.Delete:
                 controller.removeItems(selection.Where(t => t.Entry != null).Select(t => t.Entry).ToList());
                 break;
-            case Key.A:
-                if ((Keyboard.Modifiers & ModifierKeys.Control) == 0)
-                    return;
-                foreach (TileItem t in tiles)
-                    t.Selected = true;
-                break;
             case Key.Left:
             case Key.Right:
             case Key.Up:
@@ -631,7 +644,7 @@ namespace Orla
                     menu.Items.Add(move);
                 }
                 menu.Items.Add(new Separator());
-                menu.Items.Add(Menus.item("tile.remove", "Glyph.Remove", () => controller.removeItems(entries), "Del"));
+                menu.Items.Add(Menus.item("tile.remove", "Glyph.Remove", () => controller.removeItems(entries), Text.get("key.delete")));
             }
             else if (collections.Count > 0)
             {
@@ -663,7 +676,7 @@ namespace Orla
                 menu.Items.Add(Menus.item("panel.selectAll", "Glyph.Check", () => {
                     foreach (TileItem t in tiles)
                         t.Selected = true;
-                }, "Ctrl+A"));
+                }, Text.get("key.selectAll")));
             menu.Items.Add(new Separator());
             menu.Items.Add(Menus.item("panel.rename", "Glyph.Rename", startRename));
             MenuItem tint = Menus.item("panel.tint", "Glyph.PanelCollection", null);

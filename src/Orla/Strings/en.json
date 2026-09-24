@@ -71,6 +71,8 @@
   "icons.large": "Large",
   "icons.medium": "Medium",
   "icons.small": "Small",
+  "key.delete": "Del",
+  "key.selectAll": "Ctrl+A",
   "language.system": "System",
   "language.systemCurrent": "System ({0})",
   "notice.hidden": "The {0} panel is hidden. Show it again from Panels in Orla.",

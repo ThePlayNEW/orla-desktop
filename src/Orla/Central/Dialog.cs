@@ -9,6 +9,10 @@ namespace Orla
     // they are usually summoned from a panel on the desktop.
     public static class Dialog
     {
+        // Orla's hidden message window. Without an explicit owner, WPF would use the thread's active window, which can
+        // be Explorer's desktop because panels share its input, and would disable it while the dialog is open.
+        public static IntPtr OwnerHandle { get; set; }
+
         public static string prompt(string title, string value, string hint = null)
         {
             var input = new TextBox { Text = value, MaxLength = 60, Margin = new Thickness(0, 14, 0, 0) };
@@ -80,6 +84,8 @@ namespace Orla
             buttons.Children.Add(ok);
             panel.Children.Add(buttons);
             w.Content = panel;
+            if (OwnerHandle != IntPtr.Zero)
+                new System.Windows.Interop.WindowInteropHelper(w).Owner = OwnerHandle;
             w.SourceInitialized += delegate { Controller.applyWindowTheme(w); };
             w.Loaded += delegate {
                 Native.GetCursorPos(out POINT p);

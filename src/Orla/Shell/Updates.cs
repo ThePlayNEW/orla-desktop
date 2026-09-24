@@ -1,25 +1,45 @@
 using System;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using Velopack;
 using Velopack.Sources;
 
 namespace Orla
 {
-    // For the installed version: at most once a day, a minute after start, asks GitHub Releases whether there is a
-    // newer version, downloads it in the background and applies it when Orla closes. This is Orla's only network
-    // access, and it sends nothing about the person or their files.
+    // For the installed version: at most once a day, asks GitHub Releases whether there is a newer version,
+    // downloads it in the background and installs it when Orla closes. This is Orla's only network access, and it
+    // sends nothing about the person or their files.
     public static class Updates
     {
-        public static string Ready { get; private set; }
+        static readonly TimeSpan interval = TimeSpan.FromHours(20);
+        static DispatcherTimer timer;
         static UpdateManager manager;
         static UpdateInfo pending;
+        static bool checking;
 
+        public static string Ready { get; private set; }
+
+        // Safe to call more than once: there is a single timer, and each tick checks only when a day has passed.
         public static void start(Controller controller)
         {
-            if (DateTime.TryParse(controller.Layout.LastUpdateCheck, null, System.Globalization.DateTimeStyles.RoundtripKind,
-                                  out DateTime last) && DateTime.UtcNow - last < TimeSpan.FromHours(20))
+            if (timer == null)
+            {
+                timer = new DispatcherTimer(TimeSpan.FromHours(3), DispatcherPriority.Background, delegate { tick(controller); },
+                                            controller.Dispatcher);
+                Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(_ => controller.Dispatcher.BeginInvoke(new Action(() => tick(controller))));
+            }
+            timer.Start();
+        }
+
+        static void tick(Controller controller)
+        {
+            if (!controller.Layout.AutoUpdate || checking || pending != null)
                 return;
-            Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(_ => check(controller));
+            if (DateTime.TryParse(controller.Layout.LastUpdateCheck, null, System.Globalization.DateTimeStyles.RoundtripKind,
+                                  out DateTime last) && DateTime.UtcNow - last < interval)
+                return;
+            checking = true;
+            check(controller).ContinueWith(_ => controller.Dispatcher.BeginInvoke(new Action(() => checking = false)));
         }
 
         static async Task check(Controller controller)
@@ -34,28 +54,36 @@ namespace Orla
                     controller.Layout.LastUpdateCheck = DateTime.UtcNow.ToString("o");
                     controller.saveLayout();
                 });
-                if (info == null)
+                if (info == null || !controller.Layout.AutoUpdate)
                     return;
                 await m.DownloadUpdatesAsync(info);
-                m.WaitExitThenApplyUpdates(info.TargetFullRelease, true, false);
-                manager = m;
-                pending = info;
                 string version = info.TargetFullRelease.Version.ToString();
                 await controller.Dispatcher.InvokeAsync(delegate {
+                    manager = m;
+                    pending = info;
                     Ready = version;
                     controller.notifyUpdate(version);
                 });
             }
             catch (Exception)
             {
-                // Offline or GitHub unavailable: try again another day.
+                // Offline or GitHub unavailable: try again on a later day.
             }
         }
 
-        public static void restartNow()
+        // Called when Orla quits: the downloaded version is installed after this process exits, without restarting.
+        public static void applyOnExit()
         {
             if (manager != null && pending != null)
-                manager.ApplyUpdatesAndRestart(pending.TargetFullRelease);
+                manager.WaitExitThenApplyUpdates(pending.TargetFullRelease, true, false);
+        }
+
+        public static void restartNow(Controller controller)
+        {
+            if (manager == null || pending == null)
+                return;
+            controller.closeForUpdate();
+            manager.ApplyUpdatesAndRestart(pending.TargetFullRelease);
         }
     }
 }

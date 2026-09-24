@@ -71,6 +71,8 @@
   "icons.large": "Grandes",
   "icons.medium": "Moyennes",
   "icons.small": "Petites",
+  "key.delete": "Suppr",
+  "key.selectAll": "Ctrl+A",
   "language.system": "Système",
   "language.systemCurrent": "Système ({0})",
   "notice.hidden": "Le panneau {0} est masqué. Réaffichez-le depuis Panneaux dans Orla.",

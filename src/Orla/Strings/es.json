@@ -71,6 +71,8 @@
   "icons.large": "Grandes",
   "icons.medium": "Medianos",
   "icons.small": "Pequeños",
+  "key.delete": "Supr",
+  "key.selectAll": "Ctrl+E",
   "language.system": "Sistema",
   "language.systemCurrent": "Sistema ({0})",
   "notice.hidden": "El panel {0} está oculto. Vuelve a mostrarlo desde Paneles en Orla.",

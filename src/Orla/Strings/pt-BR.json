@@ -71,6 +71,8 @@
   "icons.large": "Grandes",
   "icons.medium": "Médios",
   "icons.small": "Pequenos",
+  "key.delete": "Del",
+  "key.selectAll": "Ctrl+A",
   "language.system": "Sistema",
   "language.systemCurrent": "Sistema ({0})",
   "notice.hidden": "O painel {0} foi ocultado. Mostre de novo em Painéis, no Orla.",

@@ -71,6 +71,8 @@
   "icons.large": "Grandi",
   "icons.medium": "Medie",
   "icons.small": "Piccole",
+  "key.delete": "Canc",
+  "key.selectAll": "Ctrl+A",
   "language.system": "Sistema",
   "language.systemCurrent": "Sistema ({0})",
   "notice.hidden": "Il pannello {0} è nascosto. Puoi mostrarlo di nuovo da Pannelli in Orla.",

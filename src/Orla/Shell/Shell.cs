@@ -257,6 +257,13 @@ namespace Orla
             iconThread.Start();
         }
 
+        public static void forget(string path)
+        {
+            lock (iconCache)
+                foreach (string key in iconCache.Keys.Where(k => k.EndsWith("|" + path, StringComparison.OrdinalIgnoreCase)).ToList())
+                    iconCache.Remove(key);
+        }
+
         static ImageSource loadImage(string path, int pixels)
         {
             IShellItem item = createItem(path);

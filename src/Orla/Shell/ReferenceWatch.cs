@@ -12,6 +12,7 @@ namespace Orla
     {
         const int MaxFolders = 64;
         readonly Dispatcher dispatcher;
+        bool disposed;
         readonly Dictionary<string, FileSystemWatcher> watchers = new Dictionary<string, FileSystemWatcher>(StringComparer.OrdinalIgnoreCase);
 
         public event Action<string, string> Renamed;
@@ -22,14 +23,21 @@ namespace Orla
             this.dispatcher = dispatcher;
         }
 
+        // Checking folders can block on a network path, so it happens off the UI thread.
         public void follow(IEnumerable<string> paths)
         {
-            var folders = paths.Where(p => !Shell.isVirtual(p))
-                              .Select(p => Path.GetDirectoryName(p))
-                              .Where(d => !String.IsNullOrEmpty(d) && Directory.Exists(d))
-                              .Distinct(StringComparer.OrdinalIgnoreCase)
-                              .Take(MaxFolders)
-                              .ToList();
+            var candidates = paths.Where(p => !Shell.isVirtual(p)).Select(p => Path.GetDirectoryName(p))
+                                 .Where(d => !String.IsNullOrEmpty(d)).Distinct(StringComparer.OrdinalIgnoreCase).Take(MaxFolders).ToList();
+            System.Threading.Tasks.Task.Run(() => {
+                var existing = candidates.Where(Directory.Exists).ToList();
+                lock (watchers)
+                    if (!disposed)
+                        apply(existing);
+            });
+        }
+
+        void apply(List<string> folders)
+        {
             foreach (string gone in watchers.Keys.Except(folders, StringComparer.OrdinalIgnoreCase).ToList())
             {
                 watchers[gone].Dispose();
@@ -55,9 +63,13 @@ namespace Orla
 
         public void Dispose()
         {
-            foreach (FileSystemWatcher w in watchers.Values)
-                w.Dispose();
-            watchers.Clear();
+            lock (watchers)
+            {
+                disposed = true;
+                foreach (FileSystemWatcher w in watchers.Values)
+                    w.Dispose();
+                watchers.Clear();
+            }
         }
     }
 }

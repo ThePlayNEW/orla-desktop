@@ -150,7 +150,9 @@ namespace Orla
             foreach (Group g in groups.Where(g => g.Visible))
             {
                 int w = (int)Math.Round(PanelMetrics.width(g.Columns, iconSize) * s.Scale);
-                int h = (int)Math.Round((g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(g.Rows, iconSize)) * s.Scale);
+                // Collections are as tall as their content; a folder's content is unknown here, so it gets its full rows.
+                int rows = g.IsFolder ? g.Rows : Math.Max(1, Math.Min(g.Rows, (int)Math.Ceiling(g.Items.Count / (double)g.Columns)));
+                int h = (int)Math.Round((g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, iconSize)) * s.Scale);
                 if (y + h > s.Work.Bottom - Margin && y > s.Work.Top + Margin * 2)
                 {
                     x -= columnWidth + Margin;

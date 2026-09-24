@@ -28,6 +28,8 @@ namespace Orla
         RECT rect, dragStart;
         POINT dragCursor;
         string resizeSide;
+        int resizeRows;
+        bool fitting;
         double scale = 1;
 
         public PanelView View { get; }
@@ -51,6 +53,7 @@ namespace Orla
             };
             View.ResizeStarted += side => {
                 resizeSide = side;
+                resizeRows = Group.Rows;
                 startDrag();
             };
             View.ResizeUpdated += dragResize;
@@ -59,12 +62,11 @@ namespace Orla
                 fitHeight();
                 commit();
             };
+            // Content changed (a download arrived, a reference was added): grow only into the room below.
             View.SizeNeeded += delegate {
-                if (resizeSide != null || source == null)
+                if (resizeSide != null || source == null || fitting)
                     return;
-                rect.Right = rect.Left + pixels(View.Width);
-                rect.Bottom = rect.Top + pixels(View.Height);
-                rect = Screens.clamp(rect);
+                fitHeight();
                 place(true);
             };
         }
@@ -96,21 +98,31 @@ namespace Orla
         // Lets the height follow the content, up to the rows chosen and the room left below the panel.
         void fitHeight()
         {
-            View.RoomRows = Group.MaxRows;
-            View.applySize();
-            rect.Right = rect.Left + pixels(View.Width);
-            rect.Bottom = rect.Top + pixels(View.Height);
-            rect = Screens.clamp(rect);
-            RECT work = Screens.forRect(rect).Work;
-            int limit = work.Bottom - Screens.Margin;
-            foreach (RECT o in others())
-                if (o.Top >= rect.Top && o.Left < rect.Right && o.Right > rect.Left)
-                    limit = Math.Min(limit, o.Top - Screens.Margin);
-            double room = (limit - rect.Top) / scale - PanelMetrics.ChromeHeight;
-            View.RoomRows = Math.Max(1, (int)Math.Floor(room / PanelMetrics.tile(controller.Layout.IconSize)));
-            View.applySize();
-            rect.Right = rect.Left + pixels(View.Width);
-            rect.Bottom = rect.Top + pixels(View.Height);
+            fitting = true;
+            try
+            {
+                string size = controller.Layout.IconSize;
+                int width = pixels(PanelMetrics.width(Group.Columns, size));
+                var corner = new RECT { Left = rect.Left, Top = rect.Top, Right = rect.Left + width, Bottom = rect.Top + 1 };
+                RECT work = Screens.forRect(corner).Work;
+                int limit = work.Bottom - Screens.Margin;
+                foreach (RECT o in others())
+                    if (o.Top >= rect.Top && o.Left < rect.Left + width && o.Right > rect.Left)
+                        limit = Math.Min(limit, o.Top - Screens.Margin);
+                double room = (limit - rect.Top) / scale - PanelMetrics.ChromeHeight;
+                View.RoomRows = Math.Max(1, (int)Math.Floor(room / PanelMetrics.tile(size)));
+                View.applySize();
+                rect.Right = rect.Left + pixels(View.Width);
+                rect.Bottom = rect.Top + pixels(View.Height);
+                // Only moves the panel when not even one row fits where it is.
+                rect = Screens.clamp(rect);
+                Group.X = rect.Left;
+                Group.Y = rect.Top;
+            }
+            finally
+            {
+                fitting = false;
+            }
         }
 
         void create()
@@ -216,8 +228,10 @@ namespace Orla
             int columns = Group.Columns, rows = Group.Rows;
             if (left || right)
                 columns = PanelMetrics.columnsFor((dragStart.Width + (right ? dx : -dx)) / scale, size);
+            // Vertical drags change the most rows the panel may show, counted from where the drag began.
             if ((top || bottom) && !Group.Collapsed)
-                rows = PanelMetrics.rowsFor((dragStart.Height + (bottom ? dy : -dy)) / scale, size);
+                rows = Math.Max(Group.MinRows, Math.Min(Group.MaxRows,
+                                resizeRows + (int)Math.Round((bottom ? dy : -dy) / scale / PanelMetrics.tile(size))));
             int w = pixels(PanelMetrics.width(columns, size));
             int h = Group.Collapsed ? dragStart.Height : pixels(PanelMetrics.height(rows, size));
             int x = left ? dragStart.Right - w : dragStart.Left, y = top ? dragStart.Bottom - h : dragStart.Top;

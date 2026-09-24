@@ -44,7 +44,13 @@ namespace Orla
             messages = new MessageWindow();
             messages.Hotkey += delegate { setOverlay(!Overlay); };
             messages.ExplorerRestarted += queueRebuild;
-            messages.DisplayChanged += delegate { dispatcher.BeginInvoke(new Action(refreshAll), DispatcherPriority.Background); };
+            messages.DisplayChanged += delegate {
+                dispatcher.BeginInvoke(new Action(delegate {
+                    refreshAll();
+                    settleAll();
+                }), DispatcherPriority.Background);
+            };
+            Dialog.OwnerHandle = messages.Handle;
             messages.SettingsChanged += delegate {
                 Theme.apply(Layout);
                 tray?.refreshIcon();
@@ -196,9 +202,11 @@ namespace Orla
         {
             if (!DesktopFound)
                 return;
-            // After Explorer restarts the desktop is a new one, and so is its guard.
-            if (guard == null || guard.Target != desktop)
+            // After Explorer restarts the icon list is a new window, and it needs a new guard. The old one lets go
+            // first, so a companion still starting can never hide the new icons.
+            if (guard == null || guard.Target.IconList != desktop.IconList)
             {
+                guard?.restore();
                 guard = new IconGuard(desktop, DataDirectory, dispatcher);
                 guard.Failed += delegate { tray?.notify(Text.get("error.guard")); };
             }
@@ -233,6 +241,9 @@ namespace Orla
         // A collection item follows its file, or the folder it lives in, when it is renamed in File Explorer.
         void followRename(string oldPath, string newPath)
         {
+            // An incomplete notification from an overflowing buffer carries no new name; the next reload shows the truth.
+            if (String.IsNullOrEmpty(Path.GetFileName(newPath)) || String.IsNullOrEmpty(Path.GetFileName(oldPath)))
+                return;
             var touched = new HashSet<Group>();
             foreach (Group g in Layout.Groups.Where(g => !g.IsFolder))
                 foreach (Entry e in g.Items)
@@ -242,7 +253,7 @@ namespace Orla
                     if (!same && !inside)
                         continue;
                     if (same && (e.Name == Path.GetFileNameWithoutExtension(oldPath) || e.Name == Path.GetFileName(oldPath)))
-                        e.Name = Path.GetFileNameWithoutExtension(newPath);
+                        e.Name = Directory.Exists(newPath) ? Path.GetFileName(newPath) : Path.GetFileNameWithoutExtension(newPath);
                     e.Path = same ? newPath : newPath + e.Path.Substring(oldPath.Length);
                     touched.Add(g);
                 }
@@ -326,8 +337,22 @@ namespace Orla
         {
             string folder = Shell.resolveFolder(g.FolderPath);
             var sources = paths.Where(p => !String.Equals(Path.GetDirectoryName(p), folder, StringComparison.OrdinalIgnoreCase));
-            // Owned by Orla's own window: a dialog owned by a panel would disable Explorer's desktop window.
-            tryAction(() => Shell.transfer(messages.Handle, sources, folder, copy));
+            // Runs on its own thread, owned by Orla's hidden window: Windows' progress and conflict dialogs never
+            // block the panels, and a dialog owned by a panel would disable Explorer's desktop window.
+            IntPtr owner = messages.Handle;
+            var list = sources.ToList();
+            var worker = new System.Threading.Thread(delegate() {
+                try
+                {
+                    Shell.transfer(owner, list, folder, copy);
+                }
+                catch (Exception e)
+                {
+                    dispatcher.BeginInvoke(new Action(() => Dialog.alert(Text.get("error.title"), e.Message)));
+                }
+            }) { IsBackground = true, Name = "Orla file operation" };
+            worker.SetApartmentState(System.Threading.ApartmentState.STA);
+            worker.Start();
         }
 
         public void addFiles(Group g)
@@ -515,6 +540,20 @@ namespace Orla
                 Updates.start(this);
         }
 
+        // Closes everything like quit, for an update that restarts Orla itself.
+        public void closeForUpdate()
+        {
+            exiting = true;
+            guard?.restore();
+            watch.Dispose();
+            references.Dispose();
+            foreach (PanelHost h in hosts)
+                h.Dispose();
+            hosts.Clear();
+            tray?.Dispose();
+            messages.Dispose();
+        }
+
         public void notifyUpdate(string version)
         {
             tray?.notify(Text.format("notice.updateReady", version));
@@ -597,8 +636,11 @@ namespace Orla
             setOverlay(false);
             if (central == null)
             {
-                central = new CentralWindow(this);
-                central.Closed += delegate { central = null; };
+                CentralWindow window = central = new CentralWindow(this);
+                window.Closed += delegate {
+                    if (central == window)
+                        central = null;
+                };
             }
             central.show(page);
         }
@@ -626,6 +668,7 @@ namespace Orla
             if (exiting)
                 return;
             exiting = true;
+            Updates.applyOnExit();
             guard?.restore();
             watch.Dispose();
             references.Dispose();

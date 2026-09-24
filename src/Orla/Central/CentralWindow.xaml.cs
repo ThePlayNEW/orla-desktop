@@ -73,7 +73,7 @@ namespace Orla
                 menu.IsOpen = true;
             };
             UpdateSwitch.Click += delegate { controller.setAutoUpdate(UpdateSwitch.IsChecked == true); };
-            UpdateButton.Click += delegate { Updates.restartNow(); };
+            UpdateButton.Click += delegate { Updates.restartNow(controller); };
             ArrangeButton.Click += delegate { controller.resetPositions(); };
 
             DataButton.Click += delegate { controller.open(controller.DataDirectory); };
@@ -106,7 +106,9 @@ namespace Orla
             if (WelcomePresets.Visibility != Visibility.Visible)
                 Welcome.Visibility = welcome ? Visibility.Visible : Visibility.Collapsed;
             Main.Visibility = welcome ? Visibility.Collapsed : Visibility.Visible;
-            if (!welcome && Nav.Children.OfType<RadioButton>().All(r => r.IsChecked != true))
+            if (page == "general")
+                NavGeneral.IsChecked = true;
+            else if (!welcome && Nav.Children.OfType<RadioButton>().All(r => r.IsChecked != true))
                 NavPanels.IsChecked = true;
             Show();
             if (WindowState == WindowState.Minimized)
@@ -324,7 +326,9 @@ namespace Orla
         {
             if (g.FolderPath == Shell.DesktopFolder)
                 return Text.get(g.OnlyUnorganized ? "central.desktopUnorganized" : "central.desktopFolder");
-            return Shell.displayName(Shell.resolveFolder(g.FolderPath));
+            string folder = Shell.resolveFolder(g.FolderPath);
+            string name = System.IO.Path.GetFileName(folder.TrimEnd(System.IO.Path.DirectorySeparatorChar));
+            return name.Length > 0 ? name : folder;
         }
 
         // A real panel, drawn with the current settings, over a sample wallpaper.

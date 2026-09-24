@@ -36,16 +36,8 @@ namespace Orla
                 try
                 {
                     data = parse(text, legacyScale, out migrated);
-                    if (migrated)
-                    {
-                        // Keep the version 1 file as it was, once, before the first save in the new format.
-                        if (!File.Exists(filePath + ".v1"))
-                            File.Copy(filePath, filePath + ".v1");
-                        save();
-                    }
-                    return true;
                 }
-                catch (Exception e) when (!(e is IOException))
+                catch (Exception e) when (!(e is IOException || e is UnauthorizedAccessException))
                 {
                     string corrupt = filePath + ".corrupt-" + DateTime.Now.ToString("yyyyMMddHHmmssfff");
                     File.Copy(filePath, corrupt, false);
@@ -62,6 +54,19 @@ namespace Orla
                         }
                     throw new InvalidDataException(Text.format("error.layoutUnreadable", corrupt));
                 }
+                if (migrated)
+                    try
+                    {
+                        // Keep the version 1 file as it was, once, before the first save in the new format.
+                        if (!File.Exists(filePath + ".v1"))
+                            File.Copy(filePath, filePath + ".v1");
+                        save();
+                    }
+                    catch (IOException)
+                    {
+                        // The migrated layout is in memory; it is saved with the next change.
+                    }
+                return true;
             }
             data = File.Exists(seed) ? parse(File.ReadAllText(seed), legacyScale, out migrated) : new Layout();
             return File.Exists(seed);
@@ -104,7 +109,7 @@ namespace Orla
             d.Opacity = clamp(d.Opacity, Layout.MinOpacity, Layout.MaxOpacity, Layout.DefaultOpacity);
             if (!new[] { "system", "light", "dark" }.Contains(d.Theme))
                 d.Theme = "system";
-            if (!new[] { "system", "pt-BR", "en" }.Contains(d.Language))
+            if (d.Language != "system" && !Text.Languages.Contains(d.Language))
                 d.Language = "system";
             if (!new[] { "small", "medium", "large" }.Contains(d.IconSize))
                 d.IconSize = "medium";
@@ -202,10 +207,20 @@ namespace Orla
                 s.Write(bytes, 0, bytes.Length);
                 s.Flush(true);
             }
-            if (File.Exists(filePath))
-                File.Replace(temp, filePath, filePath + ".bak", true);
-            else
-                File.Move(temp, filePath);
+            for (int attempt = 0; ; attempt++)
+                try
+                {
+                    if (File.Exists(filePath))
+                        File.Replace(temp, filePath, filePath + ".bak", true);
+                    else
+                        File.Move(temp, filePath);
+                    return;
+                }
+                catch (IOException) when (attempt < 5)
+                {
+                    // Antivirus or sync tools sometimes hold the file for a moment.
+                    System.Threading.Thread.Sleep(120);
+                }
         }
 
         public Group find(string groupId)
