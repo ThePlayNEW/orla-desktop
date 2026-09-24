@@ -1,0 +1,23 @@
+# Template. Replace __VERSION__ before submitting. See packaging/README.md.
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.locale.1.9.0.schema.json
+
+PackageIdentifier: ThePlayNEW.OrlaDesktop
+PackageVersion: __VERSION__
+PackageLocale: pt-BR
+Publisher: Eduardo Torres
+PackageName: Orla Desktop
+License: MIT
+ShortDescription: Painéis translúcidos que organizam a área de trabalho do Windows.
+Description: |-
+  O Orla Desktop coloca painéis translúcidos na camada da área de trabalho do Windows para agrupar atalhos
+  e mostrar pastas, sem mover nenhum dos seus arquivos. Os painéis continuam no lugar com Win+D, a área de
+  trabalho mantém a seleção, o menu de contexto e o arrastar e soltar de sempre, e Ctrl+Alt+Espaço traz os
+  painéis para a frente das janelas. Funciona sem direitos de administrador e não injeta código no Explorer.
+Tags:
+- area-de-trabalho
+- organizador
+- icones
+- produtividade
+ReleaseNotesUrl: https://github.com/ThePlayNEW/orla-desktop/releases/tag/v__VERSION__
+ManifestType: locale
+ManifestVersion: 1.9.0

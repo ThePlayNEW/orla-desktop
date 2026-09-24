@@ -1,93 +1,169 @@
-<img src="docs/icon.png" width="64" alt="Orla icon">
+[English](README.en.md) · **Português**
 
-# Orla
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-dark.svg">
+    <img src="assets/brand/logo-light.svg" width="260" alt="Orla Desktop">
+  </picture>
+</p>
 
-A quieter Windows desktop. Organize shortcuts in translucent, movable panels while keeping your files exactly where they are.
+<p align="center">
+  Painéis translúcidos que organizam o desktop do Windows 10 e 11 sem tirar nenhum arquivo do lugar.
+</p>
 
-[Download](https://github.com/ThePlayNEW/orla/releases) · [Report an issue](https://github.com/ThePlayNEW/orla/issues) · [Architecture](docs/architecture.md)
+<p align="center">
+  <a href="https://github.com/ThePlayNEW/orla-desktop/releases/latest"><img src="https://img.shields.io/github/v/release/ThePlayNEW/orla-desktop?label=vers%C3%A3o" alt="Versão mais recente"></a>
+  <a href="https://github.com/ThePlayNEW/orla-desktop/releases"><img src="https://img.shields.io/github/downloads/ThePlayNEW/orla-desktop/total?label=downloads" alt="Downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/ThePlayNEW/orla-desktop?label=licen%C3%A7a" alt="Licença MIT"></a>
+  <a href="https://github.com/ThePlayNEW/orla-desktop/actions/workflows/build.yml"><img src="https://github.com/ThePlayNEW/orla-desktop/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+</p>
 
-![Orla's organization window with demonstration items](docs/preview.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
+  <img src="docs/images/hero-light.png" alt="Quatro painéis do Orla sobre um papel de parede: Entrada, Projetos, Acesso rápido e Documentos">
+</picture>
 
-The screenshot uses demonstration items. The organization window is opened on demand; normal use happens directly on the desktop.
+## O que muda
 
-## Features
+- **Painéis na camada do desktop.** Eles ficam junto dos ícones do Windows, então **Win+D** e o botão de mostrar a área de trabalho não os escondem, e nenhum aplicativo fica coberto por eles.
+- **O desktop continua funcionando.** Nas áreas livres, a seleção com o mouse, o menu do botão direito e o arrastar de arquivos para o desktop se comportam como no Windows.
+- **Coleções.** Guardam atalhos para arquivos e pastas de qualquer lugar. Se você renomear o arquivo no Explorador, o atalho acompanha. Tirar um item da coleção nunca apaga o arquivo.
+- **Painéis de pasta.** Mostram uma pasta real, como Downloads, e se atualizam sozinhos quando algo muda nela.
+- **Ctrl+Alt+Espaço** traz os painéis para a frente das janelas, para você soltar arquivos do Explorador sem minimizar nada. Aperte de novo, ou Esc, para devolvê-los ao desktop.
+- **Painéis organizados sozinhos.** Um painel nunca fica por cima de outro, e o tamanho avança em colunas e linhas inteiras de ícones.
+- **Desktop limpo, se você quiser.** Uma opção esconde os ícones do Windows e deixa só os painéis. Um pequeno processo de proteção devolve os ícones se o Orla fechar ou travar.
+- **Convive com Wallpaper Engine e Lively.** O Orla não troca o papel de parede, não injeta código no Explorador e não pede direitos de administrador.
 
-- Translucent panels with adjustable opacity, color, position and size.
-- Drag references between groups without moving their files.
-- Drop files, folders and shortcuts from Explorer into the organization window to add them.
-- Double-click or press Enter to open an item; right-click for more actions.
-- Collapse groups and choose which groups appear on the desktop.
-- Search, rename groups and edit item labels from the organization window.
-- Brief transitions that respect Windows' animation preference, with an additional off switch.
-- Local configuration, atomic saves and a recovery backup.
-- Restore the original desktop from the tray. A small companion process also restores its icons if the main process crashes.
-- Startup with Windows enabled on first launch and configurable in the organization window.
+## Instalação
 
-## Getting started
+Baixe na página de [versões](https://github.com/ThePlayNEW/orla-desktop/releases/latest):
 
-1. Download the portable ZIP from [Releases](https://github.com/ThePlayNEW/orla/releases).
-2. Extract it to a permanent directory and run `Orla.exe`.
-3. Orla imports visible top-level desktop items as references and displays its panels.
-4. Double-click the Orla tray icon to organize groups. Running the executable again also opens this window.
+| Arquivo | Para quem |
+| --- | --- |
+| [`OrlaDesktop-win-Setup.exe`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Setup.exe) | A maioria das pessoas. Instala só para o seu usuário, sem pedir administrador, cria um atalho no menu Iniciar e se atualiza sozinho. |
+| [`OrlaDesktop-win-Portable.zip`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Portable.zip) | Quem prefere não instalar. Extraia em qualquer pasta e abra `Orla Desktop.exe`. Não se atualiza sozinho: para atualizar, baixe um ZIP novo. |
 
-Drag a panel's heading to reposition it. Drag its bottom-right handle to resize it. The minus button collapses it; the menu button opens that group's settings.
+Os executáveis ainda não têm assinatura digital, então o Windows SmartScreen pode mostrar um aviso na primeira vez. Clique em **Mais informações** e depois em **Executar assim mesmo**. A assinatura pelo SignPath Foundation está planejada.
 
-**Startup:** the first launch creates an `Orla.lnk` shortcut in the current user's Startup folder. Uncheck **Iniciar com o Windows** to disable it. Keep the portable directory in its permanent location; if you move it, toggle startup off and on to update the shortcut.
+Requisitos: Windows 10 22H2 ou Windows 11, 64 bits, com o .NET Framework 4.8 (já incluído no Windows).
 
-**Restoring the desktop:** use **Ativar / restaurar desktop** or **Sair e restaurar ícones** in the tray menu. Orla never deletes your original desktop items.
+## Primeiros passos
 
-## Requirements and compatibility
+1. Abra o Orla. Na tela **Bem-vindo ao Orla Desktop**, escolha como começar e clique em **Começar**:
+   - **Manter meus ícones** (já vem marcada): os ícones do Windows continuam onde estão, e você escolhe os primeiros painéis no passo seguinte.
+   - **Organizar meu desktop**: o que está no desktop vira coleções, os ícones do Windows ficam ocultos e um painel **Na área de trabalho** mostra o que ainda não foi organizado.
+2. Se escolheu **Manter meus ícones**, marque os painéis que quer em **Escolha seus primeiros painéis** e clique em **Começar**. Nenhum arquivo muda de lugar em nenhuma das opções.
+3. Arraste um painel pelo título para posicioná-lo. Ele se alinha às bordas da tela e aos outros painéis.
+4. Para mudar o tamanho, arraste qualquer borda ou canto do painel.
+5. Arraste arquivos do Explorador para um painel. Com o Explorador aberto, aperte **Ctrl+Alt+Espaço** para os painéis aparecerem na frente.
+6. Para criar mais painéis, clique no ícone do Orla na bandeja e use **Novo painel**.
 
-- Windows 10 22H2 or Windows 11, x64.
-- .NET Framework 4.8 or newer.
-- A normal interactive Windows Explorer desktop.
+O Orla começa com **Iniciar com o Windows** ligado. Você pode desligar em **Geral**.
 
-Orla uses WPF and Win32 APIs shared by Windows 10 and 11. Desktop integration has been exercised on Windows 10 22H2; Windows 11 remains a manual release-validation target. CI builds and tests on Windows Server runners do not substitute for Windows 11 desktop testing.
+## Painéis prontos
 
-Orla does not replace the wallpaper, reparent its windows, inject into Explorer, or use an always-on-top overlay. Panels sit above the desktop shell and yield to applications. This approach is intended to coexist with Wallpaper Engine and similar tools, but third-party wallpaper engines and every multi-monitor configuration are not yet certified. The current layout is constrained to the primary monitor's work area.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/presets-dark.png">
+  <img src="docs/images/presets-light.png" width="720" alt="Tela Escolha seus primeiros painéis, com cartões de painéis prontos marcáveis">
+</picture>
 
-## Lightweight by design
+Na primeira vez, e depois em **Novo painel**, o Orla oferece painéis prontos. Só aparecem os que fazem sentido no seu computador.
 
-No embedded browser, telemetry, background indexing, continuous animation loop or periodic desktop polling. Window focus events drive panel visibility. The organization window is created only when requested; native icons and button templates are cached. The restoration companion blocks on process exit rather than polling.
+| Painel | O que mostra |
+| --- | --- |
+| **Acesso rápido** | Este Computador, Downloads, Documentos, Imagens e Lixeira |
+| **Downloads** | A pasta Downloads, sempre atualizada |
+| **Aplicativos** | Os atalhos de programas do desktop, se houver |
+| **Jogos** | Jogos e lançadores encontrados no desktop e no menu Iniciar: Steam, Epic, Riot, EA, Ubisoft, Battle.net, GOG, Rockstar e Xbox |
+| **Documentos**, **Imagens**, **Capturas de tela** | As pastas correspondentes, sempre atualizadas |
+| **Na área de trabalho** | O que está no desktop e ainda não foi para nenhum painel |
+| **Trabalho**, **Estudos** | Coleções vazias para você preencher |
 
-See [validation](docs/validation.md) for measured results and known limits. Memory use includes the .NET/WPF runtime and varies with the number of icons and whether the organization window has been opened.
+**Acesso rápido**, **Downloads** e **Aplicativos** já vêm marcados. Montar um painel pronto nunca move nem copia arquivos.
 
-## Build and test
+## Atalhos e gestos
 
-The quick build uses the C# compiler included with .NET Framework and requires no package restore:
+| Onde | Ação | Resultado |
+| --- | --- | --- |
+| Qualquer lugar | **Ctrl+Alt+Espaço** | Traz os painéis para a frente das janelas, ou devolve ao desktop |
+| Painel na frente | Esc | Devolve os painéis ao desktop |
+| Título do painel | Arrastar | Move o painel, com encaixe nas bordas e nos outros painéis |
+| Título do painel | Clique duplo | Renomeia o painel ali mesmo |
+| Borda ou canto | Arrastar | Redimensiona o painel |
+| Item | Clique duplo ou Enter | Abre o item |
+| Item | Ctrl+clique, Shift+clique, Ctrl+A | Seleciona vários itens |
+| Área vazia do painel | Arrastar | Seleciona os itens dentro do retângulo |
+| Item de coleção | F2 | Muda o nome mostrado no painel |
+| Item de coleção | Del | Tira do painel, sem apagar o arquivo |
+| Item | Setas | Move a seleção entre os itens |
+| Item | Clique direito | **Abrir**, **Mostrar no Explorador**, **Renomear no painel**, **Mover para**, **Tirar do painel**, **Adicionar a** |
+| Ícone na bandeja | Clique | Abre o Orla |
+
+## Perguntas rápidas
+
+O [guia de uso](docs/pt-BR/guia.md) explica cada recurso e traz soluções para os problemas mais comuns: ícones que não voltaram, atalho ocupado por outro programa, aviso do SmartScreen, painéis fora da tela e reinício do Explorador.
+
+## Privacidade
+
+O Orla não coleta dados e não tem telemetria. Os painéis ficam em `%LOCALAPPDATA%\Orla\layout.json`, com uma cópia anterior em `layout.json.bak`.
+
+O único acesso à rede é a busca por atualizações da versão instalada: no máximo uma vez por dia, o Orla pede ao GitHub a lista de versões deste repositório, sem enviar dados pessoais. Você pode desligar em **Geral > Atualizações automáticas**. Links como **Guia de uso** e **Relatar um problema** abrem no seu navegador só quando você clica.
+
+## Compatibilidade
+
+| Cenário | Situação |
+| --- | --- |
+| Windows 10 22H2, 64 bits | Testado |
+| Windows 11 24H2 e 25H2 | Suportado pelo código, que encontra o desktop pela estrutura das janelas. Teste manual ainda pendente. |
+| Wallpaper Engine | Testado com ele em execução no Windows 10 |
+| Lively Wallpaper | Mesma abordagem do Wallpaper Engine. Teste manual pendente. |
+| Vários monitores | Cada painel usa a escala do monitor onde está. Monitores com escalas diferentes ainda não foram testados. |
+| Alto Contraste | Usa as cores do sistema, sem transparência |
+| Idiomas | Português (Brasil), English, Español, Français, Deutsch, Italiano |
+| Windows 32 bits ou ARM | Não suportado |
+
+Os detalhes estão em [docs/validation.md](docs/validation.md). Se você usar o Orla no Windows 11, um relato em [Issues](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose) ajuda bastante.
+
+## Desinstalar
+
+Fechar, sair ou desinstalar o Orla nunca deixa o desktop alterado: os ícones do Windows voltam a seguir a configuração do Explorador.
+
+- **Versão instalada:** abra **Configurações > Aplicativos**, procure **Orla Desktop** e clique em **Desinstalar**. A inicialização com o Windows é removida junto.
+- **Versão portátil:** no Orla, em **Geral**, desligue **Iniciar com o Windows**. Depois clique com o botão direito no ícone da bandeja, escolha **Sair e restaurar o desktop** e apague a pasta onde você extraiu o ZIP.
+
+Nos dois casos, seus painéis continuam salvos em `%LOCALAPPDATA%\Orla`, caso você volte a usar o Orla. Para apagá-los, digite `%LOCALAPPDATA%` na barra de endereço do Explorador e exclua a pasta `Orla`. Seus arquivos não são afetados.
+
+## Para desenvolvedores
+
+O Orla é um aplicativo WPF para .NET Framework 4.8, compilado com o .NET SDK 10 ou mais recente.
 
 ```powershell
-./build.ps1
-./test.ps1
-./package.ps1
+./build.ps1     # compila em Release
+./test.ps1      # roda os testes xUnit
+./package.ps1   # gera os pacotes em artifacts/
 ```
 
-Alternatively, open `Orla.csproj` in Visual Studio with the .NET desktop development workload and the .NET Framework 4.8 targeting pack.
+O instalador e o ZIP portátil são gerados pelo [Velopack](https://velopack.io) e exigem a ferramenta `vpk` (`dotnet tool install -g vpk`). Sem ela, `package.ps1` gera só um ZIP simples. As versões publicadas saem do workflow `release.yml` quando uma tag `v*.*.*` é enviada.
 
-The portable archive is written to `artifacts/orla-windows-x64.zip`. `test.ps1` covers grouping, reference deduplication, file preservation, persistence, bounds and backup recovery. Desktop integration tests are intentionally separate from headless CI.
-
-Useful options:
+Opções de linha de comando:
 
 ```text
-Orla.exe                         start the desktop panels
-Orla.exe --settings              open the organization window
-Orla.exe --self-test report.txt   run non-destructive model tests
-Orla.exe --smoke report.json      test shell integration and restoration
-Orla.exe --render preview.png --demo
+Orla.exe                      uso normal
+Orla.exe --settings           abre a janela do Orla
+Orla.exe --smoke report.json  verificação de integração com dados temporários, sem esconder ícones
+Orla.exe --render <pasta>     gera as imagens da documentação com dados de demonstração
 ```
 
-`--smoke` briefly hides and restores desktop icons. Run it only in an interactive test session. Rendering and test modes use temporary configuration and never enable startup.
+| Pasta | Conteúdo |
+| --- | --- |
+| `src/Orla` | Aplicativo: `Shell` (integração com o Windows), `Panels`, `Central` (janela do Orla), `Model`, `Strings`, `Themes` |
+| `tests/Orla.Tests` | Testes de persistência, migração e tradução |
+| `assets` | SVGs da marca e dos ícones da interface |
+| `tools/icons` | Gera `.ico`, `Glyphs.xaml` e `Brand.xaml` a partir dos SVGs (`npm install` e `npm run export`) |
+| `docs` | Guias, arquitetura, validação e imagens |
 
-## Configuration and removal
+Leia [docs/architecture.md](docs/architecture.md) antes de mexer na integração com o desktop, e [CONTRIBUTING.md](CONTRIBUTING.md) antes de abrir um pull request. Para relatar uma falha de segurança, veja [SECURITY.md](SECURITY.md).
 
-Configuration lives at `%LOCALAPPDATA%\Orla\layout.json`, with `layout.json.bak` as the previous saved version. Personal paths stay on the machine and are not part of the repository or release archive.
+## Licença
 
-To remove Orla, disable startup, exit it from the tray, and delete its portable directory. You can also remove `%LOCALAPPDATA%\Orla` to discard the saved layout. Original files remain untouched.
-
-## Contributing
-
-Use English names and camelCase for variables, parameters, fields and application methods. Types and serialized public properties use PascalCase; platform API names retain their original spelling. Keep dependencies and comments purposeful. Build and run tests before submitting a change.
-
-## License
-
-[MIT](LICENSE) · Eduardo Torres
+[MIT](LICENSE) © Eduardo Torres. Componentes de terceiros estão listados em [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

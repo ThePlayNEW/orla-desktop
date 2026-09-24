@@ -1,0 +1,110 @@
+name: Relatar um problema / Report a bug
+description: Algo não funciona como deveria. / Something does not work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por relatar. Antes, confira as soluções no [guia de uso](https://github.com/ThePlayNEW/orla-desktop/blob/main/docs/pt-BR/guia.md#solução-de-problemas). Pode escrever em português ou em inglês.
+        Thank you for reporting. First, check the fixes in the [user guide](https://github.com/ThePlayNEW/orla-desktop/blob/main/docs/en/guide.md#troubleshooting). You can write in Portuguese or English.
+
+        Falhas de segurança não vão aqui: veja [SECURITY.md](https://github.com/ThePlayNEW/orla-desktop/blob/main/SECURITY.md). / Security issues do not go here: see [SECURITY.md](https://github.com/ThePlayNEW/orla-desktop/blob/main/SECURITY.md).
+
+  - type: input
+    id: windows
+    attributes:
+      label: Versão do Windows / Windows version
+      description: Aperte Win+R e digite `winver`. / Press Win+R and type `winver`.
+      placeholder: Windows 11 24H2 (26100.4061)
+    validations:
+      required: true
+
+  - type: input
+    id: orla
+    attributes:
+      label: Versão do Orla / Orla version
+      description: Janela do Orla, página Sobre. / Orla window, About page.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Tipo de instalação / Installation type
+      options:
+        - Instalador / Installer (Setup.exe)
+        - Portátil / Portable (ZIP)
+        - Compilado do código / Built from source
+    validations:
+      required: true
+
+  - type: dropdown
+    id: wallpaper
+    attributes:
+      label: Programa de papel de parede / Wallpaper app
+      options:
+        - Nenhum / None
+        - Wallpaper Engine
+        - Lively Wallpaper
+        - Outro / Other
+    validations:
+      required: true
+
+  - type: input
+    id: monitors
+    attributes:
+      label: Monitores e escala / Monitors and scaling
+      description: Quantos monitores e a escala de cada um, em Configurações > Sistema > Tela. / How many monitors and the scale of each, in Settings > System > Display.
+      placeholder: "2 monitores: 150% (principal) e 100% / 2 monitors: 150% (main) and 100%"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: clean
+    attributes:
+      label: Desktop limpo / Clean desktop
+      options:
+        - Desligado / Off
+        - Ligado / On
+        - Não sei / Not sure
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir / Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: O que você esperava / Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: O que aconteceu / Actual behaviour
+      description: Mensagens de erro, com o texto exato, ajudam muito. / Error messages, with the exact text, help a lot.
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Capturas de tela e outros detalhes / Screenshots and other details
+      description: Outros organizadores de desktop, programas que usam atalhos globais, e se o problema começou depois de uma atualização. / Other desktop organizers, programs that use global shortcuts, and whether the problem started after an update.
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacidade / Privacy
+      options:
+        - label: As capturas de tela e textos não mostram nomes de usuário, caminhos pessoais ou arquivos privados. / My screenshots and text do not show user names, personal paths or private files.
+          required: true

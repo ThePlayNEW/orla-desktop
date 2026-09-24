@@ -1,62 +1,73 @@
 # Validation
 
-## Local environment
+This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
-Windows 10 Pro 22H2, build 19045, x64. Tested on 24 September 2026.
+## 1.0
 
-## Automated checks
+### Environment
 
-All 16 model/persistence checks pass:
-
-- Unicode paths and duplicate-reference protection.
-- Missing-path rejection.
-- Cross-group moves and within-group ordering.
-- Preservation of the original file's contents.
-- Atomic replacement and backup creation.
-- Configuration round-trip and recovery after corruption.
-- Recovery preserved across another application restart.
-- Startup enabled by default with first-run tracking.
-- Duplicate-target protection for cross-group moves.
-- Panel-size bounds.
-- Empty-layout parsing, unsupported-version rejection and duplicate-ID rejection.
-
-The interactive shell smoke test confirmed that icons are hidden only during desktop mode, restored afterwards, and all four panel windows are above the desktop shell in z-order. The restoration companion was also checked by forcibly ending the main process during desktop mode: the original icons returned.
-
-UI captures were rendered from the native WPF controls and reviewed for layout, text clipping, contrast and scrolling. Documentation previews use non-personal demonstration data.
-
-## Background sample
-
-| Measurement | Result |
+| | |
 | --- | --- |
-| Saved references | 52 |
-| Processes | 2, including the restoration companion |
-| Organization window | Closed |
-| Combined working set | 86.5 MB |
-| Combined private memory | 88.83 MB |
-| Warm-up | 5 seconds |
-| Sample interval | 10 seconds |
-| Additional process CPU time | 0.0 seconds at the sampling resolution |
-| Startup shortcut | Enabled and present |
+| Operating system | Windows 10 Pro 22H2, build 19045, x64 |
+| Wallpaper | Wallpaper Engine running during every desktop test |
+| Monitors | One |
+| Date | 24 September 2026 |
 
-This is a background sample on one computer, not a fixed memory guarantee or a visible-panel animation benchmark. Startup, opening the organization window, shell icon extraction and active interaction can temporarily consume more memory and CPU. CPU measurements below the sampling resolution do not prove that no instructions ran.
+### Automated tests
 
-## Compatibility status
+`./test.ps1` runs 20 xUnit tests, and all of them pass locally. The `build.yml` workflow runs the same tests on `windows-2022` and `windows-2025` runners.
+
+| Area | What is checked |
+| --- | --- |
+| References | Unicode paths added once; missing paths rejected; moves between collections and reordering within one; moves that would duplicate a reference rejected; removing a reference leaves the file's contents intact |
+| Folder panels | References cannot be added to a folder panel; a folder panel without a folder and unknown panel kinds are rejected |
+| Persistence | Atomic save with backup and reload; recovery from a corrupt file using the backup, across restarts; empty layouts; unknown versions and duplicate IDs rejected; panel size and opacity clamped |
+| Panel metrics | Panel sizes are whole columns and rows of tiles |
+| Startup | Start with Windows is on until the user configures it |
+| Migration | A 0.1 preview layout becomes collections with mapped tints, scaled positions and sizes in columns and rows; the Windows icons are shown again (Clean desktop off) |
+| Presets | Store links such as `steam://` and `com.epicgames.launcher://` and known install folders are recognized as games; every preset has text in every language and builds a valid panel |
+| Translations | All six language files (`pt-BR`, `en`, `es`, `fr`, `de`, `it`) have the same keys as English; every key used in C# or XAML exists |
+
+Headless CI runs only these tests. It makes no claim about the interactive desktop.
+
+### Smoke test
+
+`Orla.exe --smoke report.json` loads four demo panels (two collections, a folder panel and Quick access) with temporary data, waits six seconds, writes a report and quits. It never hides the Windows icons and never reads personal files.
+
+| Check | Result |
+| --- | --- |
+| Desktop icon host found | Yes |
+| Panels created | 4 |
+| Panels that are children of the icon host | 4 of 4 |
+| Panels above the icon view in z-order | 4 of 4 |
+| Windows icons left visible | Yes |
+| Working set | About 100 MB, including the WPF runtime |
+| CPU time while idle | About 0 ms during the sample |
+
+Memory rises temporarily while the Orla window is open or while many shell icons load. A CPU reading near zero at the sampling resolution does not prove that no instructions ran; it shows that nothing polls.
+
+### Crash restore
+
+With **Clean desktop** on, the main `Orla.exe` process was ended from Task Manager. The companion process detected the exit and showed the Windows icons again, matching the Explorer setting.
+
+### Manual checklist
+
+The checklist for testers is in [docs/en/manual-test.md](en/manual-test.md) ([Português](pt-BR/teste-manual.md)). It covers Win+D, the show desktop button, selection and the context menu on the empty desktop, drag and drop into both panel types, overlay mode, resizing and snapping, the crash safeguard, an Explorer restart and theme switching. Results from other computers will be added here as they arrive.
+
+### Not tested yet
 
 | Scenario | Status |
 | --- | --- |
-| Windows 10 22H2 x64 | Local build, rendering, shell integration and restoration tested |
-| Windows 11 x64 | Supported API target; manual desktop testing pending |
-| Wallpaper Engine | No wallpaper replacement or window reparenting; product-specific testing pending |
-| Multiple monitors / mixed DPI | Primary work-area bounds implemented; broader testing pending |
-| Explorer restart | Desktop mode suspends when the original icon-list handle disappears |
-| Headless CI | Model tests only; no interactive desktop claims |
+| Windows 11 24H2 and 25H2 | The code handles the 24H2 desktop structure, where the icon view stays under a layered `Progman`. It has not been run on Windows 11 hardware yet. |
+| Windows 11 23H2 and earlier | Same structure as Windows 10; not run |
+| Multiple monitors with different scales | Per-monitor scaling is implemented; not tested |
+| Lively Wallpaper | Uses the same `WorkerW` approach as Wallpaper Engine; not tested |
+| Other desktop organizers running at the same time | Not supported; use one icon manager at a time |
+| Folder panels on slow network shares | Listing runs on a background task; not tested on a real network share |
+| Game detection | Tested with store links and install folders in unit tests; not tested against every launcher version |
 
-## Current limits
+Reports for any of these are welcome in [Issues](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose).
 
-- Designed for ordinary collections of shortcuts; item grids are not virtualized.
-- Panels use alpha transparency, not live background blur.
-- Layout is constrained to the primary monitor.
-- Newly created desktop items are not watched continuously. Add them by drag-and-drop or through the group menu.
-- For external drops from Explorer, use the organization window. Desktop panels yield while another application has focus.
-- If another tool also hides or manages Explorer's icons, use only one desktop-icon manager at a time.
-- The portable binary is not code-signed.
+## 0.1 preview
+
+The 0.1 preview used top-level tool windows above the desktop instead of child windows. It was tested on Windows 10 Pro 22H2 with 11 xUnit tests and an interactive smoke test. A background sample with 52 saved references and the organization window closed measured 86.5 MB combined working set for the main process and the restoration companion, with no measurable CPU time over ten seconds. Those figures come from a different window model and a different number of panels, so they are not directly comparable with 1.0.

@@ -1,0 +1,48 @@
+<!-- Linha d'água, dark theme. Panel glass alpha is replaced at runtime by the opacity setting (75–95%, default 82%), which keeps text at 6:1 or better over any wallpaper. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Color x:Key="Color.Tide">#0E3B43</Color>
+    <Color x:Key="Color.SeaGlass">#5EC8C0</Color>
+    <Color x:Key="Color.Sand">#E4D6BC</Color>
+    <Color x:Key="Color.Foam">#F2F6F5</Color>
+    <Color x:Key="Color.Ink">#0A2227</Color>
+
+    <Color x:Key="Color.PanelGlass">#D109282E</Color>
+    <SolidColorBrush x:Key="Brush.PanelGlass" Color="{StaticResource Color.PanelGlass}" />
+    <SolidColorBrush x:Key="Brush.PanelBorder" Color="#425EC8C0" />
+    <SolidColorBrush x:Key="Brush.Shoreline" Color="#5EC8C0" />
+
+    <SolidColorBrush x:Key="Brush.Text" Color="#EAF3F1" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#C3D8D5" />
+    <SolidColorBrush x:Key="Brush.TextDisabled" Color="#6E8A88" />
+    <SolidColorBrush x:Key="Brush.Glyph" Color="#A6E3DD" />
+
+    <SolidColorBrush x:Key="Brush.ItemHover" Color="#295EC8C0" />
+    <SolidColorBrush x:Key="Brush.ItemPressed" Color="#3D5EC8C0" />
+    <SolidColorBrush x:Key="Brush.ItemSelected" Color="#335EC8C0" />
+    <SolidColorBrush x:Key="Brush.Focus" Color="#5EC8C0" />
+    <SolidColorBrush x:Key="Brush.DropTarget" Color="#1F5EC8C0" />
+
+    <SolidColorBrush x:Key="Brush.Accent" Color="#5EC8C0" />
+    <SolidColorBrush x:Key="Brush.OnAccent" Color="#0A2227" />
+    <SolidColorBrush x:Key="Brush.AccentHover" Color="#7AD4CD" />
+
+    <SolidColorBrush x:Key="Brush.Window" Color="#0D1B1F" />
+    <SolidColorBrush x:Key="Brush.Surface" Color="#12262B" />
+    <SolidColorBrush x:Key="Brush.SurfaceRaised" Color="#183238" />
+    <SolidColorBrush x:Key="Brush.Control" Color="#1C3A40" />
+    <SolidColorBrush x:Key="Brush.ControlHover" Color="#23464D" />
+    <SolidColorBrush x:Key="Brush.Line" Color="#24393E" />
+
+    <SolidColorBrush x:Key="Brush.Warning" Color="#E9C58A" />
+    <SolidColorBrush x:Key="Brush.Critical" Color="#F29B8E" />
+
+    <!-- Shoreline tints a panel can choose. -->
+    <SolidColorBrush x:Key="Brush.Tint.seaglass" Color="#5EC8C0" />
+    <SolidColorBrush x:Key="Brush.Tint.sand" Color="#E4C891" />
+    <SolidColorBrush x:Key="Brush.Tint.coral" Color="#F29B8E" />
+    <SolidColorBrush x:Key="Brush.Tint.sky" Color="#8BBEFF" />
+    <SolidColorBrush x:Key="Brush.Tint.moss" Color="#A6C98B" />
+
+</ResourceDictionary>

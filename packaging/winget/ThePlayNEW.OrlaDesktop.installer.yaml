@@ -1,0 +1,29 @@
+# Template. Replace __VERSION__ and __SHA256__ before submitting. See packaging/README.md.
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.9.0.schema.json
+
+PackageIdentifier: ThePlayNEW.OrlaDesktop
+PackageVersion: __VERSION__
+MinimumOSVersion: 10.0.19045.0
+InstallerType: exe
+Scope: user
+InstallModes:
+- silent
+- silentWithProgress
+InstallerSwitches:
+  Silent: --silent
+  SilentWithProgress: --silent
+UpgradeBehavior: install
+# Velopack registers the uninstall entry under the pack id.
+ProductCode: OrlaDesktop
+AppsAndFeaturesEntries:
+- DisplayName: Orla Desktop
+  Publisher: Eduardo Torres
+  DisplayVersion: __VERSION__
+  ProductCode: OrlaDesktop
+  InstallerType: exe
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/ThePlayNEW/orla-desktop/releases/download/v__VERSION__/OrlaDesktop-win-Setup.exe
+  InstallerSha256: __SHA256__
+ManifestType: installer
+ManifestVersion: 1.9.0
