@@ -6,12 +6,13 @@ Orla places translucent panels on the Windows desktop. Each panel shows shortcut
 
 - [How panels work](#how-panels-work)
 - [First run](#first-run)
+- [Let Orla organize](#let-orla-organize)
 - [Ready-made panels](#ready-made-panels)
 - [Collections and folder panels](#collections-and-folder-panels)
 - [Moving, resizing and arranging](#moving-resizing-and-arranging)
 - [Items in panels](#items-in-panels)
 - [Drag and drop](#drag-and-drop)
-- [Showing panels in front](#showing-panels-in-front)
+- [The keyboard shortcut](#the-keyboard-shortcut)
 - [Clean desktop](#clean-desktop)
 - [The Orla window](#the-orla-window)
 - [Keyboard](#keyboard)
@@ -30,9 +31,9 @@ Panels sit on the same layer as the desktop icons, inside the Explorer window th
 - A panel never covers an open application. When a window is above the desktop, it is also above the panels.
 - In desktop areas without a panel, everything works as it does in Windows: rubber-band selection, the right-click menu and dragging files onto the desktop.
 
-When you need a panel while windows are open, use **Ctrl+Alt+Space**. See [Showing panels in front](#showing-panels-in-front).
+The keyboard shortcut, **Ctrl+Alt+Space** by default, hides or shows the panels when the desktop is in view and brings them to the front when a window is on top. See [The keyboard shortcut](#the-keyboard-shortcut).
 
-The Orla icon sits in the notification area, next to the clock. A click opens the Orla window. A right-click shows a menu with **Open Orla**, **Show panels in front**, **Lock panels**, **Clean desktop** and **Quit and restore the desktop**.
+The Orla icon sits in the notification area, next to the clock. A click opens the Orla window. A right-click shows a menu with **Open Orla**, **Hide panels** (or **Show panels**), **Show panels in front**, **Lock panels**, **Clean desktop** and **Quit and restore the desktop**.
 
 ## First run
 
@@ -45,10 +46,51 @@ The first time Orla opens, the **Welcome to Orla Desktop** screen offers two way
 
 | Option | What happens |
 | --- | --- |
-| **Keep my icons** (selected by default) | The Windows icons stay as they are. In the next step, **Choose your first panels**, you tick the [ready-made panels](#ready-made-panels) you want and click **Start**. **Back** returns to the first step. |
-| **Organize my desktop** | Desktop items become collections: **Apps** for shortcuts, **Folders** for folders and **Files** for everything else. Orla also creates the **Quick access** panel and an **On the desktop** panel that shows only what is not in another panel yet. **Clean desktop** is turned on. |
+| **Let Orla organize** (recommended, selected by default) | Orla reads the desktop, builds panels by category and shows a preview before anything changes. See [Let Orla organize](#let-orla-organize). |
+| **Keep my icons** | The Windows icons stay as they are. In the next step, **Choose your first panels**, you tick the [ready-made panels](#ready-made-panels) you want and click **Start**. **Back** returns to the first step. |
 
 Neither option moves, renames or deletes a file. You can change everything later.
+
+## Let Orla organize
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/organize-dark.png">
+  <img src="../images/organize-light.png" width="720" alt="The Your desktop, organized preview, with a map of the screen and the planned panels">
+</picture>
+
+Orla can build the panels for you, the way a person would tidy the desktop. Use it on first run with **Let Orla organize**, or at any time from **Panels > Organize for me**.
+
+1. Orla reads your desktop and the Windows public desktop.
+2. The **Your desktop, organized** screen shows a map of your main screen with each panel where it will go.
+3. Choose the options and click **Organize**. **Back** leaves without changing anything.
+
+How it sorts items:
+
+| Panel | What goes in |
+| --- | --- |
+| **Apps** | Browsers, chat, music and every other program |
+| **Development** | Code editors, Git, Docker, databases, terminals |
+| **Creative** | Image and video editing, design, streaming |
+| **Utilities** | Scripts (`.bat`, `.cmd`, `.ps1`), peripherals, drivers and system tools |
+| **Games** | Games and launchers (Steam, Epic, EA, Riot, Rockstar, FiveM, Minecraft and more) |
+| **Folders** | The folders on your desktop |
+| **Documents**, **Pictures and videos**, **Files** | Loose files on the desktop, by type. Installers and archives go to **Files**. |
+| **Quick access** | This PC, Downloads, Documents, Pictures and Recycle Bin |
+
+- A shortcut is sorted by the program it opens, not by its name.
+- A folder that only holds shortcuts and scripts, such as `Shortcuts\Games`, is read from the inside. If its name points to a category (Games, Dev, Utilities, Peripherals, Apps…), that category applies to what is inside.
+- A category with a single item joins the closest one: a lone game goes to **Apps**, a lone PDF goes to **Files**.
+- Tools are stacked in columns from the left of the main screen; folders, files and **New on desktop** from the right. The middle stays free.
+- Panels show shortcuts. No file moves.
+
+The two options in the preview:
+
+| Option | What it does |
+| --- | --- |
+| **Hide the Windows icons** | Turns on [Clean desktop](#clean-desktop) and creates the **New on desktop** panel with what is not in any panel yet. If you turn it off, the Windows icons stay and that panel is not created, because the icons already show what is new. |
+| **Keep organized** | Each new item on the desktop goes to its category's panel by itself, a few seconds after it arrives. An item deleted or moved off the desktop leaves its panel. Anything that fits nowhere stays in **New on desktop**. You can turn it on or off later in **Panels**. |
+
+If you already had panels, they are replaced. A copy of the previous layout stays in the [data folder](#where-your-data-lives) as `layout.json.before-organize-` followed by the date, and **Panels > Restore previous panels** undoes the organization while Orla is open.
 
 ## Ready-made panels
 
@@ -68,7 +110,7 @@ Ready-made panels help you start quickly. They appear in the second step of the 
 | **Documents** | Folder panel | Your Documents folder |
 | **Pictures** | Folder panel | Your Pictures folder, with thumbnails |
 | **Screenshots** | Folder panel | The Screenshots folder inside Pictures. Listed only if it exists. |
-| **On the desktop** | Folder panel | What is on the desktop and not in any panel yet |
+| **New on desktop** | Folder panel | What is on the desktop and not in any panel yet. Pairs well with Clean desktop. |
 | **Work** | Collection | Empty, for you to fill |
 | **Study** | Collection | Empty, for you to fill |
 
@@ -99,7 +141,7 @@ To add items without dragging, open the panel's **···** menu and choose **Add
 
 A folder panel shows what is inside a folder, folders first and in alphabetical order, as File Explorer sorts them. Hidden and system files are not shown. The panel updates on its own when something in the folder is created, deleted or renamed.
 
-The **On the desktop** panel, created by **Organize my desktop**, shows your desktop and the Windows public desktop. In its **···** menu, **Show only what is not in another panel** hides items that are already in a collection. Anything you save to the desktop later appears there until you organize it.
+The **New on desktop** panel shows your desktop and the Windows public desktop. In its **···** menu, **Show only what is not in another panel** hides what another panel already shows: the item itself, a folder whose shortcuts are in collections, or a folder that has its own panel. Anything you save to the desktop later appears there until you organize it.
 
 If a panel's folder cannot be found, for example because the drive is disconnected, the panel says: "This panel's folder was not found. Check that the drive is connected."
 
@@ -121,7 +163,7 @@ On the panel itself, the **···** menu (**More options**) offers:
 
 - In collections: **Add files…** and **Add folder…**.
 - In folder panels: **Open folder**.
-- In every panel: **Rename panel**, **Line colour**, **Collapse** or **Expand**, **Hide panel**, **Open Orla** and **Remove panel…**.
+- In every panel: **Rename panel**, **Line colour**, **Collapse** or **Expand**, **Automatic height**, **Hide panel**, **Open Orla** and **Remove panel…**.
 
 Removing a panel never deletes files. For a collection, only the shortcuts go away. For a folder panel, the folder stays intact.
 
@@ -129,8 +171,9 @@ Removing a panel never deletes files. For a collection, only the shortcuts go aw
 
 ## Moving, resizing and arranging
 
-- **Move:** drag the panel by its title. When you let go, it lines up with the screen edges and neighbouring panels. While you drag, the panel stays inside the screen's work area, with a small margin.
-- **Resize:** drag any edge or corner. Width and height move in whole columns and rows of icons, so there is never an empty strip. The height fits the content up to the size you set; beyond that, the panel scrolls.
+- **Move:** drag the panel by its title. While you drag, it sticks to the screen margins and to the edges of nearby panels, keeping the same gap, and stays inside the screen's work area.
+- **Resize:** drag any edge or corner. A thin accent line shows the edge under the pointer. The panel follows the pointer and shows its size in columns × rows. When you let go, it glides to whole columns and rows of icons, so there is never an empty strip. Edges stop at the screen margin and at neighbouring panels.
+- **Automatic height:** on for new panels. The panel is as tall as its content, up to its set number of rows; beyond that, it scrolls. Changing the height with the mouse turns it off, and the panel keeps exactly the rows you chose. To turn it back on, double-click the top or bottom edge, or tick **Automatic height** in the **···** menu.
 - **No overlap:** a panel never sits on top of another. If you drop or grow a panel onto another one, it moves to the nearest free spot.
 - **Rename:** double-click the title, type the new name and press Enter. Esc cancels.
 - **Collapse:** the chevron on the right of the title bar leaves only the title bar in view. Click it again to expand.
@@ -166,30 +209,53 @@ With several items selected, you can drag, open or remove them together.
 | Folder panel | Collection | Creates a shortcut to the file |
 | Folder panel | File Explorer or desktop | Follows the normal Windows rules, because the file is real |
 
+While you drag items from Orla, a translucent preview of the item follows the pointer, with a count when there are several, over Orla and over other programs. In collections, a line shows exactly where the items will land, in the same panel or another one. Near the top or bottom edge of a panel, it scrolls by itself. After the drop, the moved items stay selected in the destination. Files dragged from File Explorer show Windows' own drag image over the panels.
+
 When dropping onto a folder panel, hold **Ctrl** to copy or **Shift** to move, as in File Explorer. The operation uses Windows' own dialog, with progress and name-conflict handling, and can be undone with Ctrl+Z in File Explorer.
 
-## Showing panels in front
+## The keyboard shortcut
+
+The shortcut is **Ctrl+Alt+Space** by default, and you can change it in **General**. It does what the moment calls for:
+
+| Situation | What the shortcut does |
+| --- | --- |
+| Desktop in view (the desktop, the taskbar or a panel has focus) | Hides the panels, or shows them again. With **Clean desktop** on, the Windows icons come back while the panels are hidden. |
+| An application window in front | Brings the panels in front of your windows. Press it again, or Esc, to send them back to the desktop. |
+
+Panels always start visible when Orla opens.
+
+### Dropping files while windows are open
 
 Normally, open windows sit above the panels. To drop a file from File Explorer onto a panel without minimizing anything:
 
-1. Press **Ctrl+Alt+Space**. The panels appear in front of every window.
+1. With the File Explorer window in front, press the shortcut. The panels appear in front of every window.
 2. Drag the file from File Explorer onto the panel.
-3. Press **Ctrl+Alt+Space** again, or Esc, to send the panels back to the desktop.
+3. Press the shortcut again, or Esc while a panel has focus, to send the panels back to the desktop.
 
 Opening an item or using **Show in File Explorer** also sends the panels back.
 
-The same feature is in the notification area menu as **Show panels in front**, and in the Orla window as the **Show in front** button. While the panels are in front, that button reads **Back to the desktop**.
+### From the notification area and the Orla window
 
-If another program already uses **Ctrl+Alt+Space**, Orla tells you and the feature stays available from the notification area. See [The shortcut does not work](#the-shortcut-does-not-work).
+The notification area menu has **Hide panels** (or **Show panels**, when they are hidden) and **Show panels in front**, with the current shortcut next to them. In the Orla window, the **Show in front** button does the same; while the panels are in front, it reads **Back to the desktop**.
+
+### Changing the combination
+
+In **General**:
+
+- **Keyboard shortcut** turns the shortcut on or off. Its description shows the current combination.
+- Under **Key combination**, click the button and press the new combination: Ctrl, Alt or Win together with another key. Esc cancels.
+- **Restore default** goes back to **Ctrl+Alt+Space**.
+
+If another program already uses the combination you pick, Orla keeps the previous one and tells you. See [The shortcut does not work](#the-shortcut-does-not-work).
 
 ## Clean desktop
 
-**Clean desktop** hides the Windows icons and leaves only the panels. It is off unless you choose **Organize my desktop** on first run. To turn it on or off, use **General > Clean desktop** or the **Clean desktop** item in the notification area menu.
+**Clean desktop** hides the Windows icons and leaves only the panels. It is off unless you use **Let Orla organize** with **Hide the Windows icons** on. To turn it on or off, use **General > Clean desktop** or the **Clean desktop** item in the notification area menu.
 
 While it is on:
 
 - The Windows icons and rubber-band selection on the desktop are unavailable.
-- Your files stay in the desktop folder. To see them, use the **On the desktop** panel created by **Organize my desktop**, or create a **Folder panel** for the desktop.
+- Your files stay in the desktop folder. To see them, use the **New on desktop** panel from **New panel**, or create a **Folder panel** for the desktop.
 
 ### How Orla protects your icons
 
@@ -219,7 +285,7 @@ The window has four pages:
 
 - **Panels:** create, show, hide and remove panels. See [Creating, hiding and removing panels](#creating-hiding-and-removing-panels).
 - **Appearance:** theme, opacity, icons and animations, with a live preview.
-- **General:** startup, **Clean desktop**, the shortcut, locking, language and **Rearrange panels**.
+- **General:** startup, **Clean desktop**, the shortcut, locking, language, **Rearrange panels** and **Start over**.
 - **About:** version, your data folder, **User guide**, **Report a problem** and **Quit Orla**.
 
 At the bottom of the sidebar, **Part of the Windows desktop** means the panels are on the desktop layer. If it says **Compatibility mode: the Windows desktop was not found.**, see [Troubleshooting](#orla-shows-compatibility-mode).
@@ -238,6 +304,8 @@ At the bottom of the sidebar, **Part of the Windows desktop** means the panels a
 | **Icon size** | **Small**, **Medium** or **Large** |
 | **Animations** | Short transitions when panels appear. If animations are off in Windows, Orla does not animate either. |
 
+Theme and opacity changes apply right away, to the panels and to the Orla window.
+
 With Windows High Contrast on, Orla uses the system colours and turns off transparency.
 
 ### General
@@ -246,10 +314,12 @@ With Windows High Contrast on, Orla uses the system colours and turns off transp
 | --- | --- |
 | **Start with Windows** | Opens your panels when you sign in. On by default. |
 | **Clean desktop** | Hides the Windows icons. See [Clean desktop](#clean-desktop). |
-| **Ctrl+Alt+Space shortcut** | Turns the shortcut that brings panels to the front on or off |
+| **Keyboard shortcut** | Turns the shortcut on or off. See [The keyboard shortcut](#the-keyboard-shortcut). |
+| **Key combination** | Changes the shortcut's combination. **Restore default** goes back to **Ctrl+Alt+Space**. |
 | **Lock position and size** | Prevents moving or resizing panels |
 | **Language** | **System** follows the Windows display language. You can also pick Português (Brasil), English, Español, Français, Deutsch or Italiano. The change applies immediately. |
 | **Rearrange panels** | The **Rearrange** button lines up the visible panels in the top-right corner of the main screen |
+| **Start over** | The **Start over…** button removes every panel, returns settings to their defaults and opens **Welcome to Orla Desktop**, as after a fresh install. First, Orla keeps a copy of the current layout in its data folder as `layout.json.before-reset-<date>`. None of your files are moved or deleted, and **Start with Windows** stays as it was. To go back to the previous layout, quit Orla and rename that copy to `layout.json`. |
 | **Automatic updates** | Installed version only. On by default. See [Updates](#updates). |
 
 ### Updates
@@ -262,8 +332,9 @@ The portable version does not update itself. To update it, quit Orla, download t
 
 | Key | Where | Action |
 | --- | --- | --- |
-| Ctrl+Alt+Space | Anywhere | Brings the panels to the front, or sends them back |
-| Esc | Panels in front | Sends the panels back to the desktop |
+| Ctrl+Alt+Space (default, configurable) | Desktop in view | Hides or shows the panels |
+| Ctrl+Alt+Space (default, configurable) | Application window in front | Brings the panels to the front, or sends them back |
+| Esc | Panels in front, with focus | Sends the panels back to the desktop |
 | Enter | Item | Opens it |
 | Arrow keys | Item | Moves the selection |
 | Ctrl+A | Panel | Selects every item |
@@ -319,7 +390,9 @@ Your files never leave the desktop folder, even while the icons are hidden.
 
 ### The shortcut does not work
 
-If another program already uses **Ctrl+Alt+Space**, Orla shows "Another program already uses Ctrl+Alt+Space" and the **Ctrl+Alt+Space shortcut** switch stays off. Use **Show panels in front** from the notification area menu, or free the shortcut in the other program and turn the switch on again in **General**.
+If another program already uses the combination, Orla tells you ("Another program already uses…") and the panels stay available from the notification area menu. To fix it, pick another combination under **General > Key combination**, or free the combination in the other program and turn **Keyboard shortcut** on again.
+
+If you changed the combination and do not remember it, the **Keyboard shortcut** description and the notification area menu show the current one. **Restore default** goes back to **Ctrl+Alt+Space**.
 
 ### Windows showed a SmartScreen warning
 
@@ -335,7 +408,9 @@ Under **General**, click **Rearrange** next to **Rearrange panels**. Every visib
 
 ### A panel disappeared
 
-It may be hidden. Open Orla, go to **Panels** and turn on the panel's **On desktop** switch.
+If every panel is gone, the shortcut may have hidden them. Press the shortcut with the desktop in view, or choose **Show panels** from the notification area menu.
+
+If only one panel is gone, it may be hidden. Open Orla, go to **Panels** and turn on the panel's **On desktop** switch.
 
 ### Orla shows "Compatibility mode"
 

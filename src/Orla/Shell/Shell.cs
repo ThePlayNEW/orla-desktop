@@ -31,6 +31,18 @@ namespace Orla
             return File.Exists(path) || Directory.Exists(path);
         }
 
+        public static bool isHidden(string path)
+        {
+            try
+            {
+                return (File.GetAttributes(path) & (FileAttributes.Hidden | FileAttributes.System)) != 0;
+            }
+            catch (Exception)
+            {
+                return true;
+            }
+        }
+
         // The user's desktop and the shared public desktop, which Windows shows together.
         public static string[] desktopDirectories()
         {
@@ -271,7 +283,7 @@ namespace Orla
             try
             {
                 var factory = (IShellItemImageFactory)item;
-                if (factory.GetImage(new SIZE { cx = pixels, cy = pixels }, SIIGBF_BIGGERSIZEOK, out bitmap) != 0)
+                if (factory.GetImage(new SIZE { cx = pixels, cy = pixels }, SIIGBF_RESIZETOFIT, out bitmap) != 0)
                     return null;
                 return toBitmapSource(bitmap);
             }
@@ -302,7 +314,17 @@ namespace Orla
             {
                 DeleteDC(dc);
             }
-            BitmapSource source = BitmapSource.Create(w, h, 96, 96, PixelFormats.Pbgra32, null, pixels, w * 4);
+            // The shell usually hands back straight (not premultiplied) alpha; reading it as premultiplied leaves a pale,
+            // jagged rim around icons. A colour brighter than its alpha can only happen with straight alpha.
+            bool straight = false, anyAlpha = false;
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                anyAlpha |= pixels[i + 3] != 0;
+                straight |= Math.Max(pixels[i], Math.Max(pixels[i + 1], pixels[i + 2])) > pixels[i + 3];
+            }
+            // Some thumbnail providers leave alpha at zero everywhere: those images are opaque.
+            PixelFormat format = !anyAlpha ? PixelFormats.Bgr32 : straight ? PixelFormats.Bgra32 : PixelFormats.Pbgra32;
+            BitmapSource source = BitmapSource.Create(w, h, 96, 96, format, null, pixels, w * 4);
             source.Freeze();
             return source;
         }
@@ -315,7 +337,7 @@ namespace Orla
         }
 
         const uint SIGDN_NORMALDISPLAY = 0;
-        const int SIIGBF_BIGGERSIZEOK = 0x1;
+        const int SIIGBF_RESIZETOFIT = 0x0;
         const uint FO_MOVE = 1, FO_COPY = 2;
         const ushort FOF_ALLOWUNDO = 0x40;
 

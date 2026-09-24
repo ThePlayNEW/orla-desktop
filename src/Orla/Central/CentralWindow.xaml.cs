@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
 namespace Orla
@@ -17,7 +19,9 @@ namespace Orla
         public const string Repository = "https://github.com/ThePlayNEW/orla-desktop";
         readonly Controller controller;
         PanelView preview;
-        bool loading;
+        bool loading, recording;
+        Organizer.Plan plan;
+        bool organizeFromWelcome;
 
         public CentralWindow(Controller controller)
         {
@@ -55,10 +59,19 @@ namespace Orla
                 if (!controller.setHotkey(HotkeySwitch.IsChecked == true))
                 {
                     HotkeySwitch.IsChecked = false;
-                    Dialog.alert(Text.get("general.hotkey"), Text.get("notice.hotkeyTaken"));
+                    Dialog.alert(Text.get("general.hotkey"), Text.format("notice.hotkeyTaken", controller.Shortcut.display()));
                 }
             };
             LockSwitch.Click += delegate { controller.setLock(LockSwitch.IsChecked == true); };
+            ShortcutButton.Click += delegate { startRecording(); };
+            ShortcutButton.LostKeyboardFocus += delegate { stopRecording(); };
+            ShortcutReset.Click += delegate {
+                stopRecording();
+                if (!controller.setShortcut(Shortcut.parse(Shortcut.Default)))
+                    Dialog.alert(Text.get("general.shortcut"), Text.format("notice.hotkeyTaken", Shortcut.parse(Shortcut.Default).display()));
+                refresh();
+            };
+            PreviewKeyDown += recordKey;
             LanguageButton.Click += delegate {
                 var menu = new ContextMenu { PlacementTarget = LanguageButton, Placement = PlacementMode.Bottom };
                 menu.Items.Add(Menus.check("language.system", controller.Layout.Language == "system", () => controller.setLanguage("system")));
@@ -75,6 +88,11 @@ namespace Orla
             UpdateSwitch.Click += delegate { controller.setAutoUpdate(UpdateSwitch.IsChecked == true); };
             UpdateButton.Click += delegate { Updates.restartNow(controller); };
             ArrangeButton.Click += delegate { controller.resetPositions(); };
+            ResetButton.Click += delegate {
+                if (Dialog.confirm(Text.get("general.resetConfirmTitle"), Text.get("general.resetConfirmMessage"),
+                                   Text.get("general.resetConfirmAction")))
+                    controller.resetToWelcome();
+            };
 
             DataButton.Click += delegate { controller.open(controller.DataDirectory); };
             GuideButton.Click += delegate { browse(Repository + (Text.Language == "pt-BR" ? "/blob/main/docs/pt-BR/guia.md" : "/blob/main/docs/en/guide.md")); };
@@ -82,9 +100,37 @@ namespace Orla
             QuitButton.Click += delegate { controller.quit(); };
             StartButton.Click += delegate {
                 if (ChoiceOrganize.IsChecked == true)
-                    finishWelcome(true, new List<Preset>());
+                    showOrganize(true);
                 else
                     showPresetChoices();
+            };
+            OrganizeButton.Click += delegate { showOrganize(false); };
+            OrganizeClean.Click += delegate { drawPlan(false); };
+            OrganizeStage.SizeChanged += delegate {
+                bool animate = pendingAnimation;
+                pendingAnimation = false;
+                drawPlan(animate);
+            };
+            OrganizeKeep.Click += delegate { drawPlan(false); };
+            OrganizeBack.Click += delegate {
+                OrganizePreview.Visibility = Visibility.Collapsed;
+                if (organizeFromWelcome)
+                    Welcome.Visibility = Visibility.Visible;
+            };
+            OrganizeApply.Click += delegate {
+                Layout next = planned();
+                plan = null;
+                OrganizePreview.Visibility = Visibility.Collapsed;
+                Welcome.Visibility = Visibility.Collapsed;
+                controller.applyOrganized(next);
+                Main.Visibility = Visibility.Visible;
+                NavPanels.IsChecked = true;
+                refresh();
+            };
+            KeepSwitch.Click += delegate { controller.setAutoOrganize(KeepSwitch.IsChecked == true); };
+            OrganizeUndo.Click += delegate {
+                controller.undoOrganize();
+                refresh();
             };
             BackButton.Click += delegate {
                 WelcomePresets.Visibility = Visibility.Collapsed;
@@ -92,7 +138,7 @@ namespace Orla
             };
             FinishButton.Click += delegate {
                 var chosen = PresetChoices.Children.OfType<CheckBox>().Where(c => c.IsChecked == true).Select(c => (Preset)c.Tag).ToList();
-                finishWelcome(false, chosen);
+                finishWelcome(chosen);
             };
 
             VersionText.Text = Text.format("about.version", Assembly.GetExecutingAssembly().GetName().Version.ToString(3));
@@ -102,7 +148,12 @@ namespace Orla
 
         public void show(string page)
         {
+            // Opening a page from the tray or the panels leaves the preview; its Back button would lead nowhere useful.
+            if (page != null)
+                OrganizePreview.Visibility = Visibility.Collapsed;
             bool welcome = page == "welcome" || !controller.Layout.Welcomed;
+            if (page == "welcome")
+                WelcomePresets.Visibility = Visibility.Collapsed;
             if (WelcomePresets.Visibility != Visibility.Visible)
                 Welcome.Visibility = welcome ? Visibility.Visible : Visibility.Collapsed;
             Main.Visibility = welcome ? Visibility.Collapsed : Visibility.Visible;
@@ -124,14 +175,131 @@ namespace Orla
                 buildPreview();
         }
 
-        void finishWelcome(bool organize, List<Preset> presets)
+        void finishWelcome(List<Preset> presets)
         {
-            controller.welcome(organize, presets);
+            controller.welcome(presets);
             Welcome.Visibility = Visibility.Collapsed;
             WelcomePresets.Visibility = Visibility.Collapsed;
             Main.Visibility = Visibility.Visible;
             NavPanels.IsChecked = true;
             refresh();
+        }
+
+        // ---- let Orla organize ----
+
+        internal void showOrganize(bool fromWelcome, Func<Organizer.Plan> source = null)
+        {
+            organizeFromWelcome = fromWelcome;
+            // A plan is used once: after Apply its panels are the live ones, and drawing it again would move them.
+            plan = null;
+            Welcome.Visibility = Visibility.Collapsed;
+            OrganizePreview.Visibility = Visibility.Visible;
+            OrganizeClean.IsChecked = true;
+            OrganizeKeep.IsChecked = true;
+            OrganizeMap.Children.Clear();
+            OrganizeApply.IsEnabled = false;
+            OrganizeLead.Text = Text.get("organize.reading");
+            OrganizeNote.Text = !fromWelcome && controller.Layout.Groups.Count > 0 ? Text.get("organize.replaceNote") : "";
+            Task.Run(source ?? Organizer.plan).ContinueWith(t => Dispatcher.BeginInvoke(new Action(delegate {
+                if (t.IsFaulted)
+                {
+                    OrganizeLead.Text = Text.get("organize.failed");
+                    return;
+                }
+                plan = t.Result;
+                OrganizeApply.IsEnabled = true;
+                drawPlan(true);
+            })));
+        }
+
+        Layout planned() => Organizer.build(plan, controller.Layout, OrganizeClean.IsChecked == true, OrganizeKeep.IsChecked == true);
+
+        // The primary screen in miniature with every planned panel where it will be. The panels arrive one by one, the
+        // single moment of motion in the flow.
+        void drawPlan(bool animate)
+        {
+            if (plan == null)
+                return;
+            Layout next = planned();
+            OrganizeLead.Text = plan.Count == 0 ? Text.get("organize.nothing") : Text.format("organize.lead", plan.Count, next.Groups.Count);
+            Screen screen = Screens.primary();
+            RECT work = screen.Work;
+            double roomWidth = OrganizeStage.ActualWidth - 26, roomHeight = OrganizeStage.ActualHeight - 26;
+            if (roomWidth <= 0 || roomHeight <= 0)
+            {
+                // Not laid out yet; the size change that follows draws it.
+                pendingAnimation = animate;
+                return;
+            }
+            double k = Math.Min(roomWidth / work.Width, roomHeight / work.Height);
+            OrganizeMap.Width = Math.Floor(work.Width * k);
+            OrganizeMap.Height = Math.Floor(work.Height * k);
+            OrganizeMap.Children.Clear();
+            int order = 0;
+            foreach (Group g in next.Groups)
+            {
+                // Edges are rounded, not sizes, so the gaps between neighbours stay even.
+                int rows = g.IsFolder ? g.Rows : Math.Max(1, Math.Min(g.Rows, (int)Math.Ceiling(g.Items.Count / (double)g.Columns)));
+                double left = (g.X - work.Left) * k, top = (g.Y - work.Top) * k;
+                double x0 = Math.Round(left), x1 = Math.Round(left + PanelMetrics.width(g.Columns, next.IconSize) * k * screen.Scale);
+                double y0 = Math.Round(top), y1 = Math.Round(top + PanelMetrics.height(rows, next.IconSize) * k * screen.Scale);
+                FrameworkElement mini = miniPanel(g, rows, x1 - x0, y1 - y0, k * screen.Scale, next.IconSize);
+                Canvas.SetLeft(mini, x0);
+                Canvas.SetTop(mini, y0);
+                OrganizeMap.Children.Add(mini);
+                if (animate && controller.Layout.Animations)
+                {
+                    var delay = TimeSpan.FromMilliseconds(60 * order++);
+                    mini.Opacity = 0;
+                    var shift = new TranslateTransform(0, 6);
+                    mini.RenderTransform = shift;
+                    mini.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(260)) { BeginTime = delay });
+                    shift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(6, 0, TimeSpan.FromMilliseconds(320)) {
+                        BeginTime = delay, EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+                }
+            }
+        }
+
+        bool pendingAnimation;
+
+        // One planned panel drawn with the real panel's geometry at map scale: glass, title, the tinted shoreline and
+        // one mark per icon where the icon will be.
+        FrameworkElement miniPanel(Group g, int rows, double width, double height, double k, string iconSize)
+        {
+            var card = new Border { Width = width, Height = height, CornerRadius = new CornerRadius(Math.Max(3, 12 * k)),
+                                    BorderThickness = new Thickness(1), ClipToBounds = true };
+            card.SetResourceReference(Border.BackgroundProperty, "Brush.PanelGlass");
+            card.SetResourceReference(Border.BorderBrushProperty, "Brush.PanelBorder");
+            var face = new Canvas();
+            var title = new TextBlock { Text = g.Name, FontSize = 9, FontWeight = FontWeights.SemiBold, Width = width - 16 * k - 4,
+                                        TextTrimming = TextTrimming.CharacterEllipsis };
+            title.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Text");
+            Canvas.SetLeft(title, 14 * k);
+            Canvas.SetTop(title, 2);
+            face.Children.Add(title);
+            var shore = new Path { Data = Geometry.Parse("M 0 3 C 40 0 70 6 110 3 S 190 0 230 3 S 280 6 300 3"), Stretch = Stretch.Fill,
+                                   StrokeThickness = 1, Width = width - 30 * k, Height = Math.Max(2, 6 * k),
+                                   StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round };
+            shore.SetResourceReference(Shape.StrokeProperty, "Brush.Tint." + g.Tint);
+            Canvas.SetLeft(shore, 14 * k);
+            Canvas.SetTop(shore, 15);
+            face.Children.Add(shore);
+            // The title needs a few pixels more than the scaled header, so the rows share what is left evenly.
+            double tile = PanelMetrics.tile(iconSize) * k, icon = Math.Round(PanelMetrics.icon(iconSize) * k);
+            double top = 19, pitch = (height - top - 3) / rows;
+            // A folder panel's content is only known later, so it shows one faint row, as a panel that fills up.
+            int count = g.IsFolder ? g.Columns : Math.Min(g.Items.Count, g.Columns * rows);
+            for (int i = 0; i < count; i++)
+            {
+                var mark = new Border { Width = icon, Height = icon, CornerRadius = new CornerRadius(icon / 4),
+                                        Opacity = g.IsFolder ? 0.25 : 0.75 };
+                mark.SetResourceReference(Border.BackgroundProperty, "Brush.Tint." + g.Tint);
+                Canvas.SetLeft(mark, Math.Round(9 * k + (i % g.Columns) * tile + (tile - icon) / 2));
+                Canvas.SetTop(mark, Math.Round(top + (i / g.Columns) * pitch + (pitch - icon) / 2));
+                face.Children.Add(mark);
+            }
+            card.Child = face;
+            return card;
         }
 
         // Second welcome step: the presets that make sense on this computer, the most useful ones already ticked.
@@ -198,6 +366,50 @@ namespace Orla
             })));
         }
 
+        // The next key combination pressed becomes the shortcut. Esc cancels.
+        void startRecording()
+        {
+            recording = true;
+            controller.pauseHotkey(true);
+            ShortcutButton.Content = Text.get("general.shortcutRecording");
+            ShortcutHint.Text = Text.get("general.shortcutHint");
+        }
+
+        void stopRecording()
+        {
+            if (!recording)
+                return;
+            recording = false;
+            controller.pauseHotkey(false);
+            ShortcutButton.Content = controller.Shortcut.display();
+        }
+
+        void recordKey(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (!recording)
+                return;
+            e.Handled = true;
+            if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                stopRecording();
+                return;
+            }
+            Shortcut? pressed = Shortcut.fromKeyPress(e);
+            if (pressed == null)
+                return;
+            if (!pressed.Value.IsValid)
+            {
+                ShortcutHint.Text = Text.get("general.shortcutInvalid");
+                return;
+            }
+            recording = false;
+            bool ok = controller.setShortcut(pressed.Value);
+            controller.pauseHotkey(false);
+            ShortcutButton.Content = controller.Shortcut.display();
+            ShortcutHint.Text = ok ? Text.get("general.shortcutHint") : Text.format("notice.hotkeyTaken", pressed.Value.display());
+            refresh();
+        }
+
         void onChange(Action action)
         {
             if (!loading)
@@ -239,7 +451,19 @@ namespace Orla
             UpdateCard.Visibility = Updates.Ready != null ? Visibility.Visible : Visibility.Collapsed;
             UpdateTitle.Text = Updates.Ready != null ? Text.format("about.updateReady", Updates.Ready) : "";
             FrontLabel.Text = Text.get(controller.Overlay ? "central.back" : "central.front");
+            string shortcut = controller.Shortcut.display();
+            FrontShortcut.Text = shortcut;
             FrontShortcut.Visibility = l.OverlayHotkey ? Visibility.Visible : Visibility.Collapsed;
+            PanelsTip.Text = Text.format("central.panelsTip", shortcut);
+            WelcomeTip.Text = Text.format("welcome.tip", shortcut);
+            HotkeyHint.Text = Text.format("general.hotkeyHint", shortcut);
+            if (!recording)
+                ShortcutButton.Content = shortcut;
+            ShortcutButton.IsEnabled = l.OverlayHotkey;
+            KeepSwitch.IsChecked = l.AutoOrganize;
+            KeepSwitch.Visibility = controller.Organized ? Visibility.Visible : Visibility.Collapsed;
+            OrganizeUndo.Visibility = controller.CanUndoOrganize ? Visibility.Visible : Visibility.Collapsed;
+            OrganizeKeepRow.Visibility = controller.Organized || controller.CanUndoOrganize ? Visibility.Visible : Visibility.Collapsed;
             StatusText.Text = Text.get(controller.DesktopFound ? "status.integrated" : "status.fallback");
             StatusDot.SetResourceReference(Shape.FillProperty, controller.DesktopFound ? "Brush.Accent" : "Brush.Warning");
             buildPanelList();

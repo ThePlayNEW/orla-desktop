@@ -25,11 +25,12 @@
 
 ## O que muda
 
+- **Deixe o Orla organizar.** Ele lê o seu desktop e monta painéis por categoria (programas, desenvolvimento, jogos, utilitários, pastas, documentos), com as ferramentas à esquerda, o trabalho à direita e o centro livre para o papel de parede. Com **Manter organizado**, cada item novo no desktop entra sozinho no painel certo.
 - **Painéis na camada do desktop.** Eles ficam junto dos ícones do Windows, então **Win+D** e o botão de mostrar a área de trabalho não os escondem, e nenhum aplicativo fica coberto por eles.
 - **O desktop continua funcionando.** Nas áreas livres, a seleção com o mouse, o menu do botão direito e o arrastar de arquivos para o desktop se comportam como no Windows.
 - **Coleções.** Guardam atalhos para arquivos e pastas de qualquer lugar. Se você renomear o arquivo no Explorador, o atalho acompanha. Tirar um item da coleção nunca apaga o arquivo.
 - **Painéis de pasta.** Mostram uma pasta real, como Downloads, e se atualizam sozinhos quando algo muda nela.
-- **Ctrl+Alt+Espaço** traz os painéis para a frente das janelas, para você soltar arquivos do Explorador sem minimizar nada. Aperte de novo, ou Esc, para devolvê-los ao desktop.
+- **Um atalho que faz o que o momento pede.** Com o desktop à vista, **Ctrl+Alt+Espaço** (padrão, dá para trocar) esconde ou mostra os painéis. Com uma janela na frente, traz os painéis para cima dela, para você soltar arquivos do Explorador sem minimizar nada.
 - **Painéis organizados sozinhos.** Um painel nunca fica por cima de outro, e o tamanho avança em colunas e linhas inteiras de ícones.
 - **Desktop limpo, se você quiser.** Uma opção esconde os ícones do Windows e deixa só os painéis. Um pequeno processo de proteção devolve os ícones se o Orla fechar ou travar.
 - **Convive com Wallpaper Engine e Lively.** O Orla não troca o papel de parede, não injeta código no Explorador e não pede direitos de administrador.
@@ -50,15 +51,41 @@ Requisitos: Windows 10 22H2 ou Windows 11, 64 bits, com o .NET Framework 4.8 (j�
 ## Primeiros passos
 
 1. Abra o Orla. Na tela **Bem-vindo ao Orla Desktop**, escolha como começar e clique em **Começar**:
-   - **Manter meus ícones** (já vem marcada): os ícones do Windows continuam onde estão, e você escolhe os primeiros painéis no passo seguinte.
-   - **Organizar meu desktop**: o que está no desktop vira coleções, os ícones do Windows ficam ocultos e um painel **Na área de trabalho** mostra o que ainda não foi organizado.
+   - **Deixe o Orla organizar** (recomendado, já vem marcada): o Orla monta os painéis por categoria e mostra uma prévia antes de aplicar. Veja [Deixe o Orla organizar](#deixe-o-orla-organizar).
+   - **Manter meus ícones**: os ícones do Windows continuam onde estão, e você escolhe os primeiros painéis no passo seguinte.
 2. Se escolheu **Manter meus ícones**, marque os painéis que quer em **Escolha seus primeiros painéis** e clique em **Começar**. Nenhum arquivo muda de lugar em nenhuma das opções.
-3. Arraste um painel pelo título para posicioná-lo. Ele se alinha às bordas da tela e aos outros painéis.
-4. Para mudar o tamanho, arraste qualquer borda ou canto do painel.
-5. Arraste arquivos do Explorador para um painel. Com o Explorador aberto, aperte **Ctrl+Alt+Espaço** para os painéis aparecerem na frente.
+3. Arraste um painel pelo título para posicioná-lo. Ele gruda nas margens da tela e nas bordas dos outros painéis.
+4. Para mudar o tamanho, arraste qualquer borda ou canto do painel. Ao soltar, ele se ajusta a colunas e linhas inteiras de ícones.
+5. Arraste arquivos do Explorador para um painel. Com o Explorador na frente, aperte **Ctrl+Alt+Espaço** para os painéis aparecerem por cima dele.
 6. Para criar mais painéis, clique no ícone do Orla na bandeja e use **Novo painel**.
 
 O Orla começa com **Iniciar com o Windows** ligado. Você pode desligar em **Geral**.
+
+## Deixe o Orla organizar
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/organize-dark.png">
+  <img src="docs/images/organize-light.png" width="720" alt="Prévia de Seu desktop, organizado: um mapa da tela com os painéis Apps, Desenvolvimento, Utilitários e Jogos à esquerda e Pastas, Documentos e Novos no desktop à direita">
+</picture>
+
+Na primeira vez, ou depois em **Painéis > Organizar para mim**, o Orla lê o desktop e separa o que encontra:
+
+| Painel | O que entra |
+| --- | --- |
+| **Apps** | Navegadores, comunicação, música e os demais programas |
+| **Desenvolvimento** | Editores de código, Git, Docker, bancos de dados, terminais |
+| **Criação** | Edição de imagem e vídeo, design, transmissão |
+| **Utilitários** | Scripts (`.bat`, `.cmd`, `.ps1`), periféricos, drivers e ferramentas do sistema |
+| **Jogos** | Jogos e lançadores (Steam, Epic, EA, Riot, Rockstar, FiveM, Minecraft e outros) |
+| **Pastas**, **Documentos**, **Imagens e vídeos**, **Arquivos** | Pastas e arquivos soltos no desktop, por tipo |
+
+- Uma pasta que só guarda atalhos, como `Atalhos\Jogos`, é lida por dentro, e o nome dela vale como categoria.
+- Uma categoria com um item só entra na mais próxima, para não sobrar painel com um ícone.
+- As ferramentas ficam à esquerda da tela principal, o trabalho à direita, e o centro fica livre.
+- Você vê a prévia antes. Nada muda de lugar no disco: os painéis guardam atalhos para os arquivos.
+- Se você já tinha painéis, eles são substituídos. Uma cópia fica na pasta de dados, e **Voltar aos painéis anteriores** desfaz enquanto o Orla estiver aberto.
+
+Com **Esconder os ícones do Windows** ligado, o painel **Novos no desktop** mostra o que ainda não está em nenhum painel. Com **Manter organizado** ligado, cada item novo no desktop entra sozinho no painel da categoria dele, e o que for apagado sai do painel. O que não se encaixar em nada fica em **Novos no desktop**.
 
 ## Painéis prontos
 
@@ -76,7 +103,7 @@ Na primeira vez, e depois em **Novo painel**, o Orla oferece painéis prontos. S
 | **Aplicativos** | Os atalhos de programas do desktop, se houver |
 | **Jogos** | Jogos e lançadores encontrados no desktop e no menu Iniciar: Steam, Epic, Riot, EA, Ubisoft, Battle.net, GOG, Rockstar e Xbox |
 | **Documentos**, **Imagens**, **Capturas de tela** | As pastas correspondentes, sempre atualizadas |
-| **Na área de trabalho** | O que está no desktop e ainda não foi para nenhum painel |
+| **Novos no desktop** | O que está no desktop e ainda não foi para nenhum painel. Combina com os ícones do Windows ocultos |
 | **Trabalho**, **Estudos** | Coleções vazias para você preencher |
 
 **Acesso rápido**, **Downloads** e **Aplicativos** já vêm marcados. Montar um painel pronto nunca move nem copia arquivos.
@@ -85,11 +112,13 @@ Na primeira vez, e depois em **Novo painel**, o Orla oferece painéis prontos. S
 
 | Onde | Ação | Resultado |
 | --- | --- | --- |
-| Qualquer lugar | **Ctrl+Alt+Espaço** | Traz os painéis para a frente das janelas, ou devolve ao desktop |
-| Painel na frente | Esc | Devolve os painéis ao desktop |
-| Título do painel | Arrastar | Move o painel, com encaixe nas bordas e nos outros painéis |
+| Desktop à vista | **Ctrl+Alt+Espaço** | Esconde ou mostra os painéis |
+| Janela de aplicativo na frente | **Ctrl+Alt+Espaço** | Traz os painéis para a frente, ou devolve ao desktop |
+| Painel na frente, com foco | Esc | Devolve os painéis ao desktop |
+| Título do painel | Arrastar | Move o painel, que gruda nas margens da tela e nos outros painéis |
 | Título do painel | Clique duplo | Renomeia o painel ali mesmo |
-| Borda ou canto | Arrastar | Redimensiona o painel |
+| Borda ou canto | Arrastar | Redimensiona o painel em colunas e linhas de ícones |
+| Borda de cima ou de baixo | Clique duplo | Liga de novo a **Altura automática** |
 | Item | Clique duplo ou Enter | Abre o item |
 | Item | Ctrl+clique, Shift+clique, Ctrl+A | Seleciona vários itens |
 | Área vazia do painel | Arrastar | Seleciona os itens dentro do retângulo |
@@ -98,6 +127,8 @@ Na primeira vez, e depois em **Novo painel**, o Orla oferece painéis prontos. S
 | Item | Setas | Move a seleção entre os itens |
 | Item | Clique direito | **Abrir**, **Mostrar no Explorador**, **Renomear no painel**, **Mover para**, **Tirar do painel**, **Adicionar a** |
 | Ícone na bandeja | Clique | Abre o Orla |
+
+**Ctrl+Alt+Espaço** é o atalho padrão. Você pode trocá-lo em **Geral > Combinação de teclas**.
 
 ## Perguntas rápidas
 

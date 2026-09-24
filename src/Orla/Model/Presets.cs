@@ -38,12 +38,7 @@ namespace Orla
                          Available = () => Directory.Exists(special(Environment.SpecialFolder.MyPictures)) },
             new Preset { Key = "screenshots", Glyph = "Glyph.ItemImage", Tint = Tints.Sky,
                          Create = () => folder("screenshots", screenshots(), Tints.Sky), Available = () => Directory.Exists(screenshots()) },
-            new Preset { Key = "desktop", Glyph = "Glyph.Desktop", Tint = Tints.Sand,
-                         Create = () => {
-                             Group g = folder("desktop", Shell.DesktopFolder, Tints.Sand);
-                             g.OnlyUnorganized = true;
-                             return g;
-                         } },
+            new Preset { Key = "desktop", Glyph = "Glyph.Desktop", Tint = Tints.SeaGlass, Create = inbox },
             new Preset { Key = "work", Glyph = "Glyph.PanelCollection", Tint = Tints.SeaGlass,
                          Create = () => new Group { Name = Text.get("preset.work"), Tint = Tints.SeaGlass, Rows = 2 } },
             new Preset { Key = "study", Glyph = "Glyph.PanelCollection", Tint = Tints.Moss,
@@ -60,6 +55,14 @@ namespace Orla
                 return false;
             }
         });
+
+        // The desktop inbox: what is on the desktop and not in any other panel yet.
+        public static Group inbox()
+        {
+            Group g = folder("desktop", Shell.DesktopFolder, Tints.SeaGlass);
+            g.OnlyUnorganized = true;
+            return g;
+        }
 
         static string special(Environment.SpecialFolder f) => Environment.GetFolderPath(f);
 
@@ -112,7 +115,10 @@ namespace Orla
                                              @"\rockstar games\", @"\xboxgames\", @"\minecraft launcher\" };
         static readonly string[] launchers = { "steam.exe", "epicgameslauncher.exe", "battle.net launcher.exe", "battle.net.exe",
                                                "riotclientservices.exe", "upc.exe", "ubisoftconnect.exe", "eadesktop.exe", "origin.exe",
-                                               "galaxyclient.exe", "launcher.exe", "minecraftlauncher.exe", "playnite.desktopapp.exe" };
+                                               "galaxyclient.exe", "launcher.exe", "minecraftlauncher.exe", "playnite.desktopapp.exe",
+                                               "ealauncher.exe", "fivem.exe", "redm.exe", "lunar client.exe", "curseforge.exe",
+                                               "tlauncher.exe", "robloxplayerlauncher.exe", "robloxplayerbeta.exe", "leagueclient.exe",
+                                               "hoyoplay.exe", "prismlauncher.exe" };
 
         public static bool isShortcut(string path)
         {
@@ -120,16 +126,21 @@ namespace Orla
             return e == ".lnk" || e == ".url";
         }
 
-        public static bool isGame(string path)
+        public static bool isGame(string path) => isGameTarget(targetOf(path));
+
+        public static bool isGameTarget(string target)
         {
-            string target = (targetOf(path) ?? "").ToLowerInvariant();
+            target = (target ?? "").ToLowerInvariant();
             if (target.Length == 0)
                 return false;
             if (schemes.Any(s => target.StartsWith(s)) || folders.Any(f => target.Contains(f)))
                 return true;
-            string exe = Path.GetFileName(target);
+            string exe = fileName(target);
             return launchers.Contains(exe) && (exe != "launcher.exe" || target.Contains("rockstar"));
         }
+
+        // The last part of a path or URL. Unlike Path.GetFileName it accepts any character a URL may hold.
+        public static string fileName(string target) => target.Substring(target.LastIndexOfAny(new[] { '\\', '/' }) + 1);
 
         // Game shortcuts on the desktop and in the Start menu, one per name.
         public static IEnumerable<string> find()

@@ -21,6 +21,7 @@ namespace Orla
         readonly DesktopWatch watch;
         readonly DispatcherTimer rebuildTimer, referenceTimer;
         readonly ReferenceWatch references;
+        readonly DesktopArrivals arrivals;
         readonly List<PanelHost> hosts = new List<PanelHost>();
         readonly bool interactive;
         Desktop desktop;
@@ -42,7 +43,7 @@ namespace Orla
             this.interactive = interactive;
             dispatcher = Dispatcher.CurrentDispatcher;
             messages = new MessageWindow();
-            messages.Hotkey += delegate { setOverlay(!Overlay); };
+            messages.Hotkey += onHotkey;
             messages.ExplorerRestarted += queueRebuild;
             messages.DisplayChanged += delegate {
                 dispatcher.BeginInvoke(new Action(delegate {
@@ -78,6 +79,8 @@ namespace Orla
                 referenceTimer.Stop();
                 referenceTimer.Start();
             };
+            arrivals = new DesktopArrivals(dispatcher);
+            arrivals.Changed += keepOrganized;
         }
 
         public void start()
@@ -85,8 +88,8 @@ namespace Orla
             if (interactive)
             {
                 tray = new Tray(this, messages.Handle);
-                if (Layout.OverlayHotkey && !messages.setHotkey(true))
-                    tray.notify(Text.get("notice.hotkeyTaken"));
+                if (Layout.OverlayHotkey && !messages.setHotkey(true, Shortcut))
+                    tray.notify(Text.format("notice.hotkeyTaken", Shortcut.display()));
                 // Also points an existing entry at this copy, and replaces the 0.1 preview's Startup shortcut, so an older
                 // version never starts with a newer layout.
                 if (!Layout.StartupConfigured || StartupEnabled || File.Exists(LegacyShortcut))
@@ -137,6 +140,7 @@ namespace Orla
             showHosts();
             applyCleanDesktop();
             followReferences();
+            followArrivals();
             central?.refresh();
         }
 
@@ -145,8 +149,57 @@ namespace Orla
         void showHosts()
         {
             foreach (PanelHost h in hosts)
-                h.show(Overlay ? PanelMode.Overlay : baseMode, desktop);
+                h.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
             settleAll();
+        }
+
+        public bool Hidden { get; private set; }
+
+        // The shortcut does what the moment calls for: with the desktop in view it hides or shows the panels; with an
+        // application on top it brings the panels in front, and pressing it again sends them back.
+        void onHotkey()
+        {
+            if (!Layout.Welcomed)
+                return;
+            if (Overlay)
+                setOverlay(false);
+            else if (Hidden)
+                setHidden(false);
+            else if (desktopInView())
+                setHidden(true);
+            else
+                setOverlay(true);
+        }
+
+        static bool desktopInView()
+        {
+            // Orla's own window counts as an application in front; panels on the desktop report Explorer's windows.
+            IntPtr foreground = Native.GetForegroundWindow();
+            if (foreground == IntPtr.Zero)
+                return true;
+            string c = Native.windowClass(foreground);
+            return c == "Progman" || c == "WorkerW" || c == "Shell_TrayWnd" || c == "Shell_SecondaryTrayWnd";
+        }
+
+        // Hiding the panels shows the ordinary desktop, Windows icons included, until they come back.
+        public void setHidden(bool value)
+        {
+            if (Hidden == value)
+                return;
+            Hidden = value;
+            if (value && Overlay)
+                setOverlay(false);
+            foreach (PanelHost h in hosts)
+                h.setVisible(!value);
+            if (Layout.CleanDesktop && guard != null)
+            {
+                if (value)
+                    guard.restore();
+                else
+                    guard.hide();
+            }
+            tray?.refreshMenu();
+            central?.refresh();
         }
 
         // Panels never overlap: each one, in order, moves off any panel placed before it.
@@ -172,7 +225,7 @@ namespace Orla
             {
                 var host = new PanelHost(this, g);
                 hosts.Add(host);
-                host.show(Overlay ? PanelMode.Overlay : baseMode, desktop);
+                host.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
             }
         }
 
@@ -186,6 +239,11 @@ namespace Orla
         {
             if (on == Overlay || !Layout.Welcomed)
                 return;
+            if (on && Hidden)
+            {
+                Hidden = false;
+                applyCleanDesktop();
+            }
             Overlay = on;
             showHosts();
             if (on)
@@ -210,7 +268,8 @@ namespace Orla
                 guard = new IconGuard(desktop, DataDirectory, dispatcher);
                 guard.Failed += delegate { tray?.notify(Text.get("error.guard")); };
             }
-            if (Layout.CleanDesktop && interactive)
+            // While the panels are hidden by the shortcut, the Windows icons stay visible even with a clean desktop.
+            if (Layout.CleanDesktop && interactive && !Hidden)
                 guard.hide();
             else
             {
@@ -315,7 +374,10 @@ namespace Orla
                     index++;
             }
             if (moved)
+            {
+                hosts.FirstOrDefault(h => h.Group == target)?.View.selectAfterReload(entryIds);
                 changed();
+            }
         }
 
         public void removeItems(IList<Entry> entries)
@@ -439,6 +501,12 @@ namespace Orla
             changed(g);
         }
 
+        public void setAutoHeight(Group g, bool value)
+        {
+            g.AutoHeight = value;
+            changed(g);
+        }
+
         public void setCollapsed(Group g, bool collapsed)
         {
             g.Collapsed = collapsed;
@@ -523,9 +591,31 @@ namespace Orla
             central?.refresh();
         }
 
+        public Shortcut Shortcut => Orla.Shortcut.parse(Layout.OverlayShortcut);
+
+        // Changes the key combination; the previous one stays if Windows refuses the new one.
+        public bool setShortcut(Shortcut shortcut)
+        {
+            if (!Layout.OverlayHotkey || messages.setHotkey(true, shortcut))
+            {
+                Layout.OverlayShortcut = shortcut.ToString();
+                saveLayout();
+                tray?.refreshMenu();
+                return true;
+            }
+            messages.setHotkey(true, Shortcut);
+            return false;
+        }
+
+        // While the shortcut recorder listens, the current combination must reach it instead of Windows.
+        public void pauseHotkey(bool paused)
+        {
+            messages.setHotkey(!paused && Layout.OverlayHotkey, Shortcut);
+        }
+
         public bool setHotkey(bool value)
         {
-            bool ok = messages.setHotkey(value);
+            bool ok = messages.setHotkey(value, Shortcut);
             Layout.OverlayHotkey = value && ok;
             saveLayout();
             return ok;
@@ -547,6 +637,7 @@ namespace Orla
             guard?.restore();
             watch.Dispose();
             references.Dispose();
+            arrivals.Dispose();
             foreach (PanelHost h in hosts)
                 h.Dispose();
             hosts.Clear();
@@ -611,10 +702,10 @@ namespace Orla
         }
 
         // Applies the choice made on the welcome screen and puts the first panels on the desktop.
-        public void welcome(bool organize, IList<Preset> presets)
+        public void welcome(IList<Preset> presets)
         {
             System.Threading.Tasks.Task.Run(() => {
-                Layout next = organize ? Starter.organized(Layout) : Starter.alongside(Layout);
+                Layout next = Starter.alongside(Layout);
                 foreach (Preset p in presets)
                     next.Groups.Add(p.Create());
                 return next;
@@ -627,6 +718,152 @@ namespace Orla
                 saveLayout();
                 rebuild();
             })));
+        }
+
+        // ---- let Orla organize ----
+
+        Layout beforeOrganize;
+
+        public bool CanUndoOrganize => beforeOrganize != null;
+
+        public bool Organized => Layout.Groups.Any(g => g.AutoCategory != null);
+
+        // Replaces the panels with the organizer's plan. The panels it replaces stay in a copy next to the layout and,
+        // until Orla closes, one click away.
+        public void applyOrganized(Layout next)
+        {
+            if (Layout.Welcomed && Layout.Groups.Count > 0)
+            {
+                backupLayout("before-organize");
+                beforeOrganize = store.data;
+            }
+            store.data = next;
+            saveLayout();
+            rebuild();
+        }
+
+        public void undoOrganize()
+        {
+            if (beforeOrganize == null)
+                return;
+            Layout previous = beforeOrganize;
+            beforeOrganize = null;
+            // Settings changed since then stay; only the panels and how the desktop looks go back.
+            Layout current = Layout;
+            current.Groups = previous.Groups;
+            current.CleanDesktop = previous.CleanDesktop;
+            current.AutoOrganize = previous.AutoOrganize;
+            current.SortedFolders = previous.SortedFolders;
+            saveLayout();
+            rebuild();
+        }
+
+        public void setAutoOrganize(bool on)
+        {
+            Layout.AutoOrganize = on;
+            saveLayout();
+            followArrivals();
+            central?.refresh();
+        }
+
+        void followArrivals()
+        {
+            arrivals.follow(Layout.SortedFolders);
+            if (interactive && Layout.Welcomed && Layout.AutoOrganize && Organized)
+                arrivals.start();
+            else if (arrivals.Running)
+                arrivals.stop();
+        }
+
+        // "Keep organized": something new on the desktop joins the panel for its kind, and a desktop item that is gone
+        // leaves the panels the organizer made. What fits nowhere stays in the desktop inbox. The watcher only reports
+        // the desktop itself and the folders of shortcuts the organizer sorted; disk and shell work runs off the UI thread.
+        void keepOrganized(List<string> paths)
+        {
+            if (!Layout.AutoOrganize)
+                return;
+            var auto = Layout.Groups.Where(g => !g.IsFolder && g.AutoCategory != null).ToList();
+            Organized organized = store.organized();
+            System.Threading.Tasks.Task.Run(() => paths.Select(p => {
+                bool exists = Shell.exists(p);
+                bool fresh = exists && !Shell.isHidden(p) && !organized.Contains(p);
+                return new { Path = p, Gone = !exists, Home = fresh ? Organizer.home(p, auto) : null,
+                             Name = fresh ? Shell.displayName(p) : null };
+            }).ToList()).ContinueWith(t => dispatcher.BeginInvoke(new Action(delegate {
+                if (t.IsFaulted || !Layout.AutoOrganize)
+                    return;
+                bool any = false;
+                foreach (var r in t.Result)
+                {
+                    if (r.Gone)
+                    {
+                        // A deleted folder of shortcuts takes the shortcuts sorted from it along.
+                        string inside = r.Path.TrimEnd('\\') + "\\";
+                        foreach (Group g in Layout.Groups.Where(g => g.AutoCategory != null && !g.IsFolder))
+                            any |= g.Items.RemoveAll(e => String.Equals(e.Path, r.Path, StringComparison.OrdinalIgnoreCase) ||
+                                                          e.Path.StartsWith(inside, StringComparison.OrdinalIgnoreCase)) > 0;
+                    }
+                    else if (r.Home != null && Layout.Groups.Contains(r.Home) && r.Home.Items.Count < Store.MaxItems &&
+                             !Layout.Groups.Any(g => g.Items.Any(e => String.Equals(e.Path, r.Path, StringComparison.OrdinalIgnoreCase))))
+                    {
+                        r.Home.Items.Add(new Entry { Name = r.Name, Path = r.Path });
+                        any = true;
+                        int rows = (r.Home.Items.Count + r.Home.Columns - 1) / r.Home.Columns;
+                        if (r.Home.AutoHeight && rows > r.Home.Rows && r.Home.Rows < 4)
+                            r.Home.Rows++;
+                    }
+                }
+                if (any)
+                {
+                    changed();
+                    settleAll();
+                }
+            })));
+        }
+
+        void backupLayout(string reason)
+        {
+            try
+            {
+                if (File.Exists(store.filePath))
+                    File.Copy(store.filePath, store.filePath + "." + reason + "-" + DateTime.Now.ToString("yyyyMMddHHmmss"), true);
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+
+        // Back to the first run, as after a fresh install: panels and settings return to their defaults and the welcome
+        // screen opens. A copy of the current layout is kept next to it, and no file on the desktop is touched.
+        // Starting with Windows stays as it is.
+        public void resetToWelcome()
+        {
+            backupLayout("before-reset");
+            beforeOrganize = null;
+            arrivals.stop();
+            Overlay = false;
+            Hidden = false;
+            guard?.restore();
+            foreach (PanelHost h in hosts)
+                h.Dispose();
+            hosts.Clear();
+            var fresh = new Layout { StartupConfigured = true, StartupEnabled = StartupEnabled };
+            store.data = fresh;
+            saveLayout();
+            messages.setHotkey(fresh.OverlayHotkey, Shortcut);
+            Text.load(fresh.Language);
+            Theme.apply(fresh);
+            followReferences();
+            if (central != null)
+            {
+                CentralWindow old = central;
+                central = null;
+                old.Close();
+            }
+            showCentral("welcome");
         }
 
         // ---- windows ----

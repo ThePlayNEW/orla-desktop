@@ -48,8 +48,12 @@ namespace Orla
             menu.Items.Add(Menus.item("tray.open", "Glyph.Settings", () => controller.showCentral(null)));
             if (controller.Layout.Welcomed)
             {
+                string gesture = controller.Layout.OverlayHotkey ? controller.Shortcut.display() : "";
+                MenuItem visible = Menus.item(controller.Hidden ? "tray.show" : "tray.hide", controller.Hidden ? "Glyph.Eye" : "Glyph.EyeOff",
+                                              () => controller.setHidden(!controller.Hidden));
+                visible.InputGestureText = gesture;
+                menu.Items.Add(visible);
                 MenuItem front = Menus.check("tray.front", controller.Overlay, () => controller.setOverlay(!controller.Overlay));
-                front.InputGestureText = controller.Layout.OverlayHotkey ? Text.get("shortcut.overlay") : "";
                 menu.Items.Add(front);
                 menu.Items.Add(new Separator());
                 menu.Items.Add(Menus.check("tray.lock", controller.Layout.LockLayout, () => controller.setLock(!controller.Layout.LockLayout)));

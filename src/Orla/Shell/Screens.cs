@@ -108,6 +108,22 @@ namespace Orla
             return best ?? r;
         }
 
+        // While dragging: edges within reach stick to the work area margin and to the edges of other panels, leaving
+        // the same gap between panels everywhere. No grid, so the panel still follows the pointer smoothly.
+        public static RECT magnet(RECT r, IEnumerable<RECT> others, RECT work)
+        {
+            int x = pull(r.Left, r.Width, new[] { work.Left + Margin }, new[] { work.Right - Margin });
+            int y = pull(r.Top, r.Height, new[] { work.Top + Margin }, new[] { work.Bottom - Margin });
+            foreach (RECT o in others)
+            {
+                if (r.Top < o.Bottom + Snap && r.Bottom > o.Top - Snap)
+                    x = pull(x, r.Width, new[] { o.Right + Margin, o.Left }, new[] { o.Left - Margin, o.Right });
+                if (r.Left < o.Right + Snap && r.Right > o.Left - Snap)
+                    y = pull(y, r.Height, new[] { o.Bottom + Margin, o.Top }, new[] { o.Top - Margin, o.Bottom });
+            }
+            return new RECT { Left = x, Top = y, Right = x + r.Width, Bottom = y + r.Height };
+        }
+
         // Aligns a dropped panel to an 8 px grid and pulls it to nearby work-area edges and other panels.
         public static RECT snap(RECT r, IEnumerable<RECT> others)
         {
@@ -143,10 +159,19 @@ namespace Orla
 
         // Default arrangement: columns from the top-right corner of the primary monitor, leaving the left side,
         // where Windows places its own icons, free.
-        public static void arrange(IList<Group> groups, string iconSize)
+        public static void arrange(IList<Group> groups, string iconSize) => arrange(new Group[0], groups, iconSize);
+
+        // Columns of panels from both top corners of the primary monitor, growing toward the middle, which stays free.
+        public static void arrange(IList<Group> left, IList<Group> right, string iconSize)
         {
             Screen s = primary();
-            int x = s.Work.Right - Margin * 2, y = s.Work.Top + Margin * 2, columnWidth = 0;
+            stack(left, s, iconSize, true);
+            stack(right, s, iconSize, false);
+        }
+
+        static void stack(IList<Group> groups, Screen s, string iconSize, bool fromLeft)
+        {
+            int x = fromLeft ? s.Work.Left + Margin * 2 : s.Work.Right - Margin * 2, y = s.Work.Top + Margin * 2, columnWidth = 0;
             foreach (Group g in groups.Where(g => g.Visible))
             {
                 int w = (int)Math.Round(PanelMetrics.width(g.Columns, iconSize) * s.Scale);
@@ -155,11 +180,11 @@ namespace Orla
                 int h = (int)Math.Round((g.Collapsed ? PanelMetrics.CollapsedHeight : PanelMetrics.height(rows, iconSize)) * s.Scale);
                 if (y + h > s.Work.Bottom - Margin && y > s.Work.Top + Margin * 2)
                 {
-                    x -= columnWidth + Margin;
+                    x += (fromLeft ? 1 : -1) * (columnWidth + Margin);
                     y = s.Work.Top + Margin * 2;
                     columnWidth = 0;
                 }
-                g.X = x - w;
+                g.X = fromLeft ? x : x - w;
                 g.Y = y;
                 y += h + Margin;
                 columnWidth = Math.Max(columnWidth, w);

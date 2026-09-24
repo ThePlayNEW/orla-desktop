@@ -6,12 +6,13 @@ O Orla coloca painéis translúcidos no desktop do Windows. Cada painel mostra a
 
 - [Como os painéis funcionam](#como-os-painéis-funcionam)
 - [Primeira vez](#primeira-vez)
+- [Deixe o Orla organizar](#deixe-o-orla-organizar)
 - [Painéis prontos](#painéis-prontos)
 - [Coleções e painéis de pasta](#coleções-e-painéis-de-pasta)
 - [Mover, redimensionar e organizar](#mover-redimensionar-e-organizar)
 - [Itens nos painéis](#itens-nos-painéis)
 - [Arrastar e soltar](#arrastar-e-soltar)
-- [Mostrar os painéis na frente](#mostrar-os-painéis-na-frente)
+- [O atalho de teclado](#o-atalho-de-teclado)
 - [Desktop limpo](#desktop-limpo)
 - [Janela do Orla](#janela-do-orla)
 - [Teclado](#teclado)
@@ -30,9 +31,9 @@ Os painéis ficam na mesma camada dos ícones do desktop, dentro da janela do Ex
 - Um painel nunca cobre um aplicativo aberto. Quando uma janela está por cima do desktop, ela também está por cima dos painéis.
 - Nas áreas do desktop sem painel, tudo funciona como no Windows: seleção com o mouse, menu do botão direito e arrastar arquivos para o desktop.
 
-Quando você precisa de um painel com janelas abertas, use **Ctrl+Alt+Espaço**. Veja [Mostrar os painéis na frente](#mostrar-os-painéis-na-frente).
+O atalho de teclado, **Ctrl+Alt+Espaço** por padrão, esconde ou mostra os painéis quando o desktop está à vista e traz os painéis para a frente quando há uma janela por cima. Veja [O atalho de teclado](#o-atalho-de-teclado).
 
-O ícone do Orla fica na bandeja, ao lado do relógio. Um clique abre a janela do Orla. O clique direito mostra o menu com **Abrir o Orla**, **Mostrar painéis na frente**, **Travar painéis**, **Desktop limpo** e **Sair e restaurar o desktop**.
+O ícone do Orla fica na bandeja, ao lado do relógio. Um clique abre a janela do Orla. O clique direito mostra o menu com **Abrir o Orla**, **Esconder painéis** (ou **Mostrar painéis**), **Mostrar painéis na frente**, **Travar painéis**, **Desktop limpo** e **Sair e restaurar o desktop**.
 
 ## Primeira vez
 
@@ -45,10 +46,51 @@ Na primeira vez que o Orla abre, a tela **Bem-vindo ao Orla Desktop** oferece du
 
 | Opção | O que acontece |
 | --- | --- |
-| **Manter meus ícones** (já vem marcada) | Os ícones do Windows continuam como estão. No passo seguinte, **Escolha seus primeiros painéis**, você marca os [painéis prontos](#painéis-prontos) que quer e clica em **Começar**. **Voltar** retorna ao primeiro passo. |
-| **Organizar meu desktop** | Os itens do desktop viram coleções: **Aplicativos** para atalhos, **Pastas** para pastas e **Arquivos** para o resto. O Orla também cria o painel **Acesso rápido** e um painel **Na área de trabalho**, que mostra só o que ainda não está em outro painel. O **Desktop limpo** fica ligado. |
+| **Deixe o Orla organizar** (recomendado, já vem marcada) | O Orla lê o desktop, monta os painéis por categoria e mostra uma prévia antes de aplicar. Veja [Deixe o Orla organizar](#deixe-o-orla-organizar). |
+| **Manter meus ícones** | Os ícones do Windows continuam como estão. No passo seguinte, **Escolha seus primeiros painéis**, você marca os [painéis prontos](#painéis-prontos) que quer e clica em **Começar**. **Voltar** retorna ao primeiro passo. |
 
 Nenhuma das opções move, renomeia ou apaga arquivos. Você pode mudar tudo depois.
+
+## Deixe o Orla organizar
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/organize-dark.png">
+  <img src="../images/organize-light.png" width="720" alt="Prévia Seu desktop, organizado, com o mapa da tela e os painéis planejados">
+</picture>
+
+O Orla pode montar os painéis para você, do jeito que uma pessoa arrumaria o desktop. Use na primeira vez, com **Deixe o Orla organizar**, ou a qualquer momento em **Painéis > Organizar para mim**.
+
+1. O Orla lê o desktop e a área de trabalho pública do Windows.
+2. A tela **Seu desktop, organizado** mostra um mapa da sua tela principal com cada painel onde ele vai ficar.
+3. Escolha as opções e clique em **Organizar**. **Voltar** sai sem mudar nada.
+
+Como ele separa os itens:
+
+| Painel | O que entra |
+| --- | --- |
+| **Apps** | Navegadores, comunicação, música e os demais programas |
+| **Desenvolvimento** | Editores de código, Git, Docker, bancos de dados, terminais |
+| **Criação** | Edição de imagem e vídeo, design, transmissão |
+| **Utilitários** | Scripts (`.bat`, `.cmd`, `.ps1`), periféricos, drivers e ferramentas do sistema |
+| **Jogos** | Jogos e lançadores (Steam, Epic, EA, Riot, Rockstar, FiveM, Minecraft e outros) |
+| **Pastas** | As pastas do desktop |
+| **Documentos**, **Imagens e vídeos**, **Arquivos** | Arquivos soltos no desktop, por tipo. Instaladores e compactados vão para **Arquivos**. |
+| **Acesso rápido** | Este Computador, Downloads, Documentos, Imagens e Lixeira |
+
+- Um atalho é classificado pelo programa que ele abre, não pelo nome.
+- Uma pasta que só guarda atalhos e scripts, como `Atalhos\Jogos`, é lida por dentro. Se o nome dela indica uma categoria (Jogos, Dev, Utilitários, Periféricos, Aplicativos…), essa categoria vale para o que está dentro.
+- Uma categoria com um item só entra na mais próxima: um jogo sozinho vai para **Apps**, um PDF sozinho vai para **Arquivos**.
+- As ferramentas ficam em colunas a partir da esquerda da tela principal; pastas, arquivos e **Novos no desktop**, a partir da direita. O centro fica livre.
+- Os painéis mostram atalhos. Nenhum arquivo muda de lugar.
+
+As duas opções da prévia:
+
+| Opção | O que faz |
+| --- | --- |
+| **Esconder os ícones do Windows** | Liga o [Desktop limpo](#desktop-limpo) e cria o painel **Novos no desktop**, com o que ainda não está em nenhum painel. Se você desligar, os ícones do Windows continuam e esse painel não é criado, porque os próprios ícones já mostram o que é novo. |
+| **Manter organizado** | Cada item novo no desktop entra sozinho no painel da categoria dele, uns segundos depois de chegar. Um item apagado ou tirado do desktop sai do painel. O que não se encaixar fica em **Novos no desktop**. Dá para ligar e desligar depois em **Painéis**. |
+
+Se você já tinha painéis, eles são substituídos. Uma cópia do layout anterior fica na [pasta de dados](#onde-ficam-seus-dados) com o nome `layout.json.before-organize-` seguido da data, e **Painéis > Voltar aos painéis anteriores** desfaz a organização enquanto o Orla estiver aberto.
 
 ## Painéis prontos
 
@@ -68,7 +110,7 @@ Painéis prontos ajudam a começar rápido. Eles aparecem no segundo passo da pr
 | **Documentos** | Painel de pasta | A pasta Documentos |
 | **Imagens** | Painel de pasta | A pasta Imagens, com miniaturas |
 | **Capturas de tela** | Painel de pasta | A pasta de capturas de tela dentro de Imagens. Só aparece se ela existir. |
-| **Na área de trabalho** | Painel de pasta | O que está no desktop e ainda não foi para nenhum painel |
+| **Novos no desktop** | Painel de pasta | O que está no desktop e ainda não foi para nenhum painel. Combina com o Desktop limpo. |
 | **Trabalho** | Coleção | Vazia, para você preencher |
 | **Estudos** | Coleção | Vazia, para você preencher |
 
@@ -99,7 +141,7 @@ Para adicionar itens sem arrastar, abra o menu **···** do painel e escolha **
 
 Um painel de pasta mostra o que está dentro de uma pasta, com pastas primeiro e em ordem alfabética, como no Explorador. Arquivos ocultos e de sistema não aparecem. O painel se atualiza sozinho quando algo é criado, apagado ou renomeado na pasta.
 
-O painel **Na área de trabalho**, criado pela opção **Organizar meu desktop**, mostra a sua área de trabalho e a área de trabalho pública do Windows. No menu **···** dele, **Mostrar só o que não está em outro painel** esconde os itens que já estão em alguma coleção. Assim, o que você salvar no desktop depois aparece ali até você organizar.
+O painel **Novos no desktop** mostra a sua área de trabalho e a área de trabalho pública do Windows. No menu **···** dele, **Mostrar só o que não está em outro painel** esconde o que já aparece em outro painel: o próprio item, uma pasta cujos atalhos estão em coleções ou uma pasta que tem um painel próprio. Assim, o que você salvar no desktop depois aparece ali até você organizar.
 
 Se a pasta de um painel não for encontrada, por exemplo porque o disco foi desconectado, o painel avisa: "A pasta deste painel não foi encontrada. Verifique se o disco está conectado."
 
@@ -121,7 +163,7 @@ No próprio painel, o menu **···** (**Mais opções**) oferece:
 
 - Em coleções: **Adicionar arquivos…** e **Adicionar pasta…**.
 - Em painéis de pasta: **Abrir pasta**.
-- Em todos: **Renomear painel**, **Cor da linha**, **Recolher** ou **Expandir**, **Ocultar painel**, **Abrir o Orla** e **Remover painel…**.
+- Em todos: **Renomear painel**, **Cor da linha**, **Recolher** ou **Expandir**, **Altura automática**, **Ocultar painel**, **Abrir o Orla** e **Remover painel…**.
 
 Remover um painel nunca apaga arquivos. Em uma coleção, somem só os atalhos. Em um painel de pasta, a pasta continua intacta.
 
@@ -129,8 +171,9 @@ A **Cor da linha** muda a linha fina abaixo do título: **Vidro do mar**, **Arei
 
 ## Mover, redimensionar e organizar
 
-- **Mover:** arraste o painel pelo título. Ao soltar, ele se alinha às bordas da tela e aos painéis vizinhos. Durante o arraste, o painel fica dentro da área útil da tela, com uma pequena margem.
-- **Redimensionar:** arraste qualquer borda ou canto. A largura e a altura avançam em colunas e linhas inteiras de ícones, então não sobra faixa vazia. A altura acompanha o conteúdo até o tamanho que você definiu; a partir daí, o painel ganha rolagem.
+- **Mover:** arraste o painel pelo título. Durante o arraste, ele gruda nas margens da tela e nas bordas dos painéis próximos, mantendo o mesmo espaço entre eles, e fica dentro da área útil da tela.
+- **Redimensionar:** arraste qualquer borda ou canto. Uma linha fina na cor de destaque mostra a borda sob o ponteiro. O painel acompanha o ponteiro e mostra o tamanho em colunas × linhas. Ao soltar, ele se ajusta suavemente a colunas e linhas inteiras de ícones, então não sobra faixa vazia. As bordas param na margem da tela e nos painéis vizinhos.
+- **Altura automática:** vem ligada em painéis novos. O painel fica da altura do conteúdo, até o número de linhas definido; a partir daí, ganha rolagem. Se você mudar a altura com o mouse, a opção se desliga e o painel mantém exatamente as linhas que você escolheu. Para ligá-la de novo, clique duas vezes na borda de cima ou de baixo, ou marque **Altura automática** no menu **···**.
 - **Sem sobreposição:** um painel nunca fica por cima de outro. Se você soltar ou aumentar um painel sobre outro, ele vai para o espaço livre mais próximo.
 - **Renomear:** clique duas vezes no título, digite o novo nome e aperte Enter. Esc cancela.
 - **Recolher:** a seta no lado direito da barra de título deixa só a barra de título à vista. Clique de novo para expandir.
@@ -166,30 +209,53 @@ Com vários itens selecionados, você pode arrastar, abrir ou tirar todos de uma
 | Painel de pasta | Coleção | Cria um atalho para o arquivo |
 | Painel de pasta | Explorador ou desktop | Segue as regras normais do Windows, porque o arquivo é real |
 
+Enquanto você arrasta itens do Orla, uma prévia translúcida do item acompanha o ponteiro, com um número quando são vários, por cima do Orla e de outros programas. Em coleções, uma linha mostra exatamente onde os itens vão entrar, no mesmo painel ou em outro. Perto da borda de cima ou de baixo de um painel, ele rola sozinho. Depois de soltar, os itens movidos continuam selecionados no destino. Arquivos arrastados do Explorador mostram a imagem de arraste do próprio Windows sobre os painéis.
+
 Ao soltar em um painel de pasta, segure **Ctrl** para copiar ou **Shift** para mover, como no Explorador. A operação usa a janela do próprio Windows, com progresso e aviso de conflito de nomes, e pode ser desfeita com Ctrl+Z no Explorador.
 
-## Mostrar os painéis na frente
+## O atalho de teclado
+
+O atalho é **Ctrl+Alt+Espaço** por padrão, e você pode trocá-lo em **Geral**. Ele faz o que o momento pede:
+
+| Situação | O que o atalho faz |
+| --- | --- |
+| Desktop à vista (o foco está no desktop, na barra de tarefas ou em um painel) | Esconde os painéis, ou mostra de novo. Com o **Desktop limpo** ligado, os ícones do Windows voltam enquanto os painéis estão escondidos. |
+| Uma janela de aplicativo na frente | Traz os painéis para a frente das janelas. Aperte de novo, ou Esc, para devolvê-los ao desktop. |
+
+Os painéis sempre começam visíveis quando o Orla abre.
+
+### Soltar arquivos com janelas abertas
 
 Normalmente, as janelas abertas ficam por cima dos painéis. Para soltar um arquivo do Explorador em um painel sem minimizar nada:
 
-1. Aperte **Ctrl+Alt+Espaço**. Os painéis aparecem na frente de todas as janelas.
+1. Com a janela do Explorador na frente, aperte o atalho. Os painéis aparecem na frente de todas as janelas.
 2. Arraste o arquivo do Explorador até o painel.
-3. Aperte **Ctrl+Alt+Espaço** de novo, ou Esc, para devolver os painéis ao desktop.
+3. Aperte o atalho de novo, ou Esc com um painel em foco, para devolver os painéis ao desktop.
 
 Abrir um item ou usar **Mostrar no Explorador** também devolve os painéis ao desktop.
 
-O mesmo recurso está no menu da bandeja, como **Mostrar painéis na frente**, e na janela do Orla, no botão **Mostrar na frente**. Enquanto os painéis estão na frente, esse botão vira **Voltar ao desktop**.
+### Pela bandeja e pela janela do Orla
 
-Se outro programa já usa **Ctrl+Alt+Espaço**, o Orla avisa e o recurso continua disponível pela bandeja. Veja [O atalho não funciona](#o-atalho-não-funciona).
+O menu da bandeja tem **Esconder painéis** (ou **Mostrar painéis**, se estiverem escondidos) e **Mostrar painéis na frente**, com o atalho atual ao lado. Na janela do Orla, o botão **Mostrar na frente** faz o mesmo; enquanto os painéis estão na frente, ele vira **Voltar ao desktop**.
+
+### Trocar a combinação
+
+Em **Geral**:
+
+- **Atalho de teclado** liga ou desliga o atalho. A descrição mostra a combinação atual.
+- Em **Combinação de teclas**, clique no botão e pressione a nova combinação: Ctrl, Alt ou Win junto com outra tecla. Esc cancela.
+- **Restaurar padrão** volta para **Ctrl+Alt+Espaço**.
+
+Se outro programa já usa a combinação escolhida, o Orla mantém a anterior e avisa. Veja [O atalho não funciona](#o-atalho-não-funciona).
 
 ## Desktop limpo
 
-**Desktop limpo** esconde os ícones do Windows e deixa só os painéis. Ele vem desligado, a não ser que você escolha **Organizar meu desktop** na primeira vez. Para ligar ou desligar, use **Geral > Desktop limpo** ou o item **Desktop limpo** no menu da bandeja.
+**Desktop limpo** esconde os ícones do Windows e deixa só os painéis. Ele vem desligado, a não ser que você use **Deixe o Orla organizar** com **Esconder os ícones do Windows** ligado. Para ligar ou desligar, use **Geral > Desktop limpo** ou o item **Desktop limpo** no menu da bandeja.
 
 Com ele ligado:
 
 - Os ícones do Windows e a seleção com o mouse no desktop ficam indisponíveis.
-- Os arquivos continuam na pasta da área de trabalho. Para vê-los, use o painel **Na área de trabalho**, criado por **Organizar meu desktop**, ou crie um **Painel de pasta** da área de trabalho.
+- Os arquivos continuam na pasta da área de trabalho. Para vê-los, use o painel **Novos no desktop**, em **Novo painel**, ou crie um **Painel de pasta** da área de trabalho.
 
 ### Como o Orla protege seus ícones
 
@@ -219,7 +285,7 @@ A janela tem quatro páginas:
 
 - **Painéis:** cria, mostra, oculta e remove painéis. Veja [Criar, ocultar e remover painéis](#criar-ocultar-e-remover-painéis).
 - **Aparência:** tema, opacidade, ícones e animações, com uma pré-visualização ao vivo.
-- **Geral:** inicialização, **Desktop limpo**, atalho, trava, idioma e **Reorganizar painéis**.
+- **Geral:** inicialização, **Desktop limpo**, atalho, trava, idioma, **Reorganizar painéis** e **Recomeçar do zero**.
 - **Sobre:** versão, pasta dos seus dados, **Guia de uso**, **Relatar um problema** e **Sair do Orla**.
 
 No rodapé da barra lateral, **Integrado ao desktop do Windows** indica que os painéis estão na camada do desktop. Se aparecer **Modo compatível: não encontrei o desktop do Windows.**, veja [Solução de problemas](#o-orla-mostra-modo-compatível).
@@ -238,6 +304,8 @@ No rodapé da barra lateral, **Integrado ao desktop do Windows** indica que os p
 | **Tamanho dos ícones** | **Pequenos**, **Médios** ou **Grandes** |
 | **Animações** | Transições curtas quando os painéis aparecem. Se as animações estiverem desligadas no Windows, o Orla também não anima. |
 
+Mudanças de tema e de opacidade valem na hora, nos painéis e na janela do Orla.
+
 Com o Alto Contraste do Windows ligado, o Orla usa as cores do sistema e desliga a transparência.
 
 ### Geral
@@ -246,10 +314,12 @@ Com o Alto Contraste do Windows ligado, o Orla usa as cores do sistema e desliga
 | --- | --- |
 | **Iniciar com o Windows** | Abre os painéis quando você entra no Windows. Vem ligado. |
 | **Desktop limpo** | Esconde os ícones do Windows. Veja [Desktop limpo](#desktop-limpo). |
-| **Atalho Ctrl+Alt+Espaço** | Liga ou desliga o atalho que traz os painéis para a frente |
+| **Atalho de teclado** | Liga ou desliga o atalho. Veja [O atalho de teclado](#o-atalho-de-teclado). |
+| **Combinação de teclas** | Troca a combinação do atalho. **Restaurar padrão** volta para **Ctrl+Alt+Espaço**. |
 | **Travar posição e tamanho** | Impede mover ou redimensionar painéis |
 | **Idioma** | **Sistema** segue o idioma de exibição do Windows. Você também pode escolher Português (Brasil), English, Español, Français, Deutsch ou Italiano. A troca vale na hora. |
 | **Reorganizar painéis** | O botão **Reorganizar** alinha os painéis visíveis no canto superior direito da tela principal |
+| **Recomeçar do zero** | O botão **Recomeçar…** tira todos os painéis, volta os ajustes ao padrão e abre a tela **Bem-vindo ao Orla Desktop**, como numa instalação nova. Antes, o Orla guarda uma cópia do layout atual na pasta de dados, com o nome `layout.json.before-reset-<data>`. Nenhum arquivo seu é movido ou apagado, e **Iniciar com o Windows** fica como estava. Para voltar ao layout anterior, saia do Orla e renomeie essa cópia para `layout.json`. |
 | **Atualizações automáticas** | Só na versão instalada. A chave começa ligada. Veja [Atualizações](#atualizações). |
 
 ### Atualizações
@@ -262,8 +332,9 @@ A versão portátil não se atualiza sozinha. Para atualizar, saia do Orla, baix
 
 | Tecla | Onde | Ação |
 | --- | --- | --- |
-| Ctrl+Alt+Espaço | Qualquer lugar | Traz os painéis para a frente, ou devolve ao desktop |
-| Esc | Painel na frente | Devolve os painéis ao desktop |
+| Ctrl+Alt+Espaço (padrão, configurável) | Desktop à vista | Esconde ou mostra os painéis |
+| Ctrl+Alt+Espaço (padrão, configurável) | Janela de aplicativo na frente | Traz os painéis para a frente, ou devolve ao desktop |
+| Esc | Painel na frente, com foco | Devolve os painéis ao desktop |
 | Enter | Item | Abre |
 | Setas | Item | Move a seleção |
 | Ctrl+A | Painel | Seleciona todos os itens |
@@ -319,7 +390,9 @@ Seus arquivos nunca saem da pasta da área de trabalho, mesmo com os ícones ocu
 
 ### O atalho não funciona
 
-Se outro programa já usa **Ctrl+Alt+Espaço**, o Orla mostra o aviso "Outro programa já usa Ctrl+Alt+Espaço" e a chave **Atalho Ctrl+Alt+Espaço** fica desligada. Use **Mostrar painéis na frente** no menu da bandeja, ou libere o atalho no outro programa e ligue a chave de novo em **Geral**.
+Se outro programa já usa a combinação, o Orla avisa ("Outro programa já usa…") e os painéis continuam disponíveis pelo menu da bandeja. Para resolver, escolha outra combinação em **Geral > Combinação de teclas**, ou libere a combinação no outro programa e ligue de novo **Atalho de teclado**.
+
+Se você trocou a combinação e não lembra qual é, a descrição de **Atalho de teclado** e o menu da bandeja mostram a atual. **Restaurar padrão** volta para **Ctrl+Alt+Espaço**.
 
 ### O Windows mostrou um aviso do SmartScreen
 
@@ -335,7 +408,9 @@ Em **Geral**, clique em **Reorganizar** ao lado de **Reorganizar painéis**. Tod
 
 ### Um painel sumiu
 
-Ele pode ter sido ocultado. Abra o Orla, vá em **Painéis** e ligue a chave **No desktop** do painel.
+Se todos os painéis sumiram, eles podem ter sido escondidos pelo atalho. Aperte o atalho com o desktop à vista, ou escolha **Mostrar painéis** no menu da bandeja.
+
+Se só um painel sumiu, ele pode ter sido ocultado. Abra o Orla, vá em **Painéis** e ligue a chave **No desktop** do painel.
 
 ### O Orla mostra "Modo compatível"
 
