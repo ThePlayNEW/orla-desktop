@@ -28,6 +28,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Orla.Tests" />
+    <EmbeddedResource Include="Strings\*.json" LogicalName="Orla.Strings.%(Filename).json" />
+    <Resource Include="Assets\*.ico" />
   </ItemGroup>
 
 </Project>

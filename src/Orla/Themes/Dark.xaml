@@ -38,4 +38,11 @@
     <SolidColorBrush x:Key="Brush.Warning" Color="#E9C58A" />
     <SolidColorBrush x:Key="Brush.Critical" Color="#F29B8E" />
 
+    <!-- Shoreline tints a panel can choose. -->
+    <SolidColorBrush x:Key="Brush.Tint.seaglass" Color="#5EC8C0" />
+    <SolidColorBrush x:Key="Brush.Tint.sand" Color="#E4C891" />
+    <SolidColorBrush x:Key="Brush.Tint.coral" Color="#F29B8E" />
+    <SolidColorBrush x:Key="Brush.Tint.sky" Color="#8BBEFF" />
+    <SolidColorBrush x:Key="Brush.Tint.moss" Color="#A6C98B" />
+
 </ResourceDictionary>

@@ -86,4 +86,43 @@ writeFileSync(join(themes, 'Glyphs.xaml'), `<!-- Generated from assets/glyphs by
 ${entries.join('\n')}
 </ResourceDictionary>
 `);
+// Brand mark and wordmark as XAML, so the app draws exactly the shapes in assets/brand.
+const wordmark = [...svg('logo-light.svg').matchAll(/<path fill="[^"]+" d="([^"]+)"\/>/g)].map((m) => m[1]);
+writeFileSync(join(themes, 'Brand.xaml'), `<!-- Generated from assets/brand by tools/icons/export.mjs. Edit the SVG sources, not this file. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DrawingImage x:Key="Brand.Mark">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <DrawingGroup.ClipGeometry>
+                    <RectangleGeometry Rect="2,2,44,44" RadiusX="10" RadiusY="10" />
+                </DrawingGroup.ClipGeometry>
+                <GeometryDrawing Geometry="M0,0 H48 V48 H0 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0.25,0" EndPoint="0.75,1">
+                            <GradientStop Offset="0" Color="#20707A" />
+                            <GradientStop Offset="1" Color="#0E3B43" />
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M0 29.5C9 23.5 17 35.5 27 29.5S41 24 48 27.5V48H0Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0.25,0" EndPoint="0.75,1">
+                            <GradientStop Offset="0" Color="#EDE3CF" />
+                            <GradientStop Offset="1" Color="#DCCBA9" />
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M0 29.5C9 23.5 17 35.5 27 29.5S41 24 48 27.5">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#5EC8C0" Thickness="3.2" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+    <StreamGeometry x:Key="Brand.Word">${wordmark[0]}</StreamGeometry>
+    <StreamGeometry x:Key="Brand.Tagline">${wordmark[1]}</StreamGeometry>
+</ResourceDictionary>
+`);
 console.log('Icons exported.');

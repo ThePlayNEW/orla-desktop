@@ -112,13 +112,15 @@ namespace Orla.Tests
         }
 
         [Fact]
-        public void clampsPanelSize()
+        public void clampsPanelSizeAndOpacity()
         {
             first.Width = 9000;
             first.Height = -100;
+            store.data.Opacity = 0.2;
             Layout bounded = Store.parse(Store.json().Serialize(store.data));
-            Assert.Equal(620, bounded.Groups[0].Width);
-            Assert.Equal(180, bounded.Groups[0].Height);
+            Assert.Equal(Group.MaxWidth, bounded.Groups[0].Width);
+            Assert.Equal(Group.MinHeight, bounded.Groups[0].Height);
+            Assert.Equal(Layout.MinOpacity, bounded.Opacity);
         }
 
         [Fact]
@@ -130,7 +132,55 @@ namespace Orla.Tests
         [Fact]
         public void rejectsUnknownVersion()
         {
-            Assert.Throws<InvalidDataException>(() => Store.parse("{\"Version\":2,\"Groups\":[]}"));
+            Assert.Throws<InvalidDataException>(() => Store.parse("{\"Version\":3,\"Groups\":[]}"));
+        }
+
+        [Fact]
+        public void migratesVersionOneGroupsToCollections()
+        {
+            string v1 = "{\"Version\":1,\"Opacity\":0.6,\"Groups\":[{\"Id\":\"g1\",\"Name\":\"Apps\",\"Color\":\"#8BBEFF\"," +
+                        "\"Visible\":true,\"X\":24,\"Y\":64,\"Width\":332,\"Height\":306,\"Items\":[{\"Id\":\"e1\"," +
+                        "\"Name\":\"Nota\",\"Path\":\"C:\\nota.txt\"}]}]}";
+            Layout migrated = Store.parse(v1, 1.5, out bool wasMigrated);
+            Assert.True(wasMigrated);
+            Assert.Equal(Layout.CurrentVersion, migrated.Version);
+            Assert.True(migrated.CleanDesktop);
+            Assert.True(migrated.Welcomed);
+            Assert.Equal(PanelKind.Collection, migrated.Groups[0].Kind);
+            Assert.Equal(Tints.Sky, migrated.Groups[0].Tint);
+            Assert.Equal(36, migrated.Groups[0].X);
+            Assert.Equal(96, migrated.Groups[0].Y);
+            Assert.Equal(Layout.MinOpacity, migrated.Opacity);
+            Assert.Single(migrated.Groups[0].Items);
+        }
+
+        [Fact]
+        public void rejectsFolderPanelWithoutFolderAndUnknownKind()
+        {
+            first.Kind = PanelKind.Folder;
+            Assert.Throws<InvalidDataException>(() => Store.parse(Store.json().Serialize(store.data)));
+            first.Kind = "gallery";
+            Assert.Throws<InvalidDataException>(() => Store.parse(Store.json().Serialize(store.data)));
+        }
+
+        [Fact]
+        public void keepsReferencesOutOfFolderPanels()
+        {
+            var folder = new Group { Kind = PanelKind.Folder, FolderPath = root };
+            store.data.Groups.Add(folder);
+            store.add(first, file);
+            Assert.False(store.add(folder, file));
+            Assert.False(store.move(first.Items[0].Id, folder, 0));
+            Assert.Contains(file, store.organizedPaths());
+        }
+
+        [Fact]
+        public void removesOnlyTheReference()
+        {
+            store.add(first, file);
+            Assert.True(store.remove(first.Items[0].Id));
+            Assert.Empty(first.Items);
+            Assert.True(File.Exists(file));
         }
 
         [Fact]
