@@ -12,10 +12,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ThePlayNEW/orla/releases/latest"><img src="https://img.shields.io/github/v/release/ThePlayNEW/orla?label=vers%C3%A3o" alt="Versão mais recente"></a>
-  <a href="https://github.com/ThePlayNEW/orla/releases"><img src="https://img.shields.io/github/downloads/ThePlayNEW/orla/total?label=downloads" alt="Downloads"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/ThePlayNEW/orla?label=licen%C3%A7a" alt="Licença MIT"></a>
-  <a href="https://github.com/ThePlayNEW/orla/actions/workflows/build.yml"><img src="https://github.com/ThePlayNEW/orla/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/ThePlayNEW/orla-desktop/releases/latest"><img src="https://img.shields.io/github/v/release/ThePlayNEW/orla-desktop?label=vers%C3%A3o" alt="Versão mais recente"></a>
+  <a href="https://github.com/ThePlayNEW/orla-desktop/releases"><img src="https://img.shields.io/github/downloads/ThePlayNEW/orla-desktop/total?label=downloads" alt="Downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/ThePlayNEW/orla-desktop?label=licen%C3%A7a" alt="Licença MIT"></a>
+  <a href="https://github.com/ThePlayNEW/orla-desktop/actions/workflows/build.yml"><img src="https://github.com/ThePlayNEW/orla-desktop/actions/workflows/build.yml/badge.svg" alt="Build"></a>
 </p>
 
 <picture>
@@ -36,12 +36,12 @@
 
 ## Instalação
 
-Baixe na página de [versões](https://github.com/ThePlayNEW/orla/releases/latest):
+Baixe na página de [versões](https://github.com/ThePlayNEW/orla-desktop/releases/latest):
 
 | Arquivo | Para quem |
 | --- | --- |
-| [`OrlaDesktop-win-Setup.exe`](https://github.com/ThePlayNEW/orla/releases/latest/download/OrlaDesktop-win-Setup.exe) | A maioria das pessoas. Instala só para o seu usuário, sem pedir administrador, cria um atalho no menu Iniciar e se atualiza sozinho. |
-| [`OrlaDesktop-win-Portable.zip`](https://github.com/ThePlayNEW/orla/releases/latest/download/OrlaDesktop-win-Portable.zip) | Quem prefere não instalar. Extraia em qualquer pasta e abra `Orla Desktop.exe`. Não se atualiza sozinho: para atualizar, baixe um ZIP novo. |
+| [`OrlaDesktop-win-Setup.exe`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Setup.exe) | A maioria das pessoas. Instala só para o seu usuário, sem pedir administrador, cria um atalho no menu Iniciar e se atualiza sozinho. |
+| [`OrlaDesktop-win-Portable.zip`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Portable.zip) | Quem prefere não instalar. Extraia em qualquer pasta e abra `Orla Desktop.exe`. Não se atualiza sozinho: para atualizar, baixe um ZIP novo. |
 
 Os executáveis ainda não têm assinatura digital, então o Windows SmartScreen pode mostrar um aviso na primeira vez. Clique em **Mais informações** e depois em **Executar assim mesmo**. A assinatura pelo SignPath Foundation está planejada.
 
@@ -122,7 +122,7 @@ O único acesso à rede é a busca por atualizações da versão instalada: no m
 | Idiomas | Português (Brasil), English, Español, Français, Deutsch, Italiano |
 | Windows 32 bits ou ARM | Não suportado |
 
-Os detalhes estão em [docs/validation.md](docs/validation.md). Se você usar o Orla no Windows 11, um relato em [Issues](https://github.com/ThePlayNEW/orla/issues/new/choose) ajuda bastante.
+Os detalhes estão em [docs/validation.md](docs/validation.md). Se você usar o Orla no Windows 11, um relato em [Issues](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose) ajuda bastante.
 
 ## Desinstalar
 

@@ -66,7 +66,7 @@ The checklist for testers is in [docs/en/manual-test.md](en/manual-test.md) ([Po
 | Folder panels on slow network shares | Listing runs on a background task; not tested on a real network share |
 | Game detection | Tested with store links and install folders in unit tests; not tested against every launcher version |
 
-Reports for any of these are welcome in [Issues](https://github.com/ThePlayNEW/orla/issues/new/choose).
+Reports for any of these are welcome in [Issues](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose).
 
 ## 0.1 preview
 

@@ -47,8 +47,8 @@ Once the package exists in winget-pkgs:
 
 ```powershell
 wingetcreate update ThePlayNEW.OrlaDesktop --version 1.1.0 `
-    --urls https://github.com/ThePlayNEW/orla/releases/download/v2.1.0/OrlaDesktop-win-Setup.exe `
-    --release-notes-url https://github.com/ThePlayNEW/orla/releases/tag/v2.1.0 `
+    --urls https://github.com/ThePlayNEW/orla-desktop/releases/download/v2.1.0/OrlaDesktop-win-Setup.exe `
+    --release-notes-url https://github.com/ThePlayNEW/orla-desktop/releases/tag/v2.1.0 `
     --submit --token <token>
 ```
 

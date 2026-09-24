@@ -61,7 +61,7 @@ representative at an online or offline event.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement through GitHub.
 To report privately, use the repository's
-[private reporting form](https://github.com/ThePlayNEW/orla/security/advisories/new)
+[private reporting form](https://github.com/ThePlayNEW/orla-desktop/security/advisories/new)
 and state that the report concerns conduct. You can also contact the maintainer,
 [@ThePlayNEW](https://github.com/ThePlayNEW), on GitHub.
 All complaints will be reviewed and investigated promptly and fairly.

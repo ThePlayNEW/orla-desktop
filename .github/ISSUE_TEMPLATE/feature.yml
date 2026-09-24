@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Pode escrever em português ou em inglês. Antes, veja se já existe uma [issue parecida](https://github.com/ThePlayNEW/orla/issues?q=is%3Aissue).
-        You can write in Portuguese or English. First, check whether a [similar issue](https://github.com/ThePlayNEW/orla/issues?q=is%3Aissue) already exists.
+        Pode escrever em português ou em inglês. Antes, veja se já existe uma [issue parecida](https://github.com/ThePlayNEW/orla-desktop/issues?q=is%3Aissue).
+        You can write in Portuguese or English. First, check whether a [similar issue](https://github.com/ThePlayNEW/orla-desktop/issues?q=is%3Aissue) already exists.
 
   - type: textarea
     id: problem

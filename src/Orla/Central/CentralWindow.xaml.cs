@@ -14,7 +14,7 @@ namespace Orla
     // Orla's own window: panels, appearance, general settings, about, and the welcome screen on first run.
     public partial class CentralWindow : Window
     {
-        public const string Repository = "https://github.com/ThePlayNEW/orla";
+        public const string Repository = "https://github.com/ThePlayNEW/orla-desktop";
         readonly Controller controller;
         PanelView preview;
         bool loading;

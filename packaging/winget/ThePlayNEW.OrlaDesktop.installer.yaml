@@ -23,7 +23,7 @@ AppsAndFeaturesEntries:
   InstallerType: exe
 Installers:
 - Architecture: x64
-  InstallerUrl: https://github.com/ThePlayNEW/orla/releases/download/v__VERSION__/OrlaDesktop-win-Setup.exe
+  InstallerUrl: https://github.com/ThePlayNEW/orla-desktop/releases/download/v__VERSION__/OrlaDesktop-win-Setup.exe
   InstallerSha256: __SHA256__
 ManifestType: installer
 ManifestVersion: 1.9.0

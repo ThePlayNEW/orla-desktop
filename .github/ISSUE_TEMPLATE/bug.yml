@@ -5,10 +5,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        Obrigado por relatar. Antes, confira as soluções no [guia de uso](https://github.com/ThePlayNEW/orla/blob/main/docs/pt-BR/guia.md#solução-de-problemas). Pode escrever em português ou em inglês.
-        Thank you for reporting. First, check the fixes in the [user guide](https://github.com/ThePlayNEW/orla/blob/main/docs/en/guide.md#troubleshooting). You can write in Portuguese or English.
+        Obrigado por relatar. Antes, confira as soluções no [guia de uso](https://github.com/ThePlayNEW/orla-desktop/blob/main/docs/pt-BR/guia.md#solução-de-problemas). Pode escrever em português ou em inglês.
+        Thank you for reporting. First, check the fixes in the [user guide](https://github.com/ThePlayNEW/orla-desktop/blob/main/docs/en/guide.md#troubleshooting). You can write in Portuguese or English.
 
-        Falhas de segurança não vão aqui: veja [SECURITY.md](https://github.com/ThePlayNEW/orla/blob/main/SECURITY.md). / Security issues do not go here: see [SECURITY.md](https://github.com/ThePlayNEW/orla/blob/main/SECURITY.md).
+        Falhas de segurança não vão aqui: veja [SECURITY.md](https://github.com/ThePlayNEW/orla-desktop/blob/main/SECURITY.md). / Security issues do not go here: see [SECURITY.md](https://github.com/ThePlayNEW/orla-desktop/blob/main/SECURITY.md).
 
   - type: input
     id: windows

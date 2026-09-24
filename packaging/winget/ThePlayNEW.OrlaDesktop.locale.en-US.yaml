@@ -6,12 +6,12 @@ PackageVersion: __VERSION__
 PackageLocale: en-US
 Publisher: Eduardo Torres
 PublisherUrl: https://github.com/ThePlayNEW
-PublisherSupportUrl: https://github.com/ThePlayNEW/orla/issues
+PublisherSupportUrl: https://github.com/ThePlayNEW/orla-desktop/issues
 Author: Eduardo Torres
 PackageName: Orla Desktop
-PackageUrl: https://github.com/ThePlayNEW/orla
+PackageUrl: https://github.com/ThePlayNEW/orla-desktop
 License: MIT
-LicenseUrl: https://github.com/ThePlayNEW/orla/blob/main/LICENSE
+LicenseUrl: https://github.com/ThePlayNEW/orla-desktop/blob/main/LICENSE
 Copyright: Copyright (c) 2026 Eduardo Torres
 ShortDescription: Translucent panels that organize the Windows desktop.
 Description: |-
@@ -26,6 +26,6 @@ Tags:
 - icons
 - productivity
 - wpf
-ReleaseNotesUrl: https://github.com/ThePlayNEW/orla/releases/tag/v__VERSION__
+ReleaseNotesUrl: https://github.com/ThePlayNEW/orla-desktop/releases/tag/v__VERSION__
 ManifestType: defaultLocale
 ManifestVersion: 1.9.0

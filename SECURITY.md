@@ -15,7 +15,7 @@ Security fixes are made for the latest release only. The installed version updat
 
 Please do not open a public issue for a security problem.
 
-Report it privately through GitHub: go to the repository's [Security tab](https://github.com/ThePlayNEW/orla/security) and choose **Report a vulnerability**, or open the [private reporting form](https://github.com/ThePlayNEW/orla/security/advisories/new) directly. Only the maintainer can see the report.
+Report it privately through GitHub: go to the repository's [Security tab](https://github.com/ThePlayNEW/orla-desktop/security) and choose **Report a vulnerability**, or open the [private reporting form](https://github.com/ThePlayNEW/orla-desktop/security/advisories/new) directly. Only the maintainer can see the report.
 
 Include:
 
@@ -28,10 +28,10 @@ You can expect a first reply within seven days. Once the problem is confirmed, a
 
 ## Scope
 
-In scope: `Orla.exe` and its companion process, the installer and update packages published on the [releases page](https://github.com/ThePlayNEW/orla/releases), and the handling of `%LOCALAPPDATA%\Orla\layout.json`.
+In scope: `Orla.exe` and its companion process, the installer and update packages published on the [releases page](https://github.com/ThePlayNEW/orla-desktop/releases), and the handling of `%LOCALAPPDATA%\Orla\layout.json`.
 
 Out of scope: problems that need an attacker who already runs code as the same Windows user, since that user can change the desktop directly; issues in Windows, Explorer or third-party wallpaper programs; and the absence of code signing, which is already known and planned.
 
 ## Português
 
-Não abra uma issue pública para relatar uma falha de segurança. Use o [formulário de relato privado](https://github.com/ThePlayNEW/orla/security/advisories/new) do GitHub, que só o mantenedor vê. Informe a versão do Orla e do Windows, o que um atacante conseguiria fazer e os passos para reproduzir. A primeira resposta chega em até sete dias. Correções saem apenas para a versão mais recente.
+Não abra uma issue pública para relatar uma falha de segurança. Use o [formulário de relato privado](https://github.com/ThePlayNEW/orla-desktop/security/advisories/new) do GitHub, que só o mantenedor vê. Informe a versão do Orla e do Windows, o que um atacante conseguiria fazer e os passos para reproduzir. A primeira resposta chega em até sete dias. Correções saem apenas para a versão mais recente.

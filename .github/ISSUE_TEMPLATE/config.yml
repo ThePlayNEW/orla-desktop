@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Guia de uso (português)
-    url: https://github.com/ThePlayNEW/orla/blob/main/docs/pt-BR/guia.md
+    url: https://github.com/ThePlayNEW/orla-desktop/blob/main/docs/pt-BR/guia.md
     about: Como usar o Orla e soluções para os problemas mais comuns.
   - name: User guide (English)
-    url: https://github.com/ThePlayNEW/orla/blob/main/docs/en/guide.md
+    url: https://github.com/ThePlayNEW/orla-desktop/blob/main/docs/en/guide.md
     about: How to use Orla and fixes for the most common problems.
   - name: Falha de segurança / Security issue
-    url: https://github.com/ThePlayNEW/orla/security/advisories/new
+    url: https://github.com/ThePlayNEW/orla-desktop/security/advisories/new
     about: Relate em particular. / Report it privately.

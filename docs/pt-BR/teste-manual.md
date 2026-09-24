@@ -38,6 +38,6 @@ Instale o Orla e, na tela de boas-vindas, escolha **Manter meus ícones**. Em **
 
 ## Como relatar
 
-Abra um relato em [Issues](https://github.com/ThePlayNEW/orla/issues/new/choose) com as informações de "Antes de começar" e o número dos passos que falharam. Se todos passaram, um relato dizendo isso também ajuda, principalmente no Windows 11.
+Abra um relato em [Issues](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose) com as informações de "Antes de começar" e o número dos passos que falharam. Se todos passaram, um relato dizendo isso também ajuda, principalmente no Windows 11.
 
 Antes de anexar capturas de tela, confira se elas não mostram nomes de usuário, caminhos pessoais ou arquivos privados.

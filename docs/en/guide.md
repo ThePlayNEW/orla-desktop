@@ -256,7 +256,7 @@ With Windows High Contrast on, Orla uses the system colours and turns off transp
 
 The installed version looks for a new release on GitHub at most once a day. When it finds one, it downloads it in the background and applies it the next time Orla closes. The check asks GitHub for this repository's list of releases and sends no personal data. When a new version is ready, the **About** page shows a **Restart and update** button to install it right away. To turn updates off, use **Automatic updates** in **General**.
 
-The portable version does not update itself. To update it, quit Orla, download the new ZIP from the [releases page](https://github.com/ThePlayNEW/orla/releases/latest) and extract it in place of the old folder. Your panels live in `%LOCALAPPDATA%\Orla` and are not affected.
+The portable version does not update itself. To update it, quit Orla, download the new ZIP from the [releases page](https://github.com/ThePlayNEW/orla-desktop/releases/latest) and extract it in place of the old folder. Your panels live in `%LOCALAPPDATA%\Orla` and are not affected.
 
 ## Keyboard
 
@@ -276,7 +276,7 @@ The portable version does not update itself. To update it, quit Orla, download t
 
 You can place panels on any monitor. Each panel uses the scale of the monitor it is on and stays inside that monitor's work area. If a monitor is disconnected, its panels move to the nearest remaining monitor. **Rearrange panels** brings every visible panel to the main screen.
 
-Monitors with different scales, such as a laptop at 150% with an external monitor at 100%, have not been tested yet. If something looks out of place in that setup, [report it](https://github.com/ThePlayNEW/orla/issues/new/choose).
+Monitors with different scales, such as a laptop at 150% with an external monitor at 100%, have not been tested yet. If something looks out of place in that setup, [report it](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose).
 
 ## Upgrading from the 0.1 preview
 
@@ -323,7 +323,7 @@ If another program already uses **Ctrl+Alt+Space**, Orla shows "Another program 
 
 ### Windows showed a SmartScreen warning
 
-Orla's executables are not code-signed yet, and SmartScreen warns about programs without a reputation. Check that you downloaded the file from this repository's [releases page](https://github.com/ThePlayNEW/orla/releases), then click **More info** and **Run anyway**. Signing through the SignPath Foundation is planned.
+Orla's executables are not code-signed yet, and SmartScreen warns about programs without a reputation. Check that you downloaded the file from this repository's [releases page](https://github.com/ThePlayNEW/orla-desktop/releases), then click **More info** and **Run anyway**. Signing through the SignPath Foundation is planned.
 
 ### Explorer restarted
 
@@ -339,7 +339,7 @@ It may be hidden. Open Orla, go to **Panels** and turn on the panel's **On deskt
 
 ### Orla shows "Compatibility mode"
 
-Orla could not find Explorer's desktop window, so it shows the panels as ordinary windows just above the desktop. This can happen when Explorer is not running or another program replaces the desktop. Restart Explorer as described above. If the message stays, [report it](https://github.com/ThePlayNEW/orla/issues/new/choose) with your Windows version and wallpaper program.
+Orla could not find Explorer's desktop window, so it shows the panels as ordinary windows just above the desktop. This can happen when Explorer is not running or another program replaces the desktop. Restart Explorer as described above. If the message stays, [report it](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose) with your Windows version and wallpaper program.
 
 ### An item shows as missing
 
@@ -357,7 +357,7 @@ Use only one program that hides or manages desktop icons at a time. Two programs
 Yes. Testing was done with Wallpaper Engine running on Windows 10. Orla does not touch the wallpaper or Wallpaper Engine's windows. Lively uses the same structure but has not been tested yet.
 
 **Does Orla work on Windows 11?**
-The code handles the desktop structures of Windows 10 and Windows 11, including the one in 24H2. Manual testing on Windows 11 is still pending. If you use it, tell us how it went in [Issues](https://github.com/ThePlayNEW/orla/issues/new/choose).
+The code handles the desktop structures of Windows 10 and Windows 11, including the one in 24H2. Manual testing on Windows 11 is still pending. If you use it, tell us how it went in [Issues](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose).
 
 **How much memory does Orla use?**
 About 100 MB with four panels, including the WPF runtime. When idle, processor use stays near zero, because Orla only does work when something changes.

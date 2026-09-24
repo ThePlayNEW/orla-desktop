@@ -12,10 +12,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ThePlayNEW/orla/releases/latest"><img src="https://img.shields.io/github/v/release/ThePlayNEW/orla?label=release" alt="Latest release"></a>
-  <a href="https://github.com/ThePlayNEW/orla/releases"><img src="https://img.shields.io/github/downloads/ThePlayNEW/orla/total?label=downloads" alt="Downloads"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/ThePlayNEW/orla?label=license" alt="MIT license"></a>
-  <a href="https://github.com/ThePlayNEW/orla/actions/workflows/build.yml"><img src="https://github.com/ThePlayNEW/orla/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/ThePlayNEW/orla-desktop/releases/latest"><img src="https://img.shields.io/github/v/release/ThePlayNEW/orla-desktop?label=release" alt="Latest release"></a>
+  <a href="https://github.com/ThePlayNEW/orla-desktop/releases"><img src="https://img.shields.io/github/downloads/ThePlayNEW/orla-desktop/total?label=downloads" alt="Downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/ThePlayNEW/orla-desktop?label=license" alt="MIT license"></a>
+  <a href="https://github.com/ThePlayNEW/orla-desktop/actions/workflows/build.yml"><img src="https://github.com/ThePlayNEW/orla-desktop/actions/workflows/build.yml/badge.svg" alt="Build"></a>
 </p>
 
 <picture>
@@ -36,12 +36,12 @@
 
 ## Installation
 
-Download from the [releases page](https://github.com/ThePlayNEW/orla/releases/latest):
+Download from the [releases page](https://github.com/ThePlayNEW/orla-desktop/releases/latest):
 
 | File | Who it is for |
 | --- | --- |
-| [`OrlaDesktop-win-Setup.exe`](https://github.com/ThePlayNEW/orla/releases/latest/download/OrlaDesktop-win-Setup.exe) | Most people. Installs for your user only, without administrator rights, adds a Start menu shortcut and updates itself. |
-| [`OrlaDesktop-win-Portable.zip`](https://github.com/ThePlayNEW/orla/releases/latest/download/OrlaDesktop-win-Portable.zip) | People who prefer not to install. Extract it anywhere and run `Orla Desktop.exe`. It does not update itself: download a new ZIP to update. |
+| [`OrlaDesktop-win-Setup.exe`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Setup.exe) | Most people. Installs for your user only, without administrator rights, adds a Start menu shortcut and updates itself. |
+| [`OrlaDesktop-win-Portable.zip`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Portable.zip) | People who prefer not to install. Extract it anywhere and run `Orla Desktop.exe`. It does not update itself: download a new ZIP to update. |
 
 The executables are not code-signed yet, so Windows SmartScreen may show a warning the first time. Click **More info**, then **Run anyway**. Signing through the SignPath Foundation is planned.
 
@@ -122,7 +122,7 @@ The only network access is the installed version's update check: at most once a 
 | Languages | Português (Brasil), English, Español, Français, Deutsch, Italiano |
 | 32-bit or ARM Windows | Not supported |
 
-Details are in [docs/validation.md](docs/validation.md). If you use Orla on Windows 11, a report in [Issues](https://github.com/ThePlayNEW/orla/issues/new/choose) helps a lot.
+Details are in [docs/validation.md](docs/validation.md). If you use Orla on Windows 11, a report in [Issues](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose) helps a lot.
 
 ## Uninstall
 

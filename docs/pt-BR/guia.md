@@ -256,7 +256,7 @@ Com o Alto Contraste do Windows ligado, o Orla usa as cores do sistema e desliga
 
 A versão instalada procura uma versão nova no GitHub no máximo uma vez por dia. Quando encontra, baixa em segundo plano e aplica na próxima vez que o Orla fechar. A busca pede ao GitHub a lista de versões deste repositório e não envia dados pessoais. Quando uma versão nova estiver pronta, a página **Sobre** mostra o botão **Reiniciar e atualizar**, para instalar na hora. Para desligar as atualizações, use **Atualizações automáticas** em **Geral**.
 
-A versão portátil não se atualiza sozinha. Para atualizar, saia do Orla, baixe o ZIP novo da [página de versões](https://github.com/ThePlayNEW/orla/releases/latest) e extraia no lugar da pasta antiga. Seus painéis ficam em `%LOCALAPPDATA%\Orla` e não são afetados.
+A versão portátil não se atualiza sozinha. Para atualizar, saia do Orla, baixe o ZIP novo da [página de versões](https://github.com/ThePlayNEW/orla-desktop/releases/latest) e extraia no lugar da pasta antiga. Seus painéis ficam em `%LOCALAPPDATA%\Orla` e não são afetados.
 
 ## Teclado
 
@@ -276,7 +276,7 @@ A versão portátil não se atualiza sozinha. Para atualizar, saia do Orla, baix
 
 Você pode pôr painéis em qualquer monitor. Cada painel usa a escala do monitor em que está e fica dentro da área útil dele. Se um monitor for desconectado, os painéis que estavam nele passam para o monitor mais próximo. **Reorganizar painéis** leva todos os painéis visíveis para a tela principal.
 
-Monitores com escalas diferentes, como um notebook em 150% e um monitor externo em 100%, ainda não foram testados. Se algo parecer fora do lugar nessa situação, [relate o problema](https://github.com/ThePlayNEW/orla/issues/new/choose).
+Monitores com escalas diferentes, como um notebook em 150% e um monitor externo em 100%, ainda não foram testados. Se algo parecer fora do lugar nessa situação, [relate o problema](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose).
 
 ## Atualizar da prévia 0.1
 
@@ -323,7 +323,7 @@ Se outro programa já usa **Ctrl+Alt+Espaço**, o Orla mostra o aviso "Outro pro
 
 ### O Windows mostrou um aviso do SmartScreen
 
-Os executáveis do Orla ainda não têm assinatura digital, e o SmartScreen avisa sobre programas sem reputação. Confira se você baixou o arquivo da [página de versões](https://github.com/ThePlayNEW/orla/releases) deste repositório, clique em **Mais informações** e depois em **Executar assim mesmo**. A assinatura pelo SignPath Foundation está planejada.
+Os executáveis do Orla ainda não têm assinatura digital, e o SmartScreen avisa sobre programas sem reputação. Confira se você baixou o arquivo da [página de versões](https://github.com/ThePlayNEW/orla-desktop/releases) deste repositório, clique em **Mais informações** e depois em **Executar assim mesmo**. A assinatura pelo SignPath Foundation está planejada.
 
 ### O Explorador reiniciou
 
@@ -339,7 +339,7 @@ Ele pode ter sido ocultado. Abra o Orla, vá em **Painéis** e ligue a chave **N
 
 ### O Orla mostra "Modo compatível"
 
-O Orla não encontrou a janela do desktop do Explorador e mostra os painéis em janelas comuns logo acima do desktop. Isso pode acontecer se o Explorador não estiver rodando ou se outro programa substituir o desktop. Reinicie o Explorador como descrito acima. Se o aviso continuar, [relate o problema](https://github.com/ThePlayNEW/orla/issues/new/choose) dizendo qual versão do Windows e qual programa de papel de parede você usa.
+O Orla não encontrou a janela do desktop do Explorador e mostra os painéis em janelas comuns logo acima do desktop. Isso pode acontecer se o Explorador não estiver rodando ou se outro programa substituir o desktop. Reinicie o Explorador como descrito acima. Se o aviso continuar, [relate o problema](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose) dizendo qual versão do Windows e qual programa de papel de parede você usa.
 
 ### Um item aparece como ausente
 
@@ -357,7 +357,7 @@ Use só um programa que esconde ou gerencia os ícones do desktop por vez. Dois 
 Sim. Os testes foram feitos com o Wallpaper Engine rodando no Windows 10. O Orla não mexe no papel de parede nem nas janelas do Wallpaper Engine. O Lively usa a mesma estrutura, mas ainda não foi testado.
 
 **O Orla funciona no Windows 11?**
-O código foi escrito para as estruturas de desktop do Windows 10 e do Windows 11, inclusive a do 24H2. O teste manual no Windows 11 ainda está pendente. Se você usar, conte como foi em [Issues](https://github.com/ThePlayNEW/orla/issues/new/choose).
+O código foi escrito para as estruturas de desktop do Windows 10 e do Windows 11, inclusive a do 24H2. O teste manual no Windows 11 ainda está pendente. Se você usar, conte como foi em [Issues](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose).
 
 **Quanta memória o Orla usa?**
 Cerca de 100 MB com quatro painéis, incluindo o runtime do WPF. Parado, o uso de processador fica perto de zero, porque o Orla só trabalha quando algo muda.

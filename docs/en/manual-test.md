@@ -38,6 +38,6 @@ Install Orla and, on the welcome screen, choose **Keep my icons**. Under **Choos
 
 ## Reporting
 
-Open a report in [Issues](https://github.com/ThePlayNEW/orla/issues/new/choose) with the details from "Before you start" and the numbers of any steps that failed. If every step passed, a report saying so helps too, especially on Windows 11.
+Open a report in [Issues](https://github.com/ThePlayNEW/orla-desktop/issues/new/choose) with the details from "Before you start" and the numbers of any steps that failed. If every step passed, a report saying so helps too, especially on Windows 11.
 
 Before attaching screenshots, check that they do not show user names, personal paths or private files.
