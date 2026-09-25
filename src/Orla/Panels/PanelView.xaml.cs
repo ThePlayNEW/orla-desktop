@@ -71,6 +71,9 @@ namespace Orla
 
         readonly Controller controller;
         readonly ObservableCollection<TileItem> tiles = new ObservableCollection<TileItem>();
+        // A performance panel shows sensors instead of files.
+        readonly ObservableCollection<SensorTile> sensorTiles = new ObservableCollection<SensorTile>();
+        bool sensing;
         readonly DispatcherTimer reloadTimer;
         FileSystemWatcher[] watchers = new FileSystemWatcher[0];
         string watchedFolder;
@@ -97,7 +100,7 @@ namespace Orla
             this.controller = controller;
             Group = group;
             InitializeComponent();
-            Items.ItemsSource = tiles;
+            Items.ItemsSource = group.IsSensors ? (System.Collections.IEnumerable)sensorTiles : tiles;
             applyTheme();
             Unloaded += delegate {
                 Theme.Changed -= applyTheme;
@@ -190,6 +193,24 @@ namespace Orla
                 queueReload();
             };
             Unloaded += delegate { stopWatching(); };
+            // A performance panel keeps the sensors running only while it is on the desktop.
+            if (group.IsSensors)
+            {
+                Loaded += delegate {
+                    if (sensing)
+                        return;
+                    sensing = true;
+                    Sensors.Sampled += showSensors;
+                    Sensors.use();
+                };
+                Unloaded += delegate {
+                    if (!sensing)
+                        return;
+                    sensing = false;
+                    Sensors.Sampled -= showSensors;
+                    Sensors.release();
+                };
+            }
             PreviewMouseDown += delegate { KeyboardCues = false; };
             IsKeyboardFocusWithinChanged += delegate {
                 if (!IsKeyboardFocusWithin)
@@ -316,7 +337,8 @@ namespace Orla
             Title.Text = heading();
             BackButton.Visibility = browsing != null ? Visibility.Visible : Visibility.Collapsed;
             BackButton.ToolTip = Text.get("panel.back");
-            KindGlyph.Visibility = Group.IsFolder && browsing == null ? Visibility.Visible : Visibility.Collapsed;
+            KindGlyph.Visibility = Group.IsFolder && browsing == null || Group.IsSensors ? Visibility.Visible : Visibility.Collapsed;
+            KindGlyph.Data = (Geometry)FindResource(Group.IsSensors ? "Glyph.Pulse" : "Glyph.PanelFolder");
             Shoreline.SetResourceReference(Shape.StrokeProperty, "Brush.Tint." + Group.Tint);
             CollapseGlyph.Data = (Geometry)FindResource(Group.Collapsed ? "Glyph.ChevronDown" : "Glyph.ChevronUp");
             CollapseButton.ToolTip = Text.get(Group.Collapsed ? "panel.expand" : "panel.collapse");
@@ -328,6 +350,7 @@ namespace Orla
             double icon = PanelMetrics.icon(IconSize);
             Resources["Tile.Icon"] = icon;
             Resources["Tile.Body"] = PanelMetrics.tile(IconSize) - 2;
+            Resources["Sensor.Detail"] = IconSize == "small" ? Visibility.Collapsed : Visibility.Visible;
             watch();
             reload();
         }
@@ -349,7 +372,8 @@ namespace Orla
         {
             if (Resizing)
                 return;
-            int contentRows = Math.Max(1, (int)Math.Ceiling(tiles.Count / (double)Group.Columns));
+            int count = Group.IsSensors ? sensorTiles.Count : tiles.Count;
+            int contentRows = Math.Max(1, (int)Math.Ceiling(count / (double)Group.Columns));
             int rows = Math.Max(1, Math.Min(Group.AutoHeight ? contentRows : Group.Rows, Math.Min(Group.Rows, RoomRows)));
             double width = PanelMetrics.width(Group.Columns, IconSize);
             double height = PanelMetrics.height(Group, rows, IconSize);
@@ -364,6 +388,11 @@ namespace Orla
         // desktop, so a slow network drive must never make the desktop stop responding.
         void reload()
         {
+            if (Group.IsSensors)
+            {
+                showSensors(Sensors.Latest);
+                return;
+            }
             int version = ++reloadVersion;
             bool folder = Group.IsFolder, only = Group.OnlyUnorganized && browsing == null;
             string folderPath = FolderShown;
@@ -436,6 +465,24 @@ namespace Orla
             Empty.Text = Text.get(!Group.IsFolder ? "panel.empty" : !available ? "panel.folderMissing"
                                   : Group.OnlyUnorganized && browsing == null ? "panel.inboxEmpty" : "panel.folderEmpty");
             Empty.Visibility = tiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            applySize();
+        }
+
+        // The sensors this computer has, updated with each reading. Before the first one, the usual set holds the space.
+        void showSensors(Reading r)
+        {
+            List<Metric> shown = Metric.All.Where(m => r == null ? m.Key != "battery" : m.Available(r)).ToList();
+            if (!shown.SequenceEqual(sensorTiles.Select(t => t.Metric)))
+            {
+                sensorTiles.Clear();
+                foreach (Metric m in shown)
+                    sensorTiles.Add(new SensorTile { Metric = m });
+            }
+            Reading[] history = Sensors.History;
+            foreach (SensorTile t in sensorTiles)
+                t.update(r, history);
+            Count.Text = "";
+            Empty.Visibility = Visibility.Collapsed;
             applySize();
         }
 
@@ -659,6 +706,16 @@ namespace Orla
 
         void marqueeDown(object sender, MouseButtonEventArgs e)
         {
+            // Sensors are not selected; a double click opens their details.
+            if (Group.IsSensors)
+            {
+                controller.focusPanel(this);
+                var sensor = (up(e.OriginalSource, d => d is FrameworkElement f && f.DataContext is SensorTile) as FrameworkElement)?.DataContext as SensorTile;
+                if (sensor != null && e.ClickCount == 2)
+                    controller.showPerformance(sensor.Metric.Key);
+                e.Handled = true;
+                return;
+            }
             if (tileAt(e.OriginalSource) != null || up(e.OriginalSource, d => d is ScrollBar) != null)
                 return;
             controller.focusPanel(this);
@@ -826,7 +883,7 @@ namespace Orla
                 menu.Items.Add(Menus.item("tile.openExplorer", "Glyph.Open", () => controller.open(tile.Path)));
             if (!many && !Shell.isVirtual(tile.Path))
                 menu.Items.Add(Menus.item("tile.reveal", "Glyph.Reveal", () => controller.reveal(tile.Path)));
-            var collections = controller.Layout.Groups.Where(g => !g.IsFolder && g != Group).ToList();
+            var collections = controller.Layout.Groups.Where(g => g.IsCollection && g != Group).ToList();
             if (entries.Count > 0)
             {
                 menu.Items.Add(new Separator());
@@ -856,7 +913,9 @@ namespace Orla
         void openPanelMenu(UIElement anchorElement)
         {
             var menu = new ContextMenu();
-            if (Group.IsFolder)
+            if (Group.IsSensors)
+                menu.Items.Add(Menus.item("panel.openPerformance", "Glyph.Pulse", () => controller.showPerformance(null)));
+            else if (Group.IsFolder)
             {
                 menu.Items.Add(Menus.item("panel.openFolder", "Glyph.Open", () => controller.open(Shell.resolveFolder(Group.FolderPath))));
                 if (Group.FolderPath == Shell.DesktopFolder)
@@ -898,6 +957,8 @@ namespace Orla
         DragDropEffects effectFor(DragEventArgs e)
         {
             bool fromHere = e.Data.GetDataPresent(SourceFormat) && (string)e.Data.GetData(SourceFormat) == Group.Id;
+            if (Group.IsSensors)
+                return DragDropEffects.None;
             if (!Group.IsFolder)
             {
                 if (e.Data.GetDataPresent(EntryFormat) || e.Data.GetDataPresent(DataFormats.FileDrop))

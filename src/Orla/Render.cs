@@ -44,13 +44,16 @@ namespace Orla
             }
             controller.store.data = Demo.create();
             controller0 = controller;
+            Sensors.demo(Demo.readings());
             foreach (string theme in new[] { "dark", "light" })
             {
                 controller.Layout.Theme = theme;
                 Theme.apply(controller.Layout);
                 await scene(controller, System.IO.Path.Combine(folder, "hero-" + theme + ".png"));
                 await central(controller, "panels", System.IO.Path.Combine(folder, "central-" + theme + ".png"));
+                await central(controller, "performance", System.IO.Path.Combine(folder, "performance-" + theme + ".png"));
                 await central(controller, "appearance", System.IO.Path.Combine(folder, "appearance-" + theme + ".png"));
+                await sensors(controller, System.IO.Path.Combine(folder, "sensors-" + theme + ".png"));
                 await central(controller, "general", System.IO.Path.Combine(folder, "general-" + theme + ".png"));
                 await central(controller, "about", System.IO.Path.Combine(folder, "about-" + theme + ".png"));
                 await central(controller, "welcome", System.IO.Path.Combine(folder, "welcome-" + theme + ".png"));
@@ -173,6 +176,20 @@ namespace Orla
             window.Close();
         }
 
+        // A performance panel on the wallpaper, with the sample minute.
+        static async Task sensors(Controller controller, string path)
+        {
+            const double width = 620, height = 260;
+            var canvas = new Canvas { Width = width, Height = height, ClipToBounds = true };
+            canvas.Children.Add(wallpaper(Theme.IsDark, 1440, 820));
+            var view = new PanelView(controller, Presets.performance());
+            canvas.Children.Add(view);
+            await Task.Delay(300);
+            Canvas.SetLeft(view, (width - view.Width) / 2);
+            Canvas.SetTop(view, 40);
+            await save(canvas, width, height, path);
+        }
+
         static async Task dialog(string path)
         {
             Window window = Dialog.sample(Text.format("panel.removeTitle", Text.get("preset.work")), Text.get("panel.removeMessage"),
@@ -190,7 +207,7 @@ namespace Orla
         static async Task central(Controller controller, string page, string path, IList<Screen> screens = null)
         {
             var window = new CentralWindow(controller) { PreviewScreens = screens, WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000,
-                                                         Top = 0, ShowActivated = false, Width = 1040, Height = 700 };
+                                                         Top = 0, ShowActivated = false, Width = 1040, Height = page == "performance" ? 1320 : 700 };
             if (page == "welcome" || page == "presets" || page == "organize" || page == "crowded")
             {
                 window.show("welcome");
@@ -211,6 +228,8 @@ namespace Orla
                 window.show(null);
                 if (page == "appearance")
                     window.NavAppearance.IsChecked = true;
+                if (page == "performance")
+                    window.showMetric("gpu");
                 if (page == "general")
                     window.NavGeneral.IsChecked = true;
                 if (page == "about")

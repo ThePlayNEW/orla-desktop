@@ -20,6 +20,8 @@ namespace Orla
     {
         public const string Collection = "collection";
         public const string Folder = "folder";
+        // Live performance: processor, graphics, memory, disk and network.
+        public const string Sensors = "sensors";
     }
 
     // One panel on the desktop. X and Y are physical screen pixels. Its size is counted in whole icon columns and
@@ -63,6 +65,8 @@ namespace Orla
         }
 
         public bool IsFolder => Kind == PanelKind.Folder;
+        public bool IsCollection => Kind == PanelKind.Collection;
+        public bool IsSensors => Kind == PanelKind.Sensors;
 
         public Group titled(string key)
         {

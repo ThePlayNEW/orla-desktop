@@ -317,7 +317,7 @@ namespace Orla
                 }
                 Width = stacks.Count * panelWidth + (stacks.Count - 1) * Margin;
                 // A hidden row costs more than a wider side; empty slots in a last row cost a little.
-                double empty = groups.Where(g => !g.IsFolder).Sum(g => rows[g] * columns - Math.Min(g.Items.Count, rows[g] * columns));
+                double empty = groups.Where(g => g.IsCollection).Sum(g => rows[g] * columns - Math.Min(g.Items.Count, rows[g] * columns));
                 // Running off the screen is the last resort, and the less of it the better.
                 Cost = hidden * 3 + Width / 400.0 + empty * 0.1 + overflow * 1000;
             }
@@ -326,7 +326,7 @@ namespace Orla
             {
                 if (g.IsFolder)
                     return 2;
-                return Math.Max(1, Math.Min(MostRows, (g.Items.Count + columns - 1) / columns));
+                return Math.Max(1, Math.Min(MostRows, (PanelMetrics.count(g) + columns - 1) / columns));
             }
 
             double height(Group g, int r) =>

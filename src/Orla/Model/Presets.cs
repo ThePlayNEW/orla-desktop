@@ -41,6 +41,7 @@ namespace Orla
             new Preset { Key = "recent", Glyph = "Glyph.ItemFile", Tint = Tints.Sky,
                          Create = () => folder("recent", Shell.RecentFolder, Tints.Sky), Available = () => Directory.Exists(Shell.RecentFolder) },
             new Preset { Key = "desktop", Glyph = "Glyph.Desktop", Tint = Tints.SeaGlass, Create = inbox },
+            new Preset { Key = "performance", Glyph = "Glyph.Pulse", Tint = Tints.Sky, Create = performance },
             new Preset { Key = "work", Glyph = "Glyph.PanelCollection", Tint = Tints.SeaGlass,
                          Create = () => new Group { Tint = Tints.SeaGlass, Rows = 2 }.titled("preset.work") },
             new Preset { Key = "study", Glyph = "Glyph.PanelCollection", Tint = Tints.Moss,
@@ -65,6 +66,10 @@ namespace Orla
             g.OnlyUnorganized = true;
             return g;
         }
+
+        // Processor, graphics, memory, disk and network in one row.
+        public static Group performance() =>
+            new Group { Kind = PanelKind.Sensors, Tint = Tints.Sky, Columns = Metric.Usual, Rows = 2 }.titled("preset.performance");
 
         static string special(Environment.SpecialFolder f) => Environment.GetFolderPath(f);
 

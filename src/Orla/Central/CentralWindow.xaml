@@ -134,6 +134,33 @@
             </Setter>
         </Style>
 
+        <!-- A metric on the Performance page: its name, value, a detail and the last minute. -->
+        <Style x:Key="Orla.Metric" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource Orla.FocusVisual}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Card" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Line}"
+                                BorderThickness="1" CornerRadius="8" Padding="18,14,18,12">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource Brush.TextSecondary}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                                <Setter TargetName="Card" Property="Background" Value="{DynamicResource Brush.ItemSelected}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Large choice on the welcome screen. -->
         <Style x:Key="Orla.Choice" TargetType="RadioButton">
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
@@ -192,6 +219,8 @@
                 <StackPanel x:Name="Nav">
                     <RadioButton x:Name="NavPanels" Style="{StaticResource Orla.Nav}" Tag="{StaticResource Glyph.Grid}"
                                  Content="{l:T central.navPanels}" GroupName="nav" />
+                    <RadioButton x:Name="NavPerformance" Style="{StaticResource Orla.Nav}" Tag="{StaticResource Glyph.Pulse}"
+                                 Content="{l:T central.navPerformance}" GroupName="nav" />
                     <RadioButton x:Name="NavAppearance" Style="{StaticResource Orla.Nav}" Tag="{StaticResource Glyph.PanelCollection}"
                                  Content="{l:T central.navAppearance}" GroupName="nav" />
                     <RadioButton x:Name="NavGeneral" Style="{StaticResource Orla.Nav}" Tag="{StaticResource Glyph.Settings}"
@@ -273,6 +302,57 @@
                                            Foreground="{DynamicResource Brush.TextSecondary}" />
                             </DockPanel>
                         </Border>
+                    </StackPanel>
+
+                    <!-- Performance -->
+                    <StackPanel x:Name="PagePerformance" Visibility="Collapsed">
+                        <DockPanel>
+                            <Button x:Name="PerfPanelButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button.Accent}" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Add}" Margin="0,0,8,0"
+                                          Stroke="{DynamicResource Brush.OnAccent}" />
+                                    <TextBlock x:Name="PerfPanelLabel" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T central.navPerformance}" />
+                        </DockPanel>
+                        <TextBlock Text="{l:T perf.lead}" Margin="0,6,0,20" TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextSecondary}" />
+                        <UniformGrid x:Name="PerfMetrics" Rows="1" Margin="0,0,-8,8" />
+                        <Border Style="{StaticResource Orla.Card}" Padding="18,16,18,12">
+                            <StackPanel>
+                                <DockPanel>
+                                    <TextBlock x:Name="PerfValue" DockPanel.Dock="Right" FontFamily="{StaticResource Font.Display}" FontSize="28"
+                                               FontWeight="SemiBold" VerticalAlignment="Top" Margin="16,-4,0,0" />
+                                    <StackPanel>
+                                        <TextBlock x:Name="PerfTitle" FontSize="{StaticResource Type.Subtitle}" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock x:Name="PerfHint" Style="{StaticResource Orla.CardHint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border x:Name="PerfGpuPicker" Style="{StaticResource Orla.SegmentGroup}" HorizontalAlignment="Left" Margin="0,12,0,0"
+                                        Visibility="Collapsed">
+                                    <StackPanel x:Name="PerfGpus" Orientation="Horizontal" />
+                                </Border>
+                                <DockPanel Margin="0,16,0,6">
+                                    <TextBlock x:Name="PerfScale" DockPanel.Dock="Right" FontSize="{StaticResource Type.Caption}"
+                                               Foreground="{DynamicResource Brush.TextSecondary}" />
+                                    <TextBlock Text="{l:T perf.lastMinute}" FontSize="{StaticResource Type.Caption}" Foreground="{DynamicResource Brush.TextSecondary}" />
+                                </DockPanel>
+                                <Border Height="176" BorderBrush="{DynamicResource Brush.Line}" BorderThickness="1" CornerRadius="6"
+                                        Background="{DynamicResource Brush.Window}" ClipToBounds="True">
+                                    <l:Chart x:Name="PerfChart" Grid="True" />
+                                </Border>
+                                <StackPanel x:Name="PerfSummary" Orientation="Horizontal" Margin="0,8,0,18" />
+                                <UniformGrid x:Name="PerfStats" Columns="4" />
+                                <StackPanel x:Name="PerfExtra" Margin="0,0,0,8" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Style="{StaticResource Orla.SectionHeader}" Text="{l:T perf.topTitle}" />
+                        <Border Style="{StaticResource Orla.Card}" Padding="18,10">
+                            <StackPanel x:Name="PerfTop" />
+                        </Border>
+                        <Button x:Name="TaskManagerButton" Style="{StaticResource Orla.Button.Quiet}" HorizontalAlignment="Left" Margin="-14,8,0,0"
+                                Content="{l:T perf.taskManager}" />
                     </StackPanel>
 
                     <!-- Appearance -->
