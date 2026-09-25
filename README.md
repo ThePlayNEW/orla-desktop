@@ -31,7 +31,7 @@
 - **Coleções.** Guardam atalhos para arquivos e pastas de qualquer lugar. Se você renomear o arquivo no Explorador, o atalho acompanha. Tirar um item da coleção nunca apaga o arquivo.
 - **Painéis de pasta.** Mostram uma pasta real, como Downloads, e se atualizam sozinhos quando algo muda nela. Um clique duplo numa subpasta entra nela ali mesmo.
 - **Desempenho.** CPU, GPU (com temperatura, ventoinha e memória de vídeo), memória, disco e rede ao vivo, com gráficos do último minuto e os programas que mais usam. Também como um painel no desktop.
-- **Busca rápida.** Digite com um painel selecionado, ou traga os painéis para a frente com o atalho, e encontre qualquer item de qualquer painel.
+- **Barra de busca no desktop.** Fica sempre no alto da tela e encontra qualquer item de qualquer painel. Clique nela, digite num painel ou, com um app na frente, aperte o atalho.
 - **Um atalho que faz o que o momento pede.** Com o desktop à vista, **Ctrl+Alt+Espaço** (padrão, dá para trocar) esconde ou mostra os painéis. Com uma janela na frente, traz os painéis para cima dela, para você soltar arquivos do Explorador sem minimizar nada.
 - **Painéis organizados sozinhos.** Um painel nunca fica por cima de outro, e o tamanho avança em colunas e linhas inteiras de ícones.
 - **Desktop limpo, se você quiser.** Uma opção esconde os ícones do Windows e deixa só os painéis. Um pequeno processo de proteção devolve os ícones se o Orla fechar ou travar.

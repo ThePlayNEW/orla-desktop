@@ -31,7 +31,7 @@
 - **Collections.** They hold shortcuts to files and folders from anywhere. If you rename the file in File Explorer, the shortcut follows it. Removing an item from a collection never deletes the file.
 - **Folder panels.** They show a real folder, such as Downloads, and update on their own when something in it changes. Double-click a subfolder to go into it right there.
 - **Performance.** Live CPU, GPU (with temperature, fan and video memory), memory, disk and network, with charts of the last minute and the programs using the most. Also as a panel on the desktop.
-- **Quick search.** Type with a panel selected, or bring the panels to the front with the shortcut, and find any item in any panel.
+- **Search bar on the desktop.** It always sits at the top of the screen and finds any item in any panel. Click it, type on a panel or, with an app in front, press the shortcut.
 - **One shortcut that does what the moment calls for.** With the desktop in view, **Ctrl+Alt+Space** (the default, which you can change) hides or shows the panels. With a window in front, it brings the panels above it, so you can drop files from File Explorer without minimizing anything.
 - **Panels that stay tidy.** A panel never sits on top of another, and resizing moves in whole columns and rows of icons.
 - **Clean desktop, if you want it.** An option hides the Windows icons and leaves only the panels. A small safeguard process brings the icons back if Orla closes or crashes.

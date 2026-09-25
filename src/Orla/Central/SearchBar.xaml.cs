@@ -4,14 +4,15 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace Orla
 {
-    // Quick search over what every panel shows. Typing narrows the list; arrows choose, Enter opens, Ctrl+Enter shows
-    // the item in its folder, Esc closes. Clicking anywhere else closes it too.
-    public partial class SearchWindow : Window
+    // The search bar that stays on the desktop. It searches what every panel shows: typing narrows the list, arrows
+    // choose, Enter opens, Ctrl+Enter shows the item in its folder, Esc clears and then lets go of the focus. The
+    // results show only while the bar has the focus; the bar itself never goes away.
+    public partial class SearchBar : UserControl
     {
         const int MaxResults = 8;
 
@@ -23,66 +24,145 @@ namespace Orla
         }
 
         readonly Controller controller;
-        readonly List<Hit> all;
+        Func<List<Hit>> items;
         List<Hit> shown = new List<Hit>();
         int selected;
+        bool previewing;
 
-        public SearchWindow(Controller controller, List<Hit> items, string first)
+        // Sized to the content: the host follows when the results open and close.
+        public event Action SizeNeeded;
+
+        public SearchBar(Controller controller)
         {
             this.controller = controller;
-            all = items;
+            items = controller.searchItems;
             InitializeComponent();
-            new WindowInteropHelper(this).Owner = Dialog.OwnerHandle;
-            Rect work = SystemParameters.WorkArea;
-            Left = work.Left + (work.Width - Width) / 2;
-            Top = work.Top + work.Height * 0.12;
+            applyTheme();
+            Loaded += delegate {
+                Theme.Changed -= applyTheme;
+                Theme.GlassChanged -= applyGlass;
+                Theme.Changed += applyTheme;
+                Theme.GlassChanged += applyGlass;
+                applyTheme();
+            };
+            Unloaded += delegate {
+                Theme.Changed -= applyTheme;
+                Theme.GlassChanged -= applyGlass;
+            };
             Query.TextChanged += delegate { filter(); };
             PreviewKeyDown += key;
-            // Closing loses the focus, which fires Deactivated in the middle of closing; whatever started the close,
-            // the window knows it is going and does not close twice.
-            Closing += delegate { closing = true; };
-            Deactivated += delegate { close(); };
-            Loaded += delegate {
+            // A click anywhere on the bar puts the caret in the field; the window takes the keyboard from the desktop first.
+            Frame.PreviewMouseLeftButtonDown += (s, e) => {
+                if (Query.IsKeyboardFocusWithin)
+                    return;
+                controller.focusSearch();
                 Query.Focus();
-                Query.Text = first ?? "";
-                Query.CaretIndex = Query.Text.Length;
-                filter();
+                if (!(e.OriginalSource is DependencyObject d && isIn(d, Query)))
+                    e.Handled = true;
             };
+            Query.GotKeyboardFocus += delegate { show(); };
+            Query.LostKeyboardFocus += delegate { show(); };
+            SizeChanged += delegate { SizeNeeded?.Invoke(); };
+            refreshHint();
         }
 
-        // More typing that reached a panel before the field had focus.
-        public void type(string more)
+        static bool isIn(DependencyObject d, DependencyObject ancestor)
         {
-            if (String.IsNullOrEmpty(more))
+            for (; d != null; d = VisualTreeHelper.GetParent(d))
+                if (d == ancestor)
+                    return true;
+            return false;
+        }
+
+        // The bar merges the palette itself: WPF does not carry theme changes into windows hosted on the desktop.
+        void applyTheme()
+        {
+            if (Theme.Palette == null)
                 return;
-            Query.Text += more;
+            Resources.MergedDictionaries.Clear();
+            Resources.MergedDictionaries.Add(Theme.Palette);
+            applyGlass();
+        }
+
+        void applyGlass()
+        {
+            Resources["Brush.PanelGlass"] = Theme.Glass;
+        }
+
+        public bool Active => Query.IsKeyboardFocusWithin;
+
+        // The height of the field alone, unscaled, whatever is open: the space panels keep clear of.
+        public double IdleHeight
+        {
+            get
+            {
+                Visibility drop = Drop.Visibility;
+                Transform scale = LayoutTransform;
+                Drop.Visibility = Visibility.Collapsed;
+                LayoutTransform = Transform.Identity;
+                Measure(new Size(Width, double.PositiveInfinity));
+                double height = DesiredSize.Height;
+                Drop.Visibility = drop;
+                LayoutTransform = scale;
+                return height;
+            }
+        }
+
+        // Takes the focus, adding what was typed on a panel before the field had it.
+        public void begin(string more)
+        {
+            Query.Focus();
+            if (!String.IsNullOrEmpty(more))
+                Query.Text += more;
             Query.CaretIndex = Query.Text.Length;
         }
 
-        bool closing;
-
-        public void close()
+        // Back to an empty, idle bar.
+        public void reset()
         {
-            if (closing)
-                return;
-            closing = true;
-            Close();
+            Query.Text = "";
+            if (Query.IsKeyboardFocusWithin)
+                Keyboard.ClearFocus();
+            show();
+        }
+
+        public void refreshHint()
+        {
+            HintText.Text = controller.Layout.OverlayHotkey ? controller.Shortcut.display() : "";
+            show();
+        }
+
+        // For documentation images: sample items and a query, with the results open as if in use.
+        internal void preview(string text, List<Hit> sample)
+        {
+            items = () => sample;
+            previewing = true;
+            Query.Text = text;
+        }
+
+        // The shortcut while idle; the results, or that nothing matched, while in use.
+        void show()
+        {
+            bool active = Query.IsKeyboardFocusWithin || previewing;
+            Placeholder.Visibility = Query.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+            Hint.Visibility = !active && HintText.Text.Length > 0 && Query.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+            Drop.Visibility = active && Query.Text.Trim().Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // Best first: names that start with the text, then a word that does, then any match; shorter names first.
         void filter()
         {
             string q = Organizer.plain(Query.Text.Trim());
-            Placeholder.Visibility = Query.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
             shown = q.Length == 0 ? new List<Hit>()
-                  : all.Select(h => new { Hit = h, Rank = Organizer.rank(h.Plain, q) })
-                       .Where(x => x.Rank >= 0)
-                       .OrderBy(x => x.Rank).ThenBy(x => x.Hit.Plain.Length).ThenBy(x => x.Hit.Plain)
-                       .Take(MaxResults).Select(x => x.Hit).ToList();
+                  : items().Select(h => new { Hit = h, Rank = Organizer.rank(h.Plain, q) })
+                              .Where(x => x.Rank >= 0)
+                              .OrderBy(x => x.Rank).ThenBy(x => x.Hit.Plain.Length).ThenBy(x => x.Hit.Plain)
+                              .Take(MaxResults).Select(x => x.Hit).ToList();
             selected = 0;
             Nothing.Visibility = q.Length > 0 && shown.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             Nothing.Text = Text.format("search.nothing", Query.Text.Trim());
             draw();
+            show();
         }
 
         void draw()
@@ -129,7 +209,7 @@ namespace Orla
         static void paint(Border row, string brush)
         {
             if (brush == null)
-                row.Background = System.Windows.Media.Brushes.Transparent;
+                row.Background = Brushes.Transparent;
             else
                 row.SetResourceReference(Border.BackgroundProperty, brush);
         }
@@ -139,8 +219,11 @@ namespace Orla
             switch (e.Key)
             {
             case Key.Escape:
-                close();
-                controller.leaveOverlay();
+                // First Esc clears the text; the next one lets go, and sends the panels back if they came in front.
+                if (Query.Text.Length > 0)
+                    Query.Text = "";
+                else
+                    controller.leaveSearch();
                 break;
             case Key.Down:
             case Key.Up:
@@ -168,7 +251,7 @@ namespace Orla
             if (selected >= shown.Count)
                 return;
             TileItem tile = shown[selected].Tile;
-            close();
+            reset();
             if (reveal && !Shell.isVirtual(tile.Path))
                 controller.reveal(tile.Path);
             else

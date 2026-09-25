@@ -7,7 +7,7 @@ using System.Windows.Threading;
 namespace Orla
 {
     // `Orla.exe --smoke report.json`: puts sample panels on the real desktop for a few seconds, checks that they
-    // live on the desktop layer above the icons, measures resources, and removes them. It never hides the
+    // and the search bar live on the desktop layer above the icons, clear of each other, measures resources, and removes them. It never hides the
     // Windows icons and never touches personal files.
     public static class Smoke
     {
@@ -27,10 +27,14 @@ namespace Orla
                     Visible = Native.IsWindowVisible(h.Handle), ParentIsDesktop = Native.GetParent(h.Handle) == d.Host,
                     AboveIcons = d.IsValid && d.isAbove(h.Handle)
                 }).ToList();
+                IntPtr bar = controller.SearchHandle;
+                var search = new { Window = Native.IsWindow(bar), Visible = Native.IsWindowVisible(bar), ParentIsDesktop = Native.GetParent(bar) == d.Host,
+                                   AboveIcons = d.IsValid && d.isAbove(bar), ClearOfPanels = controller.SearchSpace.Any() && controller.Hosts.All(h => !Screens.overlaps(h.Rect, controller.SearchSpace.First())) };
                 File.WriteAllText(report, Store.json().Serialize(new {
                     DesktopFound = d.IsValid, HostClass = d.IsValid ? Native.windowClass(d.Host) : null,
-                    IconsVisible = d.iconsVisible, Panels = panels,
-                    Passed = d.IsValid && panels.Count > 0 && panels.All(x => x.Window && x.Visible && x.ParentIsDesktop && x.AboveIcons),
+                    IconsVisible = d.iconsVisible, Panels = panels, SearchBar = search,
+                    Passed = d.IsValid && panels.Count > 0 && panels.All(x => x.Window && x.Visible && x.ParentIsDesktop && x.AboveIcons) &&
+                             search.Window && search.Visible && search.ParentIsDesktop && search.AboveIcons && search.ClearOfPanels,
                     WorkingSetMB = Math.Round(p.WorkingSet64 / 1048576.0, 1),
                     PrivateMB = Math.Round(p.PrivateMemorySize64 / 1048576.0, 1),
                     CpuMsWhileIdle = Math.Round(p.TotalProcessorTime.TotalMilliseconds - cpuStart)

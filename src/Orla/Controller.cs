@@ -47,6 +47,8 @@ namespace Orla
             messages.ExplorerRestarted += queueRebuild;
             messages.DisplayChanged += delegate {
                 dispatcher.BeginInvoke(new Action(delegate {
+                    // The bar stays centred at the top of the main screen, whatever its size now.
+                    searchHost?.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
                     refreshAll();
                     settleAll();
                 }), DispatcherPriority.Background);
@@ -61,6 +63,7 @@ namespace Orla
             watch.Reordered += delegate {
                 foreach (PanelHost h in hosts)
                     h.keepAbove();
+                searchHost?.keepAbove();
             };
             rebuildTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(800), DispatcherPriority.Background, delegate {
                 rebuildTimer.Stop();
@@ -142,9 +145,7 @@ namespace Orla
                 return;
             desktop = Desktop.find();
             watch.follow(desktop);
-            foreach (PanelHost h in hosts)
-                h.Dispose();
-            hosts.Clear();
+            disposeHosts();
             foreach (Group g in Layout.Groups.Where(g => g.Visible))
                 hosts.Add(new PanelHost(this, g));
             showHosts();
@@ -158,9 +159,25 @@ namespace Orla
 
         void showHosts()
         {
+            // The search bar first, so panels already keep clear of its place when they settle.
+            if (Layout.Welcomed)
+            {
+                if (searchHost == null)
+                    searchHost = new SearchHost(this);
+                searchHost.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
+            }
             foreach (PanelHost h in hosts)
                 h.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
             settleAll();
+        }
+
+        void disposeHosts()
+        {
+            foreach (PanelHost h in hosts)
+                h.Dispose();
+            hosts.Clear();
+            searchHost?.Dispose();
+            searchHost = null;
         }
 
         public bool Hidden { get; private set; }
@@ -205,6 +222,7 @@ namespace Orla
                 setOverlay(false);
             foreach (PanelHost h in hosts)
                 h.setVisible(!value);
+            searchHost?.setVisible(!value);
             if (Layout.CleanDesktop && guard != null)
             {
                 if (value)
@@ -263,34 +281,62 @@ namespace Orla
             Overlay = on;
             if (on)
                 overlayEntries++;
-            // The search opened with the panels leaves with them.
+            // A search started with the panels in front ends with them.
             if (!on)
-                search?.close();
+                searchHost?.Bar.reset();
             showHosts();
             if (on)
                 hosts.FirstOrDefault()?.focus();
             tray?.refreshMenu();
         }
 
-        SearchWindow search;
+        SearchHost searchHost;
         // How many times the panels came in front, so the tour can tell whether the overlay it left is still its own.
         int overlayEntries;
 
-        // Quick search over everything the panels show right now, including folder panels.
+        // The search bar's place, which panels keep clear of, hidden or not, so showing them again needs no shuffle.
+        public IEnumerable<RECT> SearchSpace => searchHost == null ? Enumerable.Empty<RECT>() : new[] { searchHost.Resting };
+
+        public IntPtr SearchHandle => searchHost?.Handle ?? IntPtr.Zero;
+
+        // Everything the panels show right now, including folder panels, for the search bar.
+        public List<SearchBar.Hit> searchItems() =>
+            hosts.Where(h => h.Group.Visible).SelectMany(h => h.View.Tiles.Select(t => new SearchBar.Hit {
+                Tile = t, Group = h.Group, Plain = Organizer.plain(t.Label ?? "") })).ToList();
+
+        // Puts the keyboard in the search bar, with what was typed on a panel. With an application in front, the
+        // panels come forward first, as with the shortcut.
         public void showSearch(string first = "")
         {
-            if (search != null)
-            {
-                search.type(first);
-                search.Activate();
+            if (searchHost == null)
                 return;
-            }
-            var items = hosts.Where(h => h.Group.Visible).SelectMany(h => h.View.Tiles.Select(t => new SearchWindow.Hit {
-                Tile = t, Group = h.Group, Plain = Organizer.plain(t.Label ?? "") })).ToList();
-            search = new SearchWindow(this, items, first);
-            search.Closed += delegate { search = null; };
-            search.Show();
-            search.Activate();
+            if (Hidden)
+                setHidden(false);
+            // After the keystroke that asked has finished: coming in front rebuilds the panel windows, the one
+            // handling that key included.
+            dispatcher.BeginInvoke(new Action(delegate {
+                if (searchHost == null)
+                    return;
+                if (!Overlay && !desktopInView())
+                    setOverlay(true);
+                focusSearch();
+                searchHost.Bar.begin(first);
+            }));
+        }
+
+        public void focusSearch()
+        {
+            searchHost?.focus();
+        }
+
+        // Esc on an empty search: the bar lets go, and panels that came in front go back.
+        public void leaveSearch()
+        {
+            searchHost?.Bar.reset();
+            // The keyboard goes back to the desktop icons, as before the bar had it.
+            if (!Overlay && desktop != null && desktop.IconList != IntPtr.Zero)
+                Native.SetFocus(desktop.IconList);
+            leaveOverlay();
         }
 
         public void focusPanel(PanelView view)
@@ -564,7 +610,7 @@ namespace Orla
         void place(Group g)
         {
             Screen s = Screens.primary();
-            var taken = Layout.Groups.Where(x => x.Visible).Select(x => Screens.rectOf(x, Layout.IconSize, s.Scale)).ToList();
+            var taken = Layout.Groups.Where(x => x.Visible).Select(x => Screens.rectOf(x, Layout.IconSize, s.Scale)).Concat(SearchSpace).ToList();
             Screens.place(g, taken, s, Layout.IconSize, g.IsSensors && Layout.CleanDesktop);
         }
 
@@ -682,6 +728,7 @@ namespace Orla
                 Layout.OverlayShortcut = shortcut.ToString();
                 saveLayout();
                 tray?.refreshMenu();
+                searchHost?.Bar.refreshHint();
                 return true;
             }
             messages.setHotkey(true, Shortcut);
@@ -699,6 +746,7 @@ namespace Orla
             bool ok = messages.setHotkey(value, Shortcut);
             Layout.OverlayHotkey = value && ok;
             saveLayout();
+            searchHost?.Bar.refreshHint();
             return ok;
         }
 
@@ -720,9 +768,7 @@ namespace Orla
             watch.Dispose();
             references.Dispose();
             arrivals.Dispose();
-            foreach (PanelHost h in hosts)
-                h.Dispose();
-            hosts.Clear();
+            disposeHosts();
             tray?.Dispose();
             messages.Dispose();
         }
@@ -828,7 +874,7 @@ namespace Orla
                 startTour();
         }
 
-        // Five tips on the real panels, after the first welcome and whenever people ask from About.
+        // Six tips on the real panels and the search bar, after the first welcome and whenever people ask from About.
         TourWindow tour;
 
         public void startTour()
@@ -889,6 +935,11 @@ namespace Orla
                 steps.Add(new TourWindow.Step { Key = "move", Target = new Rect(panel.Left, panel.Top, panel.Width, 44), Around = panel });
                 steps.Add(new TourWindow.Step { Key = "resize", Target = new Rect(panel.Right - 44, panel.Bottom - 44, 44, 44), Around = panel });
                 steps.Add(new TourWindow.Step { Key = "menu", Target = new Rect(panel.Right - 76, panel.Top + 4, 68, 36), Around = panel });
+            }
+            if (searchHost != null)
+            {
+                RECT bar = searchHost.Rect;
+                steps.Add(new TourWindow.Step { Key = "bar", Target = new Rect(bar.Left / s, bar.Top / s, bar.Width / s, bar.Height / s) });
             }
             steps.Add(new TourWindow.Step { Key = "search", Argument = Shortcut.display() });
             // The taskbar can be on any edge, so this tip needs no ring.
@@ -1059,9 +1110,7 @@ namespace Orla
             Overlay = false;
             Hidden = false;
             guard?.restore();
-            foreach (PanelHost h in hosts)
-                h.Dispose();
-            hosts.Clear();
+            disposeHosts();
             var fresh = new Layout { StartupConfigured = true, StartupEnabled = StartupEnabled };
             store.data = fresh;
             saveLayout();
