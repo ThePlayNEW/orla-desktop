@@ -12,11 +12,6 @@
             <DockPanel Height="40" Margin="8,0,6,0">
                 <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Search}" Width="20" Margin="0,0,12,0"
                       VerticalAlignment="Center" Stroke="{DynamicResource Brush.Accent}" />
-                <!-- While the bar is idle, the shortcut that brings it forward over any window. -->
-                <Border x:Name="Hint" DockPanel.Dock="Right" CornerRadius="6" Padding="8,2" VerticalAlignment="Center"
-                        Background="{DynamicResource Brush.ItemHover}">
-                    <TextBlock x:Name="HintText" FontSize="{StaticResource Type.Caption}" Foreground="{DynamicResource Brush.TextSecondary}" />
-                </Border>
                 <Grid>
                     <TextBlock x:Name="Placeholder" Text="{l:T search.placeholder}" FontSize="16" VerticalAlignment="Center"
                                Foreground="{DynamicResource Brush.TextSecondary}" IsHitTestVisible="False" />

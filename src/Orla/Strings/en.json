@@ -283,7 +283,7 @@
   "tint.sand": "Sand",
   "tint.seaglass": "Sea glass",
   "tint.sky": "Sky",
-  "tour.barText": "It looks through everything your panels show. Click it or start typing on a panel; Esc clears it and, the second time, lets go of the focus.",
+  "tour.barText": "It looks through everything your panels show and has the keyboard whenever the desktop comes to the front: just type. Esc clears it and, the second time, gives the keyboard back to the icons.",
   "tour.barTitle": "Search always sits here",
   "tour.done": "Done",
   "tour.menuText": "In ··· or with a right-click: rename, colours, automatic height and more. Right-click an item to open it, rename it or take it out of the panel.",

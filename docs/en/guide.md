@@ -281,14 +281,16 @@ If another program already uses the combination you pick, Orla keeps the previou
   <img src="../images/search-light.png" width="620" alt="The search bar on the desktop with two results, each showing the panel it comes from">
 </picture>
 
-The search bar always sits at the top of the main screen, in the middle the panels leave free. It looks through everything your panels show, including what is inside folder panels. To use it:
+The search bar always sits at the top of the main screen, in the middle the panels leave free. It looks through everything your panels show, including what is inside folder panels.
+
+Whenever the desktop comes to the front (when you sign in to Windows, with **Win+D**, or with a click on an empty spot), the bar has the keyboard: just type. If you clicked a panel or Windows icons are selected, the keyboard stays with them, so **Delete**, **Enter** and the arrow keys work as always. Other ways to use it:
 
 - click it;
 - start typing with a panel selected;
 - with a window in front, press the shortcut: the panels and the bar come above it, ready for typing;
 - use **Search your panels** in the notification area menu.
 
-Accents and case do not matter. Names that start with what you typed come first, then names with a word that starts that way. Use the arrow keys to choose, **Enter** to open and **Ctrl+Enter** to show the item in its folder. **Esc** clears the text; a second **Esc** takes the focus away from the bar. The results show only while the bar has the focus; the bar stays in place. When the shortcut is on, the bar shows it on the right.
+Accents and case do not matter. Names that start with what you typed come first, then names with a word that starts that way. Use the arrow keys to choose, **Enter** to open and **Ctrl+Enter** to show the item in its folder. **Esc** clears the text; a second **Esc** gives the keyboard back to the desktop icons. The results show only while the bar has the focus; the bar stays in place.
 
 ## Performance
 

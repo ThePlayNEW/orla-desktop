@@ -63,7 +63,6 @@ namespace Orla
             Query.GotKeyboardFocus += delegate { show(); };
             Query.LostKeyboardFocus += delegate { show(); };
             SizeChanged += delegate { SizeNeeded?.Invoke(); };
-            refreshHint();
         }
 
         static bool isIn(DependencyObject d, DependencyObject ancestor)
@@ -126,12 +125,6 @@ namespace Orla
             show();
         }
 
-        public void refreshHint()
-        {
-            HintText.Text = controller.Layout.OverlayHotkey ? controller.Shortcut.display() : "";
-            show();
-        }
-
         // For documentation images: sample items and a query, with the results open as if in use.
         internal void preview(string text, List<Hit> sample)
         {
@@ -140,12 +133,11 @@ namespace Orla
             Query.Text = text;
         }
 
-        // The shortcut while idle; the results, or that nothing matched, while in use.
+        // The results, or that nothing matched, while in use.
         void show()
         {
             bool active = Query.IsKeyboardFocusWithin || previewing;
             Placeholder.Visibility = Query.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-            Hint.Visibility = !active && HintText.Text.Length > 0 && Query.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
             Drop.Visibility = active && Query.Text.Trim().Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 

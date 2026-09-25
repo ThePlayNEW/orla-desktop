@@ -283,7 +283,7 @@
   "tint.sand": "Sand",
   "tint.seaglass": "Meerglas",
   "tint.sky": "Himmel",
-  "tour.barText": "Sie durchsucht alles, was deine Panels zeigen. Klick darauf oder tippe auf einem Panel los; Esc leert sie und gibt beim zweiten Mal den Fokus ab.",
+  "tour.barText": "Sie durchsucht alles, was deine Panels zeigen, und hat die Tastatur, sobald der Desktop nach vorn kommt: einfach lostippen. Esc leert sie und gibt beim zweiten Mal die Tastatur an die Symbole zurück.",
   "tour.barTitle": "Die Suche ist immer hier",
   "tour.done": "Fertig",
   "tour.menuText": "Unter ··· oder per Rechtsklick: umbenennen, Farben, automatische Höhe und mehr. Rechtsklick auf ein Element öffnet es, benennt es um oder nimmt es aus dem Panel.",

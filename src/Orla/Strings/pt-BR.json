@@ -283,7 +283,7 @@
   "tint.sand": "Areia",
   "tint.seaglass": "Vidro do mar",
   "tint.sky": "Céu",
-  "tour.barText": "Ela procura em tudo o que os painéis mostram. Clique nela ou comece a digitar num painel; Esc limpa e, na segunda vez, solta o foco.",
+  "tour.barText": "Ela procura em tudo o que os painéis mostram e já fica com o teclado sempre que o desktop vem para a frente: é só digitar. Esc limpa e, na segunda vez, devolve o teclado aos ícones.",
   "tour.barTitle": "A busca fica sempre aqui",
   "tour.done": "Concluir",
   "tour.menuText": "Em ··· ou com o botão direito: renomear, cores, altura automática e mais. Com o botão direito num item, você abre, renomeia ou tira ele do painel.",

@@ -60,8 +60,9 @@ namespace Orla
         public const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_NOACTIVATE = 0x10;
         public const uint GW_HWNDNEXT = 2, GW_HWNDPREV = 3, GW_CHILD = 5;
         public const int SW_HIDE = 0, SW_SHOW = 5, SW_SHOWNA = 8;
-        public const uint EVENT_OBJECT_DESTROY = 0x8001, EVENT_OBJECT_REORDER = 0x8004,
+        public const uint EVENT_SYSTEM_FOREGROUND = 0x0003, EVENT_OBJECT_DESTROY = 0x8001, EVENT_OBJECT_REORDER = 0x8004,
                           EVENT_OBJECT_PARENTCHANGE = 0x800F;
+        public const int LVM_GETSELECTEDCOUNT = 0x1032;
         public const uint MONITOR_DEFAULTTONEAREST = 2;
         public const int WM_HOTKEY = 0x0312, WM_SETTINGCHANGE = 0x001A, WM_DISPLAYCHANGE = 0x007E,
                          WM_DPICHANGED = 0x02E0;
@@ -95,6 +96,10 @@ namespace Orla
         public static extern IntPtr GetShellWindow();
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetFocus();
+        [DllImport("user32.dll")]
+        public static extern IntPtr SendMessage(IntPtr h, int message, IntPtr wParam, IntPtr lParam);
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr h);
         [DllImport("user32.dll")]

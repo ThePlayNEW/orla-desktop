@@ -62,11 +62,12 @@ namespace Orla
     {
         readonly Native.WinEventProc proc;
         readonly Dispatcher dispatcher;
-        IntPtr destroyHook, reorderHook, parentHook;
+        IntPtr destroyHook, reorderHook, parentHook, foregroundHook;
         Desktop desktop;
         bool reorderQueued;
 
-        public event Action Lost, Reordered;
+        // DesktopActivated: the desktop came in front of the applications, as with Win+D or a click on it.
+        public event Action Lost, Reordered, DesktopActivated;
 
         public DesktopWatch(Dispatcher dispatcher)
         {
@@ -87,12 +88,22 @@ namespace Orla
                                                  proc, pid, 0, 0);
             parentHook = Native.SetWinEventHook(Native.EVENT_OBJECT_PARENTCHANGE, Native.EVENT_OBJECT_PARENTCHANGE,
                                                 IntPtr.Zero, proc, pid, 0, 0);
+            foregroundHook = Native.SetWinEventHook(Native.EVENT_SYSTEM_FOREGROUND, Native.EVENT_SYSTEM_FOREGROUND,
+                                                    IntPtr.Zero, proc, 0, 0, 0);
         }
 
         void onEvent(IntPtr hook, uint ev, IntPtr hwnd, int idObject, int idChild, uint thread, uint time)
         {
             if (desktop == null || idObject != 0)
                 return;
+            if (ev == Native.EVENT_SYSTEM_FOREGROUND)
+            {
+                string c = Native.windowClass(hwnd);
+                // After the click or key that brought it has been handled.
+                if (c == "Progman" || c == "WorkerW")
+                    dispatcher.BeginInvoke(new Action(() => DesktopActivated?.Invoke()), DispatcherPriority.Background);
+                return;
+            }
             if (ev == Native.EVENT_OBJECT_DESTROY && (hwnd == desktop.Host || hwnd == desktop.IconView) ||
                 ev == Native.EVENT_OBJECT_PARENTCHANGE && hwnd == desktop.IconView)
             {
@@ -110,10 +121,10 @@ namespace Orla
 
         void stop()
         {
-            foreach (IntPtr h in new[] { destroyHook, reorderHook, parentHook })
+            foreach (IntPtr h in new[] { destroyHook, reorderHook, parentHook, foregroundHook })
                 if (h != IntPtr.Zero)
                     Native.UnhookWinEvent(h);
-            destroyHook = reorderHook = parentHook = IntPtr.Zero;
+            destroyHook = reorderHook = parentHook = foregroundHook = IntPtr.Zero;
         }
 
         public void Dispose()

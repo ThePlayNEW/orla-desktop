@@ -283,7 +283,7 @@
   "tint.sand": "Sable",
   "tint.seaglass": "Verre de mer",
   "tint.sky": "Ciel",
-  "tour.barText": "Elle cherche dans tout ce que vos panneaux affichent. Cliquez dessus ou commencez à taper sur un panneau ; Échap l’efface puis, la seconde fois, rend le focus.",
+  "tour.barText": "Elle cherche dans tout ce que vos panneaux affichent et a le clavier dès que le bureau passe au premier plan : il suffit de taper. Échap l’efface puis, la seconde fois, rend le clavier aux icônes.",
   "tour.barTitle": "La recherche reste toujours ici",
   "tour.done": "Terminé",
   "tour.menuText": "Dans ··· ou d'un clic droit : renommer, couleurs, hauteur automatique et plus. Un clic droit sur un élément l'ouvre, le renomme ou le retire du panneau.",

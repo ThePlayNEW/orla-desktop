@@ -281,14 +281,16 @@ Se outro programa já usa a combinação escolhida, o Orla mantém a anterior e 
   <img src="../images/search-light.png" width="620" alt="Barra de busca no desktop com dois resultados, cada um com o painel de onde vem">
 </picture>
 
-A barra de busca fica sempre no alto da tela principal, no centro, no espaço que os painéis deixam livre. Ela procura em tudo o que os painéis mostram, inclusive o conteúdo dos painéis de pasta. Para usar:
+A barra de busca fica sempre no alto da tela principal, no centro, no espaço que os painéis deixam livre. Ela procura em tudo o que os painéis mostram, inclusive o conteúdo dos painéis de pasta.
+
+Sempre que o desktop vem para a frente (ao entrar no Windows, com **Win+D** ou ao clicar numa área vazia dele), a barra já fica com o teclado: é só digitar. Se você clicou num painel ou há ícones do Windows selecionados, o teclado continua com eles, para **Delete**, **Enter** e as setas funcionarem como sempre. Outras formas de usar:
 
 - clique nela;
 - comece a digitar com um painel selecionado;
 - com uma janela na frente, aperte o atalho: os painéis e a barra vêm para cima dela, prontos para digitar;
 - use o item **Buscar nos painéis** do menu da bandeja.
 
-Acentos e maiúsculas não importam. Primeiro vêm os nomes que começam com o que você digitou, depois os que têm uma palavra começando assim. Use as setas para escolher, **Enter** para abrir e **Ctrl+Enter** para mostrar o item na pasta dele. **Esc** limpa o texto; um segundo **Esc** tira o foco da barra. Os resultados aparecem só enquanto a barra tem o foco; a barra continua no lugar. Quando o atalho está ligado, ela mostra a combinação à direita.
+Acentos e maiúsculas não importam. Primeiro vêm os nomes que começam com o que você digitou, depois os que têm uma palavra começando assim. Use as setas para escolher, **Enter** para abrir e **Ctrl+Enter** para mostrar o item na pasta dele. **Esc** limpa o texto; um segundo **Esc** devolve o teclado aos ícones do desktop. Os resultados aparecem só enquanto a barra tem o foco; a barra continua no lugar.
 
 ## Desempenho
 
