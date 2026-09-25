@@ -2,6 +2,15 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.4
+
+- Quick search over everything the panels show, including folder panel contents. It opens with the panels when the shortcut brings them to the front, when typing on a panel, and from the tray menu.
+- Folder panels browse into subfolders, with the path in the title, a back button and Backspace or Alt+Left.
+- A **Recent** ready-made panel shows Windows' recent files, newest first.
+- The portable version updates itself too. About has an **Updates** card with **Check now** and the state of the last check, and the first start after an update links to what is new.
+
+`./test.ps1` runs 54 xUnit tests. The new one checks the search ranking: names that start with the text first, then a word that starts with it, then anywhere, ignoring accents and case.
+
 ## 1.3
 
 - **Complete my panels**, the default when organizing again, adds only what is new to the panels people have, keeps their names, colours, positions, sizes and moves, and places a new category's panel in free space. **Start fresh** is the other choice.

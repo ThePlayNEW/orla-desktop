@@ -86,16 +86,22 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,4,0">
-                        <Path x:Name="KindGlyph" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.PanelFolder}"
+                    <!-- A dock, not a stack, so a long title gives way with an ellipsis and the count stays in view. -->
+                    <DockPanel VerticalAlignment="Center" Margin="6,0,4,0" HorizontalAlignment="Left" LastChildFill="True">
+                        <!-- Inside a subfolder of a folder panel: back to the folder above. -->
+                        <Button x:Name="BackButton" DockPanel.Dock="Left" Style="{StaticResource Orla.IconButton}" Cursor="Hand"
+                                Margin="-6,0,2,0" Visibility="Collapsed">
+                            <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.ChevronLeft}" />
+                        </Button>
+                        <Path x:Name="KindGlyph" DockPanel.Dock="Left" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.PanelFolder}"
                               Margin="-2,0,6,0" Visibility="Collapsed" />
+                        <TextBox x:Name="TitleEditor" DockPanel.Dock="Left" Style="{StaticResource Orla.TextBox}" FontSize="{StaticResource Type.PanelTitle}"
+                                 Padding="4,2" MinWidth="120" MaxLength="60" Visibility="Collapsed" Cursor="IBeam" />
+                        <TextBlock x:Name="Count" DockPanel.Dock="Right" FontSize="{StaticResource Type.PanelTitle}" Margin="8,0,0,0"
+                                   Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
                         <TextBlock x:Name="Title" FontSize="{StaticResource Type.PanelTitle}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource Brush.Text}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                        <TextBox x:Name="TitleEditor" Style="{StaticResource Orla.TextBox}" FontSize="{StaticResource Type.PanelTitle}"
-                                 Padding="4,2" MinWidth="120" MaxLength="60" Visibility="Collapsed" Cursor="IBeam" />
-                        <TextBlock x:Name="Count" FontSize="{StaticResource Type.PanelTitle}" Margin="8,0,0,0"
-                                   Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
-                    </StackPanel>
+                    </DockPanel>
                     <StackPanel x:Name="HeaderButtons" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Opacity="0.55">
                         <Button x:Name="CollapseButton" Style="{StaticResource Orla.IconButton}" Cursor="Hand">
                             <Path x:Name="CollapseGlyph" Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.ChevronUp}" />

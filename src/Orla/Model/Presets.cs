@@ -38,6 +38,8 @@ namespace Orla
                          Available = () => Directory.Exists(special(Environment.SpecialFolder.MyPictures)) },
             new Preset { Key = "screenshots", Glyph = "Glyph.ItemImage", Tint = Tints.Sky,
                          Create = () => folder("screenshots", screenshots(), Tints.Sky), Available = () => Directory.Exists(screenshots()) },
+            new Preset { Key = "recent", Glyph = "Glyph.ItemFile", Tint = Tints.Sky,
+                         Create = () => folder("recent", Shell.RecentFolder, Tints.Sky), Available = () => Directory.Exists(Shell.RecentFolder) },
             new Preset { Key = "desktop", Glyph = "Glyph.Desktop", Tint = Tints.SeaGlass, Create = inbox },
             new Preset { Key = "work", Glyph = "Glyph.PanelCollection", Tint = Tints.SeaGlass,
                          Create = () => new Group { Tint = Tints.SeaGlass, Rows = 2 }.titled("preset.work") },

@@ -13,6 +13,7 @@ O Orla coloca painéis translúcidos no desktop do Windows. Cada painel mostra a
 - [Itens nos painéis](#itens-nos-painéis)
 - [Arrastar e soltar](#arrastar-e-soltar)
 - [O atalho de teclado](#o-atalho-de-teclado)
+- [Busca rápida](#busca-rápida)
 - [Desktop limpo](#desktop-limpo)
 - [Janela do Orla](#janela-do-orla)
 - [Teclado](#teclado)
@@ -126,6 +127,7 @@ Painéis prontos ajudam a começar rápido. Eles aparecem no segundo passo da pr
 | **Documentos** | Painel de pasta | A pasta Documentos |
 | **Imagens** | Painel de pasta | A pasta Imagens, com miniaturas |
 | **Capturas de tela** | Painel de pasta | A pasta de capturas de tela dentro de Imagens. Só aparece se ela existir. |
+| **Recentes** | Painel de pasta | Os arquivos que você abriu por último, os mais novos primeiro (até 40) |
 | **Novos no desktop** | Painel de pasta | O que está no desktop e ainda não foi para nenhum painel. Combina com o Desktop limpo. |
 | **Trabalho** | Coleção | Vazia, para você preencher |
 | **Estudos** | Coleção | Vazia, para você preencher |
@@ -156,6 +158,8 @@ Para adicionar itens sem arrastar, abra o menu **···** do painel e escolha **
 ### Painéis de pasta
 
 Um painel de pasta mostra o que está dentro de uma pasta, com pastas primeiro e em ordem alfabética, como no Explorador. Arquivos ocultos e de sistema não aparecem. O painel se atualiza sozinho quando algo é criado, apagado ou renomeado na pasta.
+
+Clique duas vezes em uma subpasta para entrar nela ali mesmo. O título mostra o caminho, como **Projetos › FiveM**, e o botão **‹** (ou Backspace, ou Alt+←) volta um nível. Arrastar arquivos para o painel leva para a pasta que ele mostra no momento. Para abrir a subpasta no Explorador, use Ctrl+clique duplo ou **Abrir no Explorador** no menu do item. Quando o Orla abre de novo, o painel volta para a pasta dele.
 
 O painel **Novos no desktop** mostra a sua área de trabalho e a área de trabalho pública do Windows. No menu **···** dele, **Mostrar só o que não está em outro painel** esconde o que já aparece em outro painel: o próprio item, uma pasta cujos atalhos estão em coleções ou uma pasta que tem um painel próprio. Assim, o que você salvar no desktop depois aparece ali até você organizar.
 
@@ -236,7 +240,7 @@ O atalho é **Ctrl+Alt+Espaço** por padrão, e você pode trocá-lo em **Geral*
 | Situação | O que o atalho faz |
 | --- | --- |
 | Desktop à vista (o foco está no desktop, na barra de tarefas ou em um painel) | Esconde os painéis, ou mostra de novo. Com o **Desktop limpo** ligado, os ícones do Windows voltam enquanto os painéis estão escondidos. |
-| Uma janela de aplicativo na frente | Traz os painéis para a frente das janelas. Aperte de novo, ou Esc, para devolvê-los ao desktop. |
+| Uma janela de aplicativo na frente | Traz os painéis para a frente das janelas, com a [busca rápida](#busca-rápida) aberta. Aperte de novo, ou Esc, para devolvê-los ao desktop. |
 
 Os painéis sempre começam visíveis quando o Orla abre.
 
@@ -263,6 +267,21 @@ Em **Geral**:
 - **Restaurar padrão** volta para **Ctrl+Alt+Espaço**.
 
 Se outro programa já usa a combinação escolhida, o Orla mantém a anterior e avisa. Veja [O atalho não funciona](#o-atalho-não-funciona).
+
+## Busca rápida
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/search-dark.png">
+  <img src="../images/search-light.png" width="620" alt="Busca rápida com dois resultados, cada um com o painel de onde vem">
+</picture>
+
+A busca procura em tudo o que os painéis mostram, inclusive o conteúdo dos painéis de pasta. Ela abre:
+
+- junto com os painéis, quando o atalho os traz para a frente de uma janela;
+- quando você começa a digitar com um painel selecionado;
+- pelo item **Buscar nos painéis** do menu da bandeja.
+
+Acentos e maiúsculas não importam. Primeiro vêm os nomes que começam com o que você digitou, depois os que têm uma palavra começando assim. Use as setas para escolher, **Enter** para abrir, **Ctrl+Enter** para mostrar o item na pasta dele e **Esc** para fechar. Clicar fora também fecha.
 
 ## Desktop limpo
 
@@ -340,9 +359,9 @@ Com o Alto Contraste do Windows ligado, o Orla usa as cores do sistema e desliga
 
 ### Atualizações
 
-A versão instalada procura uma versão nova no GitHub um minuto depois de abrir e, depois, a cada seis horas. Quando encontra, baixa em segundo plano e aplica na próxima vez que o Orla fechar. Se você desligar o Windows com o Orla aberto, a atualização é aplicada na próxima vez que ele abrir, um ou dois segundos antes de os painéis aparecerem. A busca pede ao GitHub a lista de versões deste repositório e não envia dados pessoais. Quando uma versão nova estiver pronta, a página **Sobre** mostra o botão **Reiniciar e atualizar**, para instalar na hora. Para desligar as atualizações, use **Atualizações automáticas** em **Geral**.
+A versão instalada e a portátil procuram uma versão nova no GitHub um minuto depois de abrir e, depois, a cada seis horas. Você não precisa voltar ao GitHub nem baixar nada. Quando encontra, baixa em segundo plano e aplica na próxima vez que o Orla fechar. Se você desligar o Windows com o Orla aberto, a atualização é aplicada na próxima vez que ele abrir, um ou dois segundos antes de os painéis aparecerem. A busca pede ao GitHub a lista de versões deste repositório e não envia dados pessoais. Na página **Sobre**, o cartão **Atualizações** mostra quando foi a última busca e tem o botão **Buscar agora**. Quando uma versão nova estiver pronta, o botão vira **Reiniciar e atualizar**, para instalar na hora. Depois de atualizar, um aviso na bandeja leva às novidades da versão. Para desligar as buscas automáticas, use **Atualizações automáticas** em **Geral**; **Buscar agora** continua funcionando.
 
-A versão portátil não se atualiza sozinha. Para atualizar, saia do Orla, baixe o ZIP novo da [página de versões](https://github.com/ThePlayNEW/orla-desktop/releases/latest) e extraia no lugar da pasta antiga. Seus painéis ficam em `%LOCALAPPDATA%\Orla` e não são afetados.
+A versão portátil precisa estar numa pasta em que você possa gravar, como Documentos ou Downloads, para se atualizar. Seus painéis ficam em `%LOCALAPPDATA%\Orla` e não são afetados.
 
 ## Teclado
 

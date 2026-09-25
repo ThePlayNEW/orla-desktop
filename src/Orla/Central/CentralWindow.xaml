@@ -424,13 +424,14 @@
                         </StackPanel>
                         <TextBlock Text="{l:T about.lead}" Margin="0,22,0,20" FontSize="15" TextWrapping="Wrap" MaxWidth="560"
                                    HorizontalAlignment="Left" />
-                        <Border x:Name="UpdateCard" Style="{StaticResource Orla.Card}" Visibility="Collapsed">
+                        <!-- Updates: where they stand, and a way to look now or install what is ready. -->
+                        <Border x:Name="UpdateCard" Style="{StaticResource Orla.Card}">
                             <DockPanel>
-                                <Button x:Name="UpdateButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button.Accent}"
-                                        VerticalAlignment="Center" Margin="24,0,0,0" Content="{l:T about.updateAction}" />
+                                <Button x:Name="UpdateButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button}"
+                                        VerticalAlignment="Center" Margin="24,0,0,0" />
                                 <StackPanel>
                                     <TextBlock x:Name="UpdateTitle" Style="{StaticResource Orla.CardTitle}" />
-                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T about.updateHint}" />
+                                    <TextBlock x:Name="UpdateHint" Style="{StaticResource Orla.CardHint}" />
                                 </StackPanel>
                             </DockPanel>
                         </Border>

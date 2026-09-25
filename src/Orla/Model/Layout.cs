@@ -109,6 +109,8 @@ namespace Orla
         public string IconSize { get; set; }
         public bool AutoUpdate { get; set; }
         public string LastUpdateCheck { get; set; }
+        // The version that last ran, so an update can say what is new once.
+        public string SeenVersion { get; set; }
 
         public Layout()
         {
@@ -131,7 +133,8 @@ namespace Orla
         public Layout copySettings() => new Layout {
             StartupConfigured = StartupConfigured, StartupEnabled = StartupEnabled, OverlayHotkey = OverlayHotkey,
             OverlayShortcut = OverlayShortcut, Welcomed = Welcomed, Animations = Animations, Opacity = Opacity, Theme = Theme,
-            Language = Language, IconSize = IconSize, LockLayout = LockLayout, AutoUpdate = AutoUpdate, LastUpdateCheck = LastUpdateCheck
+            Language = Language, IconSize = IconSize, LockLayout = LockLayout, AutoUpdate = AutoUpdate, LastUpdateCheck = LastUpdateCheck,
+            SeenVersion = SeenVersion
         };
     }
 }
