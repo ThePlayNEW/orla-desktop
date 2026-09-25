@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace Orla
 {
@@ -29,9 +30,12 @@ namespace Orla
 
         readonly List<MetricCard> metricCards = new List<MetricCard>();
         readonly Dictionary<string, ImageSource> programIcons = new Dictionary<string, ImageSource>(StringComparer.OrdinalIgnoreCase);
-        string perfMetric = "cpu", programSort = "cpu", headingSort;
+        // The tallest each metric's details have been, which they keep, so rows coming and going never move the page.
+        readonly Dictionary<string, double> tallest = new Dictionary<string, double>();
+        const string Loading = "loading";
+        string perfMetric = "cpu", programSort = "cpu", headingSort, bodyMetric;
         int perfGpu, statIndex, extraIndex;
-        bool perfWatching;
+        bool perfWatching, skeleton;
 
         void setupPerformance()
         {
@@ -39,12 +43,15 @@ namespace Orla
             // as out of view.
             PagePerformance.IsVisibleChanged += delegate { watchPerformance(); };
             StateChanged += delegate { watchPerformance(); };
-            PerfPanelButton.Click += delegate {
-                Group panel = controller.Layout.Groups.FirstOrDefault(g => g.IsSensors);
-                if (panel == null)
-                    controller.createFromPreset(Presets.All.First(p => p.Key == "performance"));
-                else
-                    controller.setVisible(panel, true);
+            PerfPanelButton.Click += delegate { controller.showPerformancePanel(); };
+            // One width while readings arrive, instead of following whatever is widest at the moment.
+            PageScroller.ScrollChanged += (s, e) => {
+                if (e.ViewportWidthChange != 0)
+                    PagePerformance.Width = Math.Max(0, Math.Min(760, PageScroller.ViewportWidth - 76));
+            };
+            PerfBody.SizeChanged += (s, e) => {
+                if (!skeleton && bodyMetric != null)
+                    tallest[bodyMetric] = Math.Max(tallest.TryGetValue(bodyMetric, out double h) ? h : 0, e.NewSize.Height);
             };
             TaskManagerButton.Click += delegate { controller.open(System.IO.Path.Combine(Environment.SystemDirectory, "Taskmgr.exe")); };
         }
@@ -89,7 +96,7 @@ namespace Orla
             if (!perfWatching)
                 return;
             Reading[] history = Sensors.History;
-            List<Metric> shown = Metric.All.Where(m => r == null ? m.Key != "battery" : m.Available(r)).ToList();
+            List<Metric> shown = Metric.All.Where(m => r == null ? m.Key != "battery" || Sensors.HasBattery : m.Available(r)).ToList();
             if (!shown.SequenceEqual(metricCards.Select(c => c.Metric)))
                 buildMetricCards(shown);
             if (!shown.Any(m => m.Key == perfMetric))
@@ -166,7 +173,27 @@ namespace Orla
 
         void showDetail(Metric m, Reading r, Reading[] history)
         {
-            statIndex = 0;
+            if (bodyMetric != m.Key)
+            {
+                bodyMetric = m.Key;
+                PerfBody.MinHeight = tallest.TryGetValue(m.Key, out double h) ? h : 0;
+            }
+            // Until the first reading, blocks in the shape of the details say they are on their way.
+            if (skeleton != (r == null))
+            {
+                skeleton = r == null;
+                PerfStats.Children.Clear();
+                PerfExtra.Children.Clear();
+                if (skeleton)
+                    for (int i = 0; i < 8; i++)
+                    {
+                        var box = new StackPanel { Margin = new Thickness(0, 0, 12, 14) };
+                        box.Children.Add(block(72, 10, new Thickness(0, 3, 0, 5)));
+                        box.Children.Add(block(104, 16, new Thickness(0, 4, 0, 0)));
+                        PerfStats.Children.Add(pulse(box));
+                    }
+            }
+            statIndex = skeleton ? PerfStats.Children.Count : 0;
             extraIndex = 0;
             PerfGpuPicker.Visibility = Visibility.Collapsed;
             PerfChart.Tint = m.Tint;
@@ -324,6 +351,29 @@ namespace Orla
             ((TextBlock)box.Children[0]).Text = Text.get(key);
             ((TextBlock)box.Children[1]).Text = value;
             tip(box, hint);
+        }
+
+        // A placeholder bar for something still loading.
+        static Border block(double width, double height, Thickness margin)
+        {
+            var b = new Border { Width = width, Height = height, CornerRadius = new CornerRadius(height / 2), Margin = margin,
+                                 HorizontalAlignment = HorizontalAlignment.Left };
+            b.SetResourceReference(Border.BackgroundProperty, "Brush.Line");
+            return b;
+        }
+
+        // A slow breathing, the sign of something loading; still when animations are off.
+        T pulse<T>(T e) where T : UIElement
+        {
+            if (controller.Layout.Animations && e is FrameworkElement f)
+            {
+                f.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0.4, TimeSpan.FromMilliseconds(800)) {
+                    AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase()
+                });
+                // Stops with the placeholder, so nothing keeps redrawing once the readings are in.
+                f.Unloaded += delegate { f.BeginAnimation(OpacityProperty, null); };
+            }
+            return e;
         }
 
         // The lowest, average and highest of the minute in view, what people check first in a monitoring tool.
@@ -492,11 +542,29 @@ namespace Orla
         {
             if (r?.Top == null)
             {
+                // The table's own shape while the first list is read, so it does not grow into place.
+                if (headingSort == Loading)
+                    return;
+                headingSort = Loading;
                 PerfTop.Children.Clear();
-                headingSort = null;
-                TextBlock waiting = secondary(Text.get("perf.waiting"), 13);
-                waiting.Margin = new Thickness(0, 8, 0, 8);
-                PerfTop.Children.Add(waiting);
+                PerfTop.Children.Add(programHeading());
+                for (int i = 0; i < 8; i++)
+                {
+                    Grid row = ProgramRow.grid();
+                    row.Margin = new Thickness(0, 4, 0, 4);
+                    var name = new StackPanel { Orientation = Orientation.Horizontal };
+                    name.Children.Add(block(20, 20, new Thickness(0, 0, 10, 0)));
+                    name.Children.Add(block(100 + (i * 37) % 90, 12, new Thickness(0, 4, 0, 4)));
+                    row.Children.Add(name);
+                    for (int c = 1; c <= ProgramColumns.Length; c++)
+                    {
+                        Border cell = block(44, 12, new Thickness(0, 4, 0, 4));
+                        cell.HorizontalAlignment = HorizontalAlignment.Right;
+                        Grid.SetColumn(cell, c);
+                        row.Children.Add(cell);
+                    }
+                    PerfTop.Children.Add(pulse(row));
+                }
                 return;
             }
             if (headingSort != programSort)

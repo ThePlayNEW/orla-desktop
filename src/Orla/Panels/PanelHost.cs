@@ -108,7 +108,7 @@ namespace Orla
                 int width = pixels(PanelMetrics.width(Group.Columns, size));
                 var corner = new RECT { Left = rect.Left, Top = rect.Top, Right = rect.Left + width, Bottom = rect.Top + 1 };
                 RECT work = Screens.forRect(corner).Work;
-                int limit = work.Bottom - Screens.Margin;
+                int limit = work.Bottom - Screens.Edge;
                 foreach (RECT o in others())
                     if (o.Top >= rect.Top && o.Left < rect.Left + width && o.Right > rect.Left)
                         limit = Math.Min(limit, o.Top - Screens.Margin);
@@ -229,8 +229,8 @@ namespace Orla
         RECT limitsForResize()
         {
             RECT work = Screens.forRect(dragStart).Work;
-            var l = new RECT { Left = work.Left + Screens.Margin, Top = work.Top + Screens.Margin, Right = work.Right - Screens.Margin,
-                               Bottom = work.Bottom - Screens.Margin };
+            var l = new RECT { Left = work.Left + Screens.Edge, Top = work.Top + Screens.Edge, Right = work.Right - Screens.Edge,
+                               Bottom = work.Bottom - Screens.Edge };
             foreach (RECT o in others())
             {
                 bool rowsOverlap = o.Top < dragStart.Bottom && o.Bottom > dragStart.Top;

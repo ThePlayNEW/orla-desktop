@@ -136,7 +136,7 @@ Painéis prontos ajudam a começar rápido. Eles aparecem no segundo passo da pr
 | **Trabalho** | Coleção | Vazia, para você preencher |
 | **Estudos** | Coleção | Vazia, para você preencher |
 
-Na primeira vez, **Acesso rápido**, **Downloads** e **Aplicativos** já vêm marcados.
+Na primeira vez, **Acesso rápido**, **Downloads**, **Aplicativos** e **Desempenho** já vêm marcados.
 
 O painel **Jogos** reconhece um atalho pelo lugar para onde ele aponta: links da Steam (`steam://`) e da Epic (`com.epicgames.launcher://`), links da Riot, da EA, da Ubisoft, da Battle.net, da GOG e da Rockstar, ou as pastas onde essas lojas e o Xbox instalam os jogos. Se um jogo não aparecer, arraste o atalho dele para o painel.
 
@@ -176,6 +176,8 @@ Na janela do Orla, em **Painéis**, o botão **Novo painel** abre uma lista com:
 - os [painéis prontos](#painéis-prontos) disponíveis no seu computador;
 - **Nova coleção**, que pede um nome e cria uma coleção vazia;
 - **Painel de pasta**, que pede a pasta que o painel vai mostrar.
+
+Um painel novo entra no primeiro espaço livre junto à borda direita da tela, alinhado aos outros. Todos os painéis guardam a mesma distância da borda da tela, estejam onde o Orla os colocou ou onde você os arrastou.
 
 Na lista de painéis:
 
@@ -318,7 +320,7 @@ Temperatura, ventoinha e energia da GPU vêm do driver de vídeo. Quando o drive
 
 **Colocar no desktop**, na página **Desempenho**, cria um painel com CPU, GPU, memória, disco e rede, cada um com o valor e um gráfico do último minuto. Ele também está em **Novo painel > Desempenho**. Ele se move, muda de tamanho e se oculta como qualquer painel. Um clique duplo num sensor abre os detalhes dele.
 
-Os sensores só são lidos enquanto a página ou um painel de desempenho está aberto, uma vez por segundo, numa linha de execução própria, sem pesar no desktop. A leitura gasta menos de 0,5% do processador. Nada sai do seu computador.
+Os sensores só são lidos enquanto a página ou um painel de desempenho está aberto, duas vezes por segundo, numa linha de execução própria, sem pesar no desktop. A leitura gasta menos de 0,5% do processador. Nada sai do seu computador.
 
 ## Desktop limpo
 

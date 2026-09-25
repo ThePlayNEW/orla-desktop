@@ -63,7 +63,8 @@ namespace Orla
     // page or a performance panel. The last minute is kept for the charts.
     public static class Sensors
     {
-        public const int HistoryLength = 60;
+        // Two readings a second, as Task Manager's high update speed, and a minute of them for the charts.
+        public const int Interval = 500, HistoryLength = 60 * 1000 / Interval;
 
         // Settled by the first definite answer: a battery does not come or go while Orla runs, and the unknown status
         // Windows reports for a moment at sign-in or after sleep must neither hide it nor flicker it.
@@ -173,7 +174,7 @@ namespace Orla
                     while (true)
                     {
                         // Rates compare two collections, so the first reading waits a second too.
-                        Thread.Sleep(1000);
+                        Thread.Sleep(Interval);
                         bool processes;
                         lock (gate)
                         {
@@ -233,6 +234,8 @@ namespace Orla
             readonly IntPtr cpu, performance, frequency, cores, processCount, threadCount, uptime, engines, dedicated, shared,
                             diskIdle, diskRead, diskWrite, received, sent, processCpu, processMemory, processId;
             bool processesPrimed;
+            int tick;
+            List<ProcessReading> top;
 
             public Sampler()
             {
@@ -299,10 +302,14 @@ namespace Orla
                     r.Charging = power.PowerLineStatus == Forms.PowerLineStatus.Online;
                 }
 
+                // The program list changes once a second, which is as fast as it can be read.
                 if (processes)
-                    r.Top = readProcesses(perProcessGpu);
+                    r.Top = ++tick % 2 == 0 || top == null ? top = readProcesses(perProcessGpu) : top;
                 else
+                {
                     processesPrimed = false;
+                    top = null;
+                }
                 return r;
             }
 

@@ -232,7 +232,7 @@
 
             <Border Grid.Column="1" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Line}"
                     BorderThickness="1,1,0,0" CornerRadius="8,0,0,0" Margin="0,32,0,0" />
-            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Margin="0,33,0,0">
+            <ScrollViewer x:Name="PageScroller" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Margin="0,33,0,0">
                 <Grid Margin="36,24,40,32" MaxWidth="760" HorizontalAlignment="Left">
 
                     <!-- Panels -->
@@ -343,8 +343,11 @@
                                     <l:Chart x:Name="PerfChart" Grid="True" />
                                 </Border>
                                 <StackPanel x:Name="PerfSummary" Orientation="Horizontal" Margin="0,8,0,18" />
-                                <UniformGrid x:Name="PerfStats" Columns="4" />
-                                <StackPanel x:Name="PerfExtra" Margin="0,0,0,8" />
+                                <!-- Grows to the tallest the metric has been, so rows coming and going never move the page. -->
+                                <StackPanel x:Name="PerfBody">
+                                    <UniformGrid x:Name="PerfStats" Columns="4" />
+                                    <StackPanel x:Name="PerfExtra" Margin="0,0,0,8" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                         <TextBlock Style="{StaticResource Orla.SectionHeader}" Text="{l:T perf.topTitle}" />

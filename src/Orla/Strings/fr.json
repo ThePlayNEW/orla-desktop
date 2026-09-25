@@ -201,7 +201,7 @@
   "perf.gpu": "GPU",
   "perf.inUse": "Utilisée",
   "perf.lastMinute": "60 dernières secondes",
-  "perf.lead": "L’état de votre ordinateur en ce moment, mis à jour chaque seconde.",
+  "perf.lead": "L’état de votre ordinateur en ce moment, mis à jour deux fois par seconde.",
   "perf.max": "Max.",
   "perf.memory": "Mémoire",
   "perf.memoryClock": "Fréquence mémoire",

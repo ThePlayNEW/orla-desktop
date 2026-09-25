@@ -16,14 +16,14 @@ namespace Orla
             var list = new System.Collections.Generic.List<Reading>();
             for (int i = 0; i < Sensors.HistoryLength; i++)
             {
-                double wave = Math.Sin(i / 6.0), game = i < 12 ? i / 12.0 : 1;
+                double t = i * Sensors.Interval / 1000.0, wave = Math.Sin(t / 6.0), game = t < 12 ? t / 12.0 : 1;
                 var r = new Reading();
                 r.Cpu = 18 + 30 * game + 6 * wave + random.NextDouble() * 5;
                 r.Mhz = 4850 + random.Next(-60, 60);
                 r.Cores = Enumerable.Range(0, 16).Select(c => Math.Min(100, r.Cpu * (c % 2 == 0 ? 1.3 : 0.7) + random.NextDouble() * 10)).ToArray();
                 r.Processes = 214;
                 r.Threads = 3120;
-                r.Uptime = 3 * 3600 + 25 * 60 + i;
+                r.Uptime = 3 * 3600 + 25 * 60 + t;
                 r.MemoryTotal = 32.0 * (1UL << 30);
                 r.MemoryUsed = (11.2 + 3.1 * game) * (1UL << 30);
                 r.CommitLimit = 37.0 * (1UL << 30);
