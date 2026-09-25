@@ -695,6 +695,15 @@
                             </StackPanel>
                         </CheckBox>
                     </Border>
+                    <!-- Offered while there is no performance panel yet, and on by default. -->
+                    <Border x:Name="OrganizePerformanceCard" Style="{StaticResource Orla.Card}" Margin="4,0">
+                        <CheckBox x:Name="OrganizePerformance" Style="{StaticResource Orla.Switch}" IsChecked="True">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T organize.performance}" />
+                                <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T organize.performanceHint}" />
+                            </StackPanel>
+                        </CheckBox>
+                    </Border>
                 </UniformGrid>
                 <!-- The screens the plan uses, in miniature and where they really are, centred in a card that takes the room left. -->
                 <Border x:Name="OrganizeStage" Style="{StaticResource Orla.Card}" Margin="0,20,0,0" Padding="12">

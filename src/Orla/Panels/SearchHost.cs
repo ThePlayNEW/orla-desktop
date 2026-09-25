@@ -1,31 +1,71 @@
-using System.Windows;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Orla
 {
-    // Holds the search bar at the top of the main screen, centred over the middle the panels leave free, the same
-    // distance from the edge as every panel. It follows the panels between the desktop and the front.
+    // Holds the search bar on the desktop: at the top of the main screen, centred over the middle the panels leave
+    // free, until people move it by its grip. The window is always as tall as the bar with a full list of results,
+    // clear below while closed, so opening the results never covers a panel and panels always keep clear of it.
     public class SearchHost : LayerWindow
     {
         public SearchBar Bar { get; }
-        protected override FrameworkElement Root => Bar;
+        protected override System.Windows.FrameworkElement Root => Bar;
         protected override string Title => "Orla · " + Text.get("search.placeholder");
+
+        RECT dragStart;
+        POINT dragCursor;
 
         public SearchHost(Controller controller) : base(controller)
         {
             Bar = new SearchBar(controller);
-            // The results open below the field: the window grows down to fit them and shrinks back after.
-            Bar.SizeNeeded += delegate {
-                if (source == null)
-                    return;
-                rect.Bottom = rect.Top + pixels(Bar.ActualHeight);
-                // Open results reach over the panels below, so the bar comes above them first.
+            Bar.MoveStarted += delegate {
+                Native.GetCursorPos(out dragCursor);
+                dragStart = rect;
                 bringToFront();
+            };
+            Bar.MoveUpdated += dragMove;
+            Bar.MoveEnded += delegate {
+                if (rect.Left == dragStart.Left && rect.Top == dragStart.Top)
+                    return;
+                // At the size it has on the screen it landed on, then clear of the panels there.
+                measure(rect.Left, rect.Top);
+                applyScale();
+                rect = Screens.free(Screens.snap(rect, others()), others());
+                controller.Layout.SearchX = rect.Left;
+                controller.Layout.SearchY = rect.Top;
                 place(true);
+                controller.saveLayout();
             };
         }
 
-        // Where the idle bar sits, which panels keep clear of.
-        public RECT Resting { get; private set; }
+        List<RECT> others() => controller.Hosts.Select(h => h.Rect).ToList();
+
+        int idle;
+
+        // The field alone, where the bar shows while nothing is open.
+        public RECT Field => new RECT { Left = rect.Left, Top = rect.Top, Right = rect.Right, Bottom = rect.Top + idle };
+
+        // After the panels are laid out: where the bar's room would cover one, the bar moves to the nearest free place
+        // instead of pushing panels away. Not saved, so it goes back when room returns.
+        public void yieldTo(IList<RECT> panels)
+        {
+            if (!panels.Any(p => Screens.overlaps(p, rect)))
+                return;
+            rect = Screens.free(rect, panels);
+            place(true);
+        }
+
+        // Follows the pointer inside the screen under it, sticking to the screen edge and to the panels like a panel does.
+        void dragMove()
+        {
+            Native.GetCursorPos(out POINT now);
+            int dx = now.X - dragCursor.X, dy = now.Y - dragCursor.Y;
+            var moved = new RECT { Left = dragStart.Left + dx, Top = dragStart.Top + dy, Right = dragStart.Right + dx, Bottom = dragStart.Bottom + dy };
+            RECT work = Screens.at(now.X, now.Y).Work;
+            rect = Screens.clampTo(Screens.magnet(Screens.clampTo(moved, work), others(), work), work);
+            place(false);
+        }
 
         public void show(PanelMode mode, Desktop target, bool shown)
         {
@@ -33,13 +73,26 @@ namespace Orla
             desktop = target;
             Mode = mode;
             visible = shown;
-            Screen main = Screens.primary();
-            scale = main.Scale;
-            int width = pixels(Bar.Width), left = main.Work.Left + (main.Work.Width - width) / 2, top = main.Work.Top + Screens.Edge;
-            Resting = new RECT { Left = left, Top = top, Right = left + width, Bottom = top + pixels(Bar.IdleHeight) };
-            // Open results, if any, resize the window as soon as the bar is laid out.
-            rect = Resting;
+            Layout layout = controller.Layout;
+            if (layout.SearchX is double x && layout.SearchY is double y)
+                measure((int)x, (int)y);
+            else
+            {
+                // Centred at the top of the main screen, the same distance from the edge as every panel.
+                Screen main = Screens.primary();
+                scale = main.Scale;
+                int width = pixels(Bar.Width);
+                measure(main.Work.Left + (main.Work.Width - width) / 2, main.Work.Top + Screens.Edge);
+            }
             create();
+        }
+
+        // The window's size at the scale of the screen it sits on, kept whole on that screen.
+        void measure(int left, int top)
+        {
+            scale = Screens.at(left + 40, top + 20).Scale;
+            idle = pixels(Bar.IdleHeight);
+            rect = Screens.clamp(new RECT { Left = left, Top = top, Right = left + pixels(Bar.Width), Bottom = top + pixels(Bar.FullHeight) });
         }
     }
 }

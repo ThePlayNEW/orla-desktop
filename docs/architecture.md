@@ -164,11 +164,13 @@ The sensors run on their own background thread, only while the **Performance** p
 
 | Metric | Source |
 | --- | --- |
-| CPU use, per thread, speed | `\Processor Information(*)\% Processor Utility`, `% Processor Performance` × `Processor Frequency` |
+| CPU use | `GetSystemTimes` deltas: busy time over total time, as Resource Monitor counts it. `% Processor Utility` was dropped: it follows the clock speed, runs past 100 with turbo and reads wrong on some machines |
+| Per thread, speed | `\Processor Information(*)\% Processor Time`, `% Processor Performance` × `Processor Frequency` |
 | Memory | `GlobalMemoryStatusEx` |
 | GPU use and memory | `\GPU Engine(*)\Utilization Percentage` (summed per engine, busiest engine per adapter, as Task Manager does), `\GPU Adapter Memory(*)` |
 | GPU temperature, fan, power, clocks | `D3DKMTQueryAdapterInfo` with `KMTQAITYPE_ADAPTERPERFDATA` and `KMTQAITYPE_NODEPERFDATA` (WDDM 2.4 and later) |
-| Disks, network | `\PhysicalDisk(*)`, `\Network Interface(*)` |
+| Disks | `\PhysicalDisk(*)` |
+| Network | `GetIfTable2`, hardware interfaces only: filter layers repeat a card's traffic, and virtual adapters (Hyper-V, WSL, VPN) carry it a second time |
 | Programs | `\Process(*)`, only while the page is open; names from the program's file description |
 
 Adapter names, memory sizes and driver versions come from `D3DKMTEnumAdapters2`; memory type, speed and slots and disk models from WMI, once. No kernel driver is used, so CPU temperature is not available. Each reading is posted to the dispatcher at `Background` priority. The page and the panel build their elements once and then only change text and sizes, since the dispatcher is shared with the desktop panels. The thread runs at normal priority, so readings keep coming while a game holds the processor, and an exception there is logged and stops only the sensors.

@@ -466,6 +466,8 @@ namespace Orla
                                   : Group.OnlyUnorganized && browsing == null ? "panel.inboxEmpty" : "panel.folderEmpty");
             Empty.Visibility = tiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             applySize();
+            if (revealKey != null)
+                Dispatcher.BeginInvoke(new Action(revealNow), DispatcherPriority.Loaded);
         }
 
         // The sensors this computer has, updated with each reading. Before the first one, the usual set holds the space.
@@ -627,6 +629,30 @@ namespace Orla
 
         // What an action on a tile applies to: the selection, or the tile alone when nothing is selected.
         List<TileItem> selectionOr(TileItem tile) => Selection.Count > 0 ? Selection : new List<TileItem> { tile };
+
+        // A tile found elsewhere, such as by the search bar: the only one selected, in view and with the keyboard. A
+        // panel just expanded reads its content again first, so the tile is found by its key once it is on screen.
+        string revealKey;
+
+        public void reveal(TileItem tile)
+        {
+            revealKey = tile.Key;
+            revealNow();
+        }
+
+        void revealNow()
+        {
+            TileItem tile = tiles.FirstOrDefault(t => t.Key == revealKey);
+            FrameworkElement c = tile == null ? null : containerOf(tile);
+            if (c == null)
+                return;
+            revealKey = null;
+            selectOnly(tile);
+            c.BringIntoView();
+            controller.focusPanel(this);
+            c.Focus();
+            KeyboardCues = true;
+        }
 
         void selectAll()
         {

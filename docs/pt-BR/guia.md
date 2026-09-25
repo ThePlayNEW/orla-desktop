@@ -103,12 +103,13 @@ Quando você arrasta um item de um painel para outro, ou do desktop (e do **Novo
 
 Com mais de um monitor, a prévia mostra todos eles e oferece **Usar o segundo monitor**, já ligado. As ferramentas vão para o outro monitor, no lado que fica perto da tela principal, e pastas, arquivos e **Novos no desktop** ficam na tela principal. **Completar meus painéis** não muda nada de monitor.
 
-As duas opções da prévia:
+As opções da prévia:
 
 | Opção | O que faz |
 | --- | --- |
 | **Esconder os ícones do Windows** | Liga o [Desktop limpo](#desktop-limpo) e cria o painel **Novos no desktop**, com o que ainda não está em nenhum painel. Se você desligar, os ícones do Windows continuam e esse painel não é criado, porque os próprios ícones já mostram o que é novo. |
 | **Manter organizado** | Cada item novo no desktop entra sozinho no painel da categoria dele, uns segundos depois de chegar. Um item apagado ou tirado do desktop sai do painel. O que não se encaixar fica em **Novos no desktop**. Dá para ligar e desligar depois em **Painéis**. |
+| **Painel de desempenho** | Coloca o [painel de desempenho](#desempenho) junto das ferramentas. Vem ligado e só aparece enquanto você ainda não tem um. |
 
 Com **Refazer do zero**, os painéis que você tinha são substituídos. Uma cópia do layout anterior fica na [pasta de dados](#onde-ficam-seus-dados) com o nome `layout.json.before-organize-` seguido da data, e **Painéis > Voltar aos painéis anteriores** desfaz a organização, mesmo depois de fechar e abrir o Orla. Cada cópia serve para desfazer uma vez.
 
@@ -290,7 +291,9 @@ Sempre que o desktop vem para a frente (ao entrar no Windows, com **Win+D** ou a
 - com uma janela na frente, aperte o atalho: os painéis e a barra vêm para cima dela, prontos para digitar;
 - use o item **Buscar nos painéis** do menu da bandeja.
 
-Acentos e maiúsculas não importam. Primeiro vêm os nomes que começam com o que você digitou, depois os que têm uma palavra começando assim. Use as setas para escolher, **Enter** para abrir e **Ctrl+Enter** para mostrar o item na pasta dele. **Esc** limpa o texto; um segundo **Esc** devolve o teclado aos ícones do desktop. Os resultados aparecem só enquanto a barra tem o foco; a barra continua no lugar.
+Acentos e maiúsculas não importam. Primeiro vêm os nomes que começam com o que você digitou, depois os que têm uma palavra começando assim. Use as setas para escolher, **Enter** para abrir, **Ctrl+Enter** para mostrar o item na pasta dele e **Shift+Enter** para mostrá-lo no painel onde ele está. O resultado escolhido, ou o que está sob o mouse, mostra esses mesmos botões à direita, e o botão direito também oferece **Copiar caminho**. **Esc** limpa o texto; um segundo **Esc** devolve o teclado aos ícones do desktop. Os resultados aparecem só enquanto a barra tem o foco; a barra continua no lugar.
+
+Para mover a barra, arraste pela alça à direita dela, como um painel pelo título. Ela gruda nas bordas da tela e nos painéis do mesmo jeito. O espaço dela conta com a lista de resultados aberta, então nenhum painel fica onde os resultados vão aparecer. O botão direito na alça tem **Voltar ao lugar padrão**. Com **Travar posição e tamanho** ligado, a alça some.
 
 ## Desempenho
 
@@ -312,7 +315,7 @@ Clique num cartão para ver os detalhes dele. O gráfico mostra os últimos 60 s
 
 **Programas que mais usam** mostra CPU, memória e GPU de cada programa lado a lado, agrupados como no Gerenciador de Tarefas. Clique no título de uma coluna para ordenar por ela. **Abrir o Gerenciador de Tarefas** leva ao do Windows.
 
-Temperatura, ventoinha e energia da GPU vêm do driver de vídeo. Quando o driver não informa algum deles, o campo não aparece, e a temperatura mostra **—**. A temperatura da CPU também mostra **—**, porque o Windows não a informa sem um driver extra, e o Orla não instala drivers.
+O uso da CPU é contado pelo tempo em que o processador fica ocupado, como no Monitor de Recursos, e nunca passa de 100%. A rede soma só as placas de rede do computador; adaptadores virtuais, como os do Hyper-V, do WSL e de VPNs, não entram, porque repetiriam o mesmo tráfego. Temperatura, ventoinha e energia da GPU vêm do driver de vídeo. Quando o driver não informa algum deles, o campo não aparece, e a temperatura mostra **—**. A temperatura da CPU também mostra **—**, porque o Windows não a informa sem um driver extra, e o Orla não instala drivers.
 
 ### Painel de desempenho
 

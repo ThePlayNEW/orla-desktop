@@ -87,5 +87,17 @@ namespace Orla.Tests
                                            new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = 1920, Bottom = 1040 } });
             Assert.Contains(fresh.Groups, g => g.Id == panel.Id);
         }
+
+        [Fact]
+        public void organizingOffersOnePerformancePanel()
+        {
+            var screen = new Screen { Dpi = 96, Primary = true, Work = new RECT { Right = 1920, Bottom = 1040 } };
+            Layout first = Organizer.build(new Organizer.Plan(), new Layout(), true, true, new[] { screen }, false, true);
+            Assert.Single(first.Groups, g => g.IsSensors);
+            // Organizing again never adds a second one.
+            Layout again = Organizer.build(new Organizer.Plan(), first, true, true, new[] { screen }, false, true);
+            Assert.Single(again.Groups, g => g.IsSensors);
+            Assert.DoesNotContain(Organizer.build(new Organizer.Plan(), new Layout(), true, true, new[] { screen }, false).Groups, g => g.IsSensors);
+        }
     }
 }

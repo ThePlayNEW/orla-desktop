@@ -2,6 +2,13 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.7.2
+
+- CPU use compared on one computer over four seconds: `% Processor Utility` read 4 to 14% while `% Processor Time` and `GetSystemTimes` agreed at 1 to 10%. On another computer the utility counter stayed at 100% while Task Manager did not; Orla now uses `GetSystemTimes`.
+- Network: `GetIfTable2` listed the Ethernet card, its three filter layers with the same byte counts, and the WSL adapter; only the card is counted now.
+- The search bar moves by its grip with the panels' magnet and snap, keeps its place across restarts, and holds the room of a full list of results, so panels keep clear of it; `--smoke` still checks it is clear of every panel.
+- The organizer's preview offers a performance panel while there is none, on by default; a test checks that organizing twice never adds a second one.
+
 ## 1.7.1
 
 - The search bar takes the keyboard when the desktop comes to the front (a foreground WinEvent for Progman or WorkerW) and when Orla starts with the desktop in view. It leaves the keyboard alone when the pointer is on a panel or the bar, when a panel has the focus, and when Windows icons are selected (`LVM_GETSELECTEDCOUNT`).

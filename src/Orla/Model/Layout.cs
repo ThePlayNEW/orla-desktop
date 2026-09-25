@@ -115,6 +115,9 @@ namespace Orla
         public string LastUpdateCheck { get; set; }
         // The version that last ran, so an update can say what is new once.
         public string SeenVersion { get; set; }
+        // Where people moved the search bar, in physical pixels; empty keeps it centred at the top of the main screen.
+        public double? SearchX { get; set; }
+        public double? SearchY { get; set; }
 
         public Layout()
         {
@@ -138,7 +141,7 @@ namespace Orla
             StartupConfigured = StartupConfigured, StartupEnabled = StartupEnabled, OverlayHotkey = OverlayHotkey,
             OverlayShortcut = OverlayShortcut, Welcomed = Welcomed, Animations = Animations, Opacity = Opacity, Theme = Theme,
             Language = Language, IconSize = IconSize, LockLayout = LockLayout, AutoUpdate = AutoUpdate, LastUpdateCheck = LastUpdateCheck,
-            SeenVersion = SeenVersion
+            SeenVersion = SeenVersion, SearchX = SearchX, SearchY = SearchY
         };
     }
 }

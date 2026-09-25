@@ -159,7 +159,8 @@ namespace Orla
 
         // With a second monitor, the tools go there, on the side facing the main screen, and the work stays on the main
         // screen's right; the main screen's left and middle stay free.
-        public static Layout build(Plan plan, Layout settings, bool clean, bool keep, IList<Screen> screens, bool second)
+        // performance: a performance panel joins the tools when there is none yet.
+        public static Layout build(Plan plan, Layout settings, bool clean, bool keep, IList<Screen> screens, bool second, bool performance = false)
         {
             Layout layout = settings.copySettings();
             layout.Welcomed = true;
@@ -180,6 +181,8 @@ namespace Orla
                 X = g.X, Y = g.Y, Columns = g.Columns, Rows = g.Rows, AutoHeight = g.AutoHeight
             }).ToList();
             tools.AddRange(sensors.Where(g => g.Visible));
+            if (performance && sensors.Count == 0)
+                tools.Add(Presets.performance());
             // Without a clean desktop the Windows icons already show what is new, so the inbox would only repeat them.
             if (clean)
                 work.Add(Presets.inbox());
@@ -227,7 +230,8 @@ namespace Orla
         // Adds what is new on the desktop to the panels people already have, and makes a panel only for a category none
         // of them holds. Names, colours, positions, sizes and the items people moved stay as they are. Works on a
         // copy, so a preview never touches the live panels.
-        public static Layout complete(Plan plan, Layout current, bool clean, bool keep, IList<Screen> screens, Completion done)
+        public static Layout complete(Plan plan, Layout current, bool clean, bool keep, IList<Screen> screens, Completion done,
+                                      bool performance = false)
         {
             Screen screen = screens.FirstOrDefault(s => s.Primary) ?? screens[0];
             Layout next = Store.parse(Store.json().Serialize(current));
@@ -263,13 +267,19 @@ namespace Orla
                 next.Groups.Add(inbox);
                 done.Fresh.Add(inbox.Id);
             }
+            if (performance && next.Groups.Count < Store.MaxGroups && !next.Groups.Any(g => g.IsSensors))
+            {
+                Group sensors = Presets.performance();
+                next.Groups.Add(sensors);
+                done.Fresh.Add(sensors.Id);
+            }
             var taken = existing.Where(g => g.Visible).Select(g => Screens.rectOf(g, next.IconSize, Screens.nearest(g, screens).Scale)).ToList();
             foreach (Group g in next.Groups.Where(g => done.Fresh.Contains(g.Id)))
             {
-                bool tool = category(g.AutoCategory)?.Tools == true;
+                bool tool = category(g.AutoCategory)?.Tools == true || g.IsSensors;
                 var side = existing.Where(x => (category(x.AutoCategory)?.Tools == true) == tool).ToList();
                 g.Columns = side.Count > 0 ? side.GroupBy(x => x.Columns).OrderByDescending(x => x.Count()).First().Key : 4;
-                g.Rows = g.IsFolder ? 2 : Math.Max(1, Math.Min(4, (g.Items.Count + g.Columns - 1) / g.Columns));
+                g.Rows = g.IsFolder ? 2 : Math.Max(1, Math.Min(4, (PanelMetrics.count(g) + g.Columns - 1) / g.Columns));
                 Screens.place(g, taken, screen, next.IconSize, tool && clean);
             }
             // A panel that got items grows only into free space; otherwise the new items scroll.
