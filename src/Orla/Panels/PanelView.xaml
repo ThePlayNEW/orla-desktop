@@ -47,6 +47,32 @@
             </DataTemplate.Triggers>
         </DataTemplate>
 
+        <!-- A sensor on a performance panel: what it is, its value, a detail and the last minute. -->
+        <DataTemplate DataType="{x:Type local:SensorTile}">
+            <Border x:Name="Tile" Width="{DynamicResource Tile.Body}" Height="{DynamicResource Tile.Body}" Margin="1" Padding="8,7,8,6"
+                    CornerRadius="{StaticResource Radius.Item}" Background="Transparent" ToolTip="{Binding Tooltip}"
+                    AutomationProperties.Name="{Binding Name}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding Name}" FontSize="{StaticResource Type.ItemLabel}"
+                               Foreground="{DynamicResource Brush.TextSecondary}" TextTrimming="CharacterEllipsis" />
+                    <!-- A long reading, such as a fast connection, shrinks to fit instead of being cut. -->
+                    <Viewbox DockPanel.Dock="Top" StretchDirection="DownOnly" HorizontalAlignment="Left" Height="24" Margin="0,1,0,0">
+                        <TextBlock Text="{Binding Text}" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Text}"
+                                   Typography.NumeralAlignment="Tabular" />
+                    </Viewbox>
+                    <!-- Small tiles leave the detail out, so the chart keeps its height. -->
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding Detail}" FontSize="{StaticResource Type.Caption}" Foreground="{DynamicResource Brush.TextSecondary}"
+                               TextTrimming="CharacterEllipsis" Typography.NumeralAlignment="Tabular" Visibility="{DynamicResource Sensor.Detail}" />
+                    <local:Chart Values="{Binding Values}" Second="{Binding Second}" Max="{Binding Max}" Tint="{Binding Tint}" Margin="-3,4,-3,0" />
+                </DockPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <Trigger SourceName="Tile" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Tile" Property="Background" Value="{DynamicResource Brush.ItemHover}" />
+                </Trigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
         <!-- Resize zones along every edge and corner. A thin accent line shows which edge is under the pointer. -->
         <Style x:Key="Edge" TargetType="Thumb">
             <Setter Property="Template">

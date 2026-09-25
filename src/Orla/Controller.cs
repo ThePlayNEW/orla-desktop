@@ -71,7 +71,7 @@ namespace Orla
             references.Renamed += followRename;
             referenceTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(400), DispatcherPriority.Background, delegate {
                 referenceTimer.Stop();
-                foreach (PanelHost h in hosts.Where(h => !h.Group.IsFolder))
+                foreach (PanelHost h in hosts.Where(h => h.Group.IsCollection))
                     h.View.queueReload();
             }, dispatcher);
             referenceTimer.Stop();
@@ -215,7 +215,7 @@ namespace Orla
 
         void followReferences()
         {
-            references.follow(Layout.Groups.Where(g => !g.IsFolder).SelectMany(g => g.Items).Select(e => e.Path));
+            references.follow(Layout.Groups.Where(g => g.IsCollection).SelectMany(g => g.Items).Select(e => e.Path));
         }
 
         void syncHosts()
@@ -330,7 +330,7 @@ namespace Orla
             if (String.IsNullOrEmpty(Path.GetFileName(newPath)) || String.IsNullOrEmpty(Path.GetFileName(oldPath)))
                 return;
             var touched = new HashSet<Group>();
-            foreach (Group g in Layout.Groups.Where(g => !g.IsFolder))
+            foreach (Group g in Layout.Groups.Where(g => g.IsCollection))
                 foreach (Entry e in g.Items)
                 {
                     bool same = String.Equals(e.Path, oldPath, StringComparison.OrdinalIgnoreCase);
@@ -583,7 +583,7 @@ namespace Orla
 
         public void removePanel(Group g)
         {
-            string message = Text.get(g.IsFolder ? "panel.removeFolderMessage" : "panel.removeMessage");
+            string message = Text.get(g.IsFolder ? "panel.removeFolderMessage" : g.IsSensors ? "panel.removeSensorsMessage" : "panel.removeMessage");
             if (!Dialog.confirm(Text.format("panel.removeTitle", g.Name), message, Text.get("panel.removeAction"), true))
                 return;
             Layout.Groups.Remove(g);
@@ -934,7 +934,7 @@ namespace Orla
                     if (r.Gone)
                     {
                         // A deleted folder of shortcuts takes the shortcuts sorted from it along, from every collection.
-                        foreach (Group g in Layout.Groups.Where(g => !g.IsFolder))
+                        foreach (Group g in Layout.Groups.Where(g => g.IsCollection))
                             any |= g.Items.RemoveAll(e => Shell.within(e.Path, r.Path)) > 0;
                     }
                     else if (r.Home != null && Layout.Groups.Contains(r.Home) && r.Home.Items.Count < Store.MaxItems &&
@@ -1036,6 +1036,13 @@ namespace Orla
                 };
             }
             central.show(page);
+        }
+
+        // The Performance page, opened on a metric such as "gpu", or on the one last shown.
+        public void showPerformance(string metric)
+        {
+            showCentral("performance");
+            central.showMetric(metric);
         }
 
         public static void applyWindowTheme(Window w)

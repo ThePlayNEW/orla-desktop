@@ -29,6 +29,7 @@ This document describes Orla Desktop 1.0. User-facing behaviour is covered in th
 | `Text` | `Strings/Text.cs` | Interface strings from embedded JSON |
 | `Theme` | `Themes/Theme.cs` | Palette selection, High Contrast, panel opacity |
 | `Smoke`, `Render`, `Demo` | `Smoke.cs`, `Render.cs`, `Model/Demo.cs` | Integration check and documentation images with non-personal data |
+| `Sensors`, `Hardware`, `PdhQuery` | `Performance/*.cs` | The **Performance** page and panel: performance counters, the display driver's adapter data, a minute of history |
 | `Orla.Tests` | `tests/Orla.Tests` | xUnit tests for the model, persistence, layout, the organizer, presets and translations |
 
 ## Desktop layer integration
@@ -154,6 +155,21 @@ Desktop-mode panels are child windows of Explorer's desktop, so their thread's i
 A drop handler runs inside the drag source's `DoDragDrop` loop, so a file operation started there would keep the source waiting and could show its dialog under the wrong owner. Orla therefore records the drop, reports `DragDropEffects.None` to the source, and starts `SHFileOperation` from the dispatcher after the drag has finished, owned by Orla's hidden message window.
 
 Reporting no effect is deliberate. Under the optimized-move contract, a source that sees `Move` may delete the originals itself. Because Orla always reports `None` and performs the move on its own, a move that is skipped, cancelled or fails part-way can never cause the source to delete files.
+
+### Performance sensors
+
+The sensors run on their own background thread, only while the **Performance** page or a performance panel is shown (`Sensors.use` and `release` count them). Once a second the thread collects one PDH query (`PdhAddEnglishCounter`, so counter paths work in every display language) and reads:
+
+| Metric | Source |
+| --- | --- |
+| CPU use, per thread, speed | `\Processor Information(*)\% Processor Utility`, `% Processor Performance` × `Processor Frequency` |
+| Memory | `GlobalMemoryStatusEx` |
+| GPU use and memory | `\GPU Engine(*)\Utilization Percentage` (summed per engine, busiest engine per adapter, as Task Manager does), `\GPU Adapter Memory(*)` |
+| GPU temperature, fan, power, clocks | `D3DKMTQueryAdapterInfo` with `KMTQAITYPE_ADAPTERPERFDATA` and `KMTQAITYPE_NODEPERFDATA` (WDDM 2.4 and later) |
+| Disks, network | `\PhysicalDisk(*)`, `\Network Interface(*)` |
+| Programs | `\Process(*)`, only while the page is open; names from the program's file description |
+
+Adapter names, memory sizes and driver versions come from `D3DKMTEnumAdapters2`; memory type, speed and slots and disk models from WMI, once. No kernel driver is used, so CPU temperature is not available. Each reading is posted to the dispatcher at `Background` priority. The page and the panel build their elements once and then only change text and sizes, since the dispatcher is shared with the desktop panels. The thread runs at normal priority, so readings keep coming while a game holds the processor, and an exception there is logged and stops only the sensors.
 
 ## Rendering budget
 

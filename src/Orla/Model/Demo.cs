@@ -8,6 +8,52 @@ namespace Orla
     // their icons come from Windows like real ones.
     public static class Demo
     {
+        // A minute of a computer playing a game: steady graphics, a busy processor, a download in the background.
+        public static Reading[] readings()
+        {
+            Hardware.demo();
+            var random = new Random(7);
+            var list = new System.Collections.Generic.List<Reading>();
+            for (int i = 0; i < Sensors.HistoryLength; i++)
+            {
+                double wave = Math.Sin(i / 6.0), game = i < 12 ? i / 12.0 : 1;
+                var r = new Reading();
+                r.Cpu = 18 + 30 * game + 6 * wave + random.NextDouble() * 5;
+                r.Mhz = 4850 + random.Next(-60, 60);
+                r.Cores = Enumerable.Range(0, 16).Select(c => Math.Min(100, r.Cpu * (c % 2 == 0 ? 1.3 : 0.7) + random.NextDouble() * 10)).ToArray();
+                r.Processes = 214;
+                r.Threads = 3120;
+                r.Uptime = 3 * 3600 + 25 * 60 + i;
+                r.MemoryTotal = 32.0 * (1UL << 30);
+                r.MemoryUsed = (11.2 + 3.1 * game) * (1UL << 30);
+                r.CommitLimit = 37.0 * (1UL << 30);
+                r.Committed = r.MemoryUsed * 1.3;
+                var g = new GpuReading { Adapter = Hardware.Gpus[0], Load = 8 + 82 * game + 4 * wave, Dedicated = (2.1 + 6.3 * game) * (1UL << 30),
+                                         Shared = 0.4 * (1UL << 30), Temperature = 46 + 20 * game, Fan = game < 0.5 ? Double.NaN : 1400 + 300 * game,
+                                         Power = 20 + 60 * game, MemoryClock = 10501,
+                                         CoreClock = 2475 };
+                g.Engines["3D"] = g.Load;
+                g.Engines["Copy"] = 6 * game;
+                g.Engines["VideoDecode"] = 2;
+                r.Gpus.Add(g);
+                r.Disks.Add(new DiskReading { Instance = "0 C:", Active = 4 + 3 * Math.Abs(wave) + (i == 30 ? 30 : 0), Read = 2.4e6 + (i == 30 ? 90e6 : 0), Write = 0.8e6 });
+                r.Disks.Add(new DiskReading { Instance = "1 D:", Active = 0, Read = 0, Write = 0 });
+                r.Down = 2.6e6 + 0.8e6 * wave + random.NextDouble() * 0.3e6;
+                r.Up = 0.12e6 + random.NextDouble() * 0.05e6;
+                if (i == Sensors.HistoryLength - 1)
+                    r.Top = new System.Collections.Generic.List<ProcessReading> {
+                        new ProcessReading { Name = "Game", Label = Text.get("demo.game"), Cpu = 31.4, Memory = 6.2 * (1UL << 30), Gpu = 86 },
+                        new ProcessReading { Name = "Browser", Label = Text.get("demo.browser"), Cpu = 4.2, Memory = 2.1 * (1UL << 30), Gpu = 2 },
+                        new ProcessReading { Name = "Voice", Label = Text.get("demo.voice"), Cpu = 2.8, Memory = 0.4 * (1UL << 30), Gpu = 1 },
+                        new ProcessReading { Name = "Music", Label = Text.get("demo.music"), Cpu = 1.1, Memory = 0.3 * (1UL << 30), Gpu = 0 },
+                        new ProcessReading { Name = "explorer", Label = "Windows Explorer", Cpu = 0.6, Memory = 0.15 * (1UL << 30), Gpu = 0 },
+                        new ProcessReading { Name = "Orla", Label = "Orla Desktop", Cpu = 0.3, Memory = 0.06 * (1UL << 30), Gpu = 0 },
+                    };
+                list.Add(r);
+            }
+            return list.ToArray();
+        }
+
         public static Layout create()
         {
             string root = Path.Combine(Path.GetTempPath(), "Orla-demo");

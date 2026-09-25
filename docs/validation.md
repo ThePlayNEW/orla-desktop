@@ -2,6 +2,14 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.6
+
+- Sensors checked against Task Manager on a desktop with an 8-core Intel processor, an NVIDIA card, two disks (NVMe and SATA SSD) and 64 GB of DDR4. CPU, per-thread use, speed, memory, disk activity and rates, network rates, GPU use, dedicated and shared memory match within a reading. GPU temperature, fan, power and memory clock come from the driver through `D3DKMT_ADAPTER_PERFDATA`.
+- `Orla.exe --sensors <file>` records ten seconds of readings and their cost. With the process list on, reading cost 0.4% of the whole processor and the working set stayed under 60 MB.
+- The sensors stop when nothing shows them; a test reads this computer through the real counters.
+- A performance panel survives **Start over** in **Let Orla organize**, takes no dropped files, and is laid out like any panel.
+- Renders cover the Performance page (GPU, CPU and disk details) and the panel, in both themes, with sample hardware.
+
 ## 1.5
 
 - A five-step tour on the real desktop after the welcome screen, and again from **About**. Each step rings the part of a panel it explains, and its card sits beside the whole panel.

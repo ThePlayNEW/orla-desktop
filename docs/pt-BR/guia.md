@@ -14,6 +14,7 @@ O Orla coloca painéis translúcidos no desktop do Windows. Cada painel mostra a
 - [Arrastar e soltar](#arrastar-e-soltar)
 - [O atalho de teclado](#o-atalho-de-teclado)
 - [Busca rápida](#busca-rápida)
+- [Desempenho](#desempenho)
 - [Desktop limpo](#desktop-limpo)
 - [Janela do Orla](#janela-do-orla)
 - [Teclado](#teclado)
@@ -130,6 +131,7 @@ Painéis prontos ajudam a começar rápido. Eles aparecem no segundo passo da pr
 | **Imagens** | Painel de pasta | A pasta Imagens, com miniaturas |
 | **Capturas de tela** | Painel de pasta | A pasta de capturas de tela dentro de Imagens. Só aparece se ela existir. |
 | **Recentes** | Painel de pasta | Os arquivos que você abriu por último, os mais novos primeiro (até 40) |
+| **Desempenho** | Sensores | CPU, GPU, memória, disco e rede ao vivo. Veja [Desempenho](#desempenho). |
 | **Novos no desktop** | Painel de pasta | O que está no desktop e ainda não foi para nenhum painel. Combina com o Desktop limpo. |
 | **Trabalho** | Coleção | Vazia, para você preencher |
 | **Estudos** | Coleção | Vazia, para você preencher |
@@ -285,6 +287,39 @@ A busca procura em tudo o que os painéis mostram, inclusive o conteúdo dos pai
 
 Acentos e maiúsculas não importam. Primeiro vêm os nomes que começam com o que você digitou, depois os que têm uma palavra começando assim. Use as setas para escolher, **Enter** para abrir, **Ctrl+Enter** para mostrar o item na pasta dele e **Esc** para fechar. Clicar fora também fecha.
 
+## Desempenho
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/performance-dark.png">
+  <img src="../images/performance-light.png" width="720" alt="Página Desempenho com cartões de CPU, GPU, memória, disco e rede, o gráfico da GPU e os programas que mais usam">
+</picture>
+
+A página **Desempenho** mostra como o computador está agora, com os mesmos números do Gerenciador de Tarefas:
+
+- **CPU:** uso, velocidade atual e base, núcleos e threads, processos, tempo ligado e o uso de cada thread.
+- **GPU:** uso, temperatura, clock do núcleo e da memória, ventoinha, energia, memória dedicada e compartilhada, driver e os mecanismos que trabalharam no último minuto (3D, cópia, vídeo). Com duas placas, escolha **GPU 0** ou **GPU 1**.
+- **Memória:** em uso, disponível, confirmada, tipo, velocidade e slots.
+- **Disco:** leitura, gravação e o tempo ativo de cada disco, com o modelo e o tipo (NVMe, SSD ou HDD).
+- **Rede:** o que chega (linha forte) e o que sai (linha clara), em Kbps ou Mbps.
+- **Bateria**, em notebooks.
+
+Clique num cartão para ver os detalhes dele. O gráfico mostra os últimos 60 segundos; passe o mouse sobre ele para ver o valor de cada segundo. Abaixo do gráfico ficam o mínimo, a média e o máximo do minuto.
+
+**Programas que mais usam** mostra CPU, memória e GPU de cada programa lado a lado, agrupados como no Gerenciador de Tarefas. Clique no título de uma coluna para ordenar por ela. **Abrir o Gerenciador de Tarefas** leva ao do Windows.
+
+Temperatura, ventoinha e energia da GPU vêm do driver de vídeo. Quando o driver não informa algum deles, o campo não aparece, e a temperatura mostra **—**. A temperatura da CPU também mostra **—**, porque o Windows não a informa sem um driver extra, e o Orla não instala drivers.
+
+### Painel de desempenho
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/sensors-dark.png">
+  <img src="../images/sensors-light.png" width="520" alt="Painel Desempenho no desktop com CPU, GPU, memória, disco e rede, cada um com um gráfico pequeno">
+</picture>
+
+**Colocar no desktop**, na página **Desempenho**, cria um painel com CPU, GPU, memória, disco e rede, cada um com o valor e um gráfico do último minuto. Ele também está em **Novo painel > Desempenho**. Ele se move, muda de tamanho e se oculta como qualquer painel. Um clique duplo num sensor abre os detalhes dele.
+
+Os sensores só são lidos enquanto a página ou um painel de desempenho está aberto, uma vez por segundo, numa linha de execução própria, sem pesar no desktop. A leitura gasta menos de 0,5% do processador. Nada sai do seu computador.
+
 ## Desktop limpo
 
 **Desktop limpo** esconde os ícones do Windows e deixa só os painéis. Ele vem desligado, a não ser que você use **Deixe o Orla organizar** com **Esconder os ícones do Windows** ligado. Para ligar ou desligar, use **Geral > Desktop limpo** ou o item **Desktop limpo** no menu da bandeja.
@@ -318,9 +353,10 @@ Abra com um clique no ícone da bandeja, pelo menu **···** de um painel (**Ab
   <img src="../images/central-light.png" width="720" alt="Página Painéis da janela do Orla, com quatro painéis de demonstração">
 </picture>
 
-A janela tem quatro páginas:
+A janela tem cinco páginas:
 
 - **Painéis:** cria, mostra, oculta e remove painéis. Veja [Criar, ocultar e remover painéis](#criar-ocultar-e-remover-painéis).
+- **Desempenho:** CPU, GPU, memória, disco, rede e os programas que mais usam. Veja [Desempenho](#desempenho).
 - **Aparência:** tema, opacidade, ícones e animações, com uma pré-visualização ao vivo.
 - **Geral:** inicialização, idioma, **Desktop limpo**, trava, atalho e **Recomeçar do zero**.
 - **Sobre:** versão, **Tour pelo Orla**, **Atualizações**, pasta dos seus dados, **Guia de uso**, **Relatar um problema** e **Sair do Orla**.

@@ -28,6 +28,8 @@ namespace Orla
                 IconGuard.guard(Int32.Parse(args[1]), Int64.Parse(args[2]), args[3] == "1", args[4]);
                 return 0;
             }
+            if (mode == "--sensors" && args.Length >= 2)
+                return Diagnostics.sensors(args[1]);
             bool render = mode == "--render", smoke = mode == "--smoke";
             bool tool = render || smoke;
 

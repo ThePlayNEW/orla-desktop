@@ -22,6 +22,7 @@
     <StreamGeometry x:Key="Glyph.Overlay">M8 3.5 H14.5 a2 2 0 0 1 2 2 V12 M5.5 6 H12 a2 2 0 0 1 2 2 V14.5 a2 2 0 0 1 -2 2 H5.5 a2 2 0 0 1 -2 -2 V8 a2 2 0 0 1 2 -2 Z</StreamGeometry>
     <StreamGeometry x:Key="Glyph.PanelCollection">M5.5 3.5 H14.5 a2 2 0 0 1 2 2 V14.5 a2 2 0 0 1 -2 2 H5.5 a2 2 0 0 1 -2 -2 V5.5 a2 2 0 0 1 2 -2 Z M3.5 11.5 c2 -1.5 4 1.5 6.5 0 s4.5 -1.2 6.5 -0.3</StreamGeometry>
     <StreamGeometry x:Key="Glyph.PanelFolder">M3.5 6.5 a1.5 1.5 0 0 1 1.5 -1.5 H8.2 L9.8 6.8 H15 a1.5 1.5 0 0 1 1.5 1.5 V14.5 A1.5 1.5 0 0 1 15 16 H5 a1.5 1.5 0 0 1 -1.5 -1.5 Z</StreamGeometry>
+    <StreamGeometry x:Key="Glyph.Pulse">M2.5 10.5 H6 L8 5.5 L12 14.5 L14 10.5 H17.5</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Remove">M3.5 10 a6.5 6.5 0 1 0 13 0 a6.5 6.5 0 1 0 -13 0 M7 10 H13</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Rename">M12.5 4.5 L15.5 7.5 L7.5 15.5 H4.5 V12.5 Z M11 6 L14 9</StreamGeometry>
     <StreamGeometry x:Key="Glyph.Reveal">M3.5 14 V6 a1.5 1.5 0 0 1 1.5 -1.5 H8 L9.5 6 H14 a1.5 1.5 0 0 1 1.5 1.5 V8.5 M3.5 14 L5.2 9.3 A1.2 1.2 0 0 1 6.3 8.5 H16.4 a0.8 0.8 0 0 1 0.8 1 L15.7 14.8 A1.2 1.2 0 0 1 14.6 15.5 H4.7 A1.2 1.2 0 0 1 3.5 14 Z</StreamGeometry>

@@ -14,6 +14,7 @@ Orla places translucent panels on the Windows desktop. Each panel shows shortcut
 - [Drag and drop](#drag-and-drop)
 - [The keyboard shortcut](#the-keyboard-shortcut)
 - [Quick search](#quick-search)
+- [Performance](#performance)
 - [Clean desktop](#clean-desktop)
 - [The Orla window](#the-orla-window)
 - [Keyboard](#keyboard)
@@ -130,6 +131,7 @@ Ready-made panels help you start quickly. They appear in the second step of the 
 | **Pictures** | Folder panel | Your Pictures folder, with thumbnails |
 | **Screenshots** | Folder panel | The Screenshots folder inside Pictures. Listed only if it exists. |
 | **Recent** | Folder panel | The files you opened last, newest first (up to 40) |
+| **Performance** | Sensors | Live CPU, GPU, memory, disk and network. See [Performance](#performance). |
 | **New on desktop** | Folder panel | What is on the desktop and not in any panel yet. Pairs well with Clean desktop. |
 | **Work** | Collection | Empty, for you to fill |
 | **Study** | Collection | Empty, for you to fill |
@@ -285,6 +287,39 @@ Search looks through everything your panels show, including what is inside folde
 
 Accents and case do not matter. Names that start with what you typed come first, then names with a word that starts that way. Use the arrow keys to choose, **Enter** to open, **Ctrl+Enter** to show the item in its folder and **Esc** to close. Clicking elsewhere closes it too.
 
+## Performance
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/performance-dark.png">
+  <img src="../images/performance-light.png" width="720" alt="The Performance page with CPU, GPU, memory, disk and network cards, the GPU chart and the programs using the most">
+</picture>
+
+The **Performance** page shows how your computer is doing right now, with the same numbers as Task Manager:
+
+- **CPU:** use, current and base speed, cores and threads, processes, up time and the use of each thread.
+- **GPU:** use, temperature, core and memory clock, fan, power, dedicated and shared memory, driver and the engines that worked in the last minute (3D, copy, video). With two cards, choose **GPU 0** or **GPU 1**.
+- **Memory:** in use, available, committed, type, speed and slots.
+- **Disk:** read, write and the active time of each disk, with its model and kind (NVMe, SSD or HDD).
+- **Network:** what comes in (strong line) and what goes out (faint line), in Kbps or Mbps.
+- **Battery**, on laptops.
+
+Click a card to see its details. The chart shows the last 60 seconds; point at it to read the value of each second. Below the chart are the minute's lowest, average and highest values.
+
+**Programs using the most** shows each program's CPU, memory and GPU side by side, grouped as Task Manager groups them. Click a column heading to sort by it. **Open Task Manager** opens the one in Windows.
+
+GPU temperature, fan and power come from the display driver. When the driver does not report one, it is left out, and temperature shows **—**. CPU temperature also shows **—**, because Windows does not report it without an extra driver, and Orla does not install drivers.
+
+### Performance panel
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/sensors-dark.png">
+  <img src="../images/sensors-light.png" width="520" alt="A Performance panel on the desktop with CPU, GPU, memory, disk and network, each with a small chart">
+</picture>
+
+**Add to desktop**, on the **Performance** page, creates a panel with CPU, GPU, memory, disk and network, each with its value and a chart of the last minute. It is also in **New panel > Performance**. It moves, resizes and hides like any panel. Double-click a sensor to open its details.
+
+The sensors are read only while the page or a performance panel is open, once a second, off Orla's main thread. Reading them costs less than 0.5% of the processor. Nothing leaves your computer.
+
 ## Clean desktop
 
 **Clean desktop** hides the Windows icons and leaves only the panels. It is off unless you use **Let Orla organize** with **Hide the Windows icons** on. To turn it on or off, use **General > Clean desktop** or the **Clean desktop** item in the notification area menu.
@@ -318,9 +353,10 @@ Open it with a click on the notification area icon, from a panel's **···** me
   <img src="../images/central-light.png" width="720" alt="The Panels page of the Orla window, with four demo panels">
 </picture>
 
-The window has four pages:
+The window has five pages:
 
 - **Panels:** create, show, hide and remove panels. See [Creating, hiding and removing panels](#creating-hiding-and-removing-panels).
+- **Performance:** CPU, GPU, memory, disk, network and the programs using the most. See [Performance](#performance).
 - **Appearance:** theme, opacity, icons and animations, with a live preview.
 - **General:** startup, language, **Clean desktop**, locking, the shortcut and **Start over**.
 - **About:** version, **Orla tour**, **Updates**, your data folder, **User guide**, **Report a problem** and **Quit Orla**.

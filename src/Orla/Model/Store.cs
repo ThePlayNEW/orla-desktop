@@ -107,10 +107,12 @@ namespace Orla
                 if (g == null || String.IsNullOrWhiteSpace(g.Id) || !ids.Add(g.Id) || g.Items == null ||
                     g.Items.Count > MaxItems)
                     throw new InvalidDataException("Invalid panel.");
-                if (g.Kind != PanelKind.Collection && g.Kind != PanelKind.Folder)
+                if (g.Kind != PanelKind.Collection && g.Kind != PanelKind.Folder && g.Kind != PanelKind.Sensors)
                     throw new InvalidDataException("Invalid panel kind.");
                 if (g.IsFolder && String.IsNullOrWhiteSpace(g.FolderPath))
                     throw new InvalidDataException("Folder panel without a folder.");
+                if (g.IsSensors)
+                    g.Items.Clear();
                 if (String.IsNullOrWhiteSpace(g.Name))
                     g.Name = "Orla";
                 g.Name = g.Name.Trim().Substring(0, Math.Min(60, g.Name.Trim().Length));
@@ -176,7 +178,7 @@ namespace Orla
 
         public bool add(Group group, string path)
         {
-            if (group.IsFolder || group.Items.Count >= MaxItems)
+            if (!group.IsCollection || group.Items.Count >= MaxItems)
                 return false;
             if (!Shell.exists(path))
                 return false;
@@ -190,7 +192,7 @@ namespace Orla
         public bool move(string itemId, Group target, int index)
         {
             Group from = owner(itemId);
-            if (from == null || target == null || target.IsFolder || !data.Groups.Contains(target))
+            if (from == null || target == null || !target.IsCollection || !data.Groups.Contains(target))
                 return false;
             Entry item = from.Items.First(e => e.Id == itemId);
             if (from != target && target.Items.Count >= MaxItems)
@@ -224,7 +226,7 @@ namespace Orla
 
         public static Organized of(Layout layout)
         {
-            var shown = layout.Groups.Where(g => !g.IsFolder).SelectMany(g => g.Items).Select(e => e.Path)
+            var shown = layout.Groups.Where(g => g.IsCollection).SelectMany(g => g.Items).Select(e => e.Path)
                               .Concat(layout.Groups.Where(g => g.IsFolder && g.FolderPath != Shell.DesktopFolder).Select(g => g.FolderPath));
             return new Organized(shown.Where(p => !Shell.isVirtual(p)));
         }

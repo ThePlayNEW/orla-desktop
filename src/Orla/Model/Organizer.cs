@@ -173,11 +173,20 @@ namespace Orla
                 plan.QuickAccess.AutoCategory = QuickAccess;
                 tools.Add(plan.QuickAccess);
             }
+            // Performance panels hold no files, so starting over keeps them, beside the tools. They are copies, so
+            // drawing the preview never moves the live panel; the same Id keeps it the same panel once applied.
+            var sensors = settings.Groups.Where(g => g.IsSensors).Select(g => new Group {
+                Id = g.Id, Kind = g.Kind, Name = g.Name, TitleKey = g.TitleKey, Tint = g.Tint, Visible = g.Visible, Collapsed = g.Collapsed,
+                X = g.X, Y = g.Y, Columns = g.Columns, Rows = g.Rows, AutoHeight = g.AutoHeight
+            }).ToList();
+            tools.AddRange(sensors.Where(g => g.Visible));
             // Without a clean desktop the Windows icons already show what is new, so the inbox would only repeat them.
             if (clean)
                 work.Add(Presets.inbox());
             layout.Groups.AddRange(tools);
             layout.Groups.AddRange(work);
+            // A hidden one stays where it was, out of the arrangement.
+            layout.Groups.AddRange(sensors.Where(g => !g.Visible));
             // Rules point at panels; after a fresh layout they point at the new panel for the same category, and rules
             // about panels people made go away with those panels.
             layout.Learned = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -231,7 +240,7 @@ namespace Orla
             foreach (Group planned in plan.Groups)
                 foreach (Entry e in planned.Items.Where(e => !shown.Contains(e.Path)))
                 {
-                    Group home = taught(e.Path, plan, next) ?? next.Groups.FirstOrDefault(g => !g.IsFolder && g.AutoCategory == planned.AutoCategory);
+                    Group home = taught(e.Path, plan, next) ?? next.Groups.FirstOrDefault(g => g.IsCollection && g.AutoCategory == planned.AutoCategory);
                     // Past the panel limit, what has no panel yet stays in the desktop inbox.
                     if (home == null && next.Groups.Count >= Store.MaxGroups - 1)
                         continue;
@@ -287,7 +296,7 @@ namespace Orla
         // The panel people moved this item to before, if it still exists.
         static Group taught(string path, Plan plan, Layout layout) =>
             plan.Identities.TryGetValue(path, out string id) && layout.Learned.TryGetValue(id, out string groupId)
-                ? layout.Groups.FirstOrDefault(g => g.Id == groupId && !g.IsFolder)
+                ? layout.Groups.FirstOrDefault(g => g.Id == groupId && g.IsCollection)
                 : null;
 
         // What an item is, for learning: the program or link a shortcut opens, or else the file name.
@@ -304,10 +313,10 @@ namespace Orla
 
         // The one way Orla lays panels out: tools on the left and the rest on the right; with the Windows icons showing,
         // their column on the left stays free and every panel goes on the right. Panels the organizer did not make,
-        // such as presets, count as work.
+        // such as presets, count as work; performance panels sit with the tools.
         public static void arrange(Layout layout, Screen screen, bool keepCollapsed = false)
         {
-            var tools = layout.Groups.Where(g => category(g.AutoCategory)?.Tools == true || g.AutoCategory == QuickAccess).ToList();
+            var tools = layout.Groups.Where(g => category(g.AutoCategory)?.Tools == true || g.AutoCategory == QuickAccess || g.IsSensors).ToList();
             var work = layout.Groups.Where(g => !tools.Contains(g)).ToList();
             if (layout.CleanDesktop)
                 Screens.arrange(tools, work, layout.IconSize, screen, keepCollapsed);
@@ -320,11 +329,11 @@ namespace Orla
         {
             if (learned != null && learned.Count > 0 && learned.TryGetValue(identity(path), out string groupId))
             {
-                Group taughtHome = groups.FirstOrDefault(g => g.Id == groupId && !g.IsFolder);
+                Group taughtHome = groups.FirstOrDefault(g => g.Id == groupId && g.IsCollection);
                 if (taughtHome != null)
                     return taughtHome;
             }
-            var auto = groups.Where(g => !g.IsFolder && g.AutoCategory != null).ToList();
+            var auto = groups.Where(g => g.IsCollection && g.AutoCategory != null).ToList();
             string key = classify(path, hintAround(path));
             for (Category c = category(key); c != null; c = category(c.Fallback))
             {

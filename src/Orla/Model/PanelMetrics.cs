@@ -22,9 +22,12 @@ namespace Orla
 
         public static double height(Group g, int rows, string size) => g.Collapsed ? CollapsedHeight : height(rows, size);
 
-        // The rows a panel shows before its content is read: a collection's items up to Rows, a folder's full Rows.
+        // The rows a panel shows before its content is read: its items or sensors up to Rows, a folder's full Rows.
         public static int plannedRows(Group g) =>
-            g.IsFolder ? g.Rows : Math.Max(1, Math.Min(g.Rows, (g.Items.Count + g.Columns - 1) / g.Columns));
+            g.IsFolder ? g.Rows : Math.Max(1, Math.Min(g.Rows, (count(g) + g.Columns - 1) / g.Columns));
+
+        // Tiles a panel holds, known before it is shown.
+        public static int count(Group g) => g.IsSensors ? Metric.Usual : g.Items.Count;
 
         public static int columnsFor(double width, string size) =>
             Math.Max(Group.MinColumns, Math.Min(Group.MaxColumns, (int)Math.Round((width - ChromeWidth) / tile(size))));

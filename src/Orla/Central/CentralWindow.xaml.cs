@@ -28,6 +28,7 @@ namespace Orla
         {
             this.controller = controller;
             InitializeComponent();
+            setupPerformance();
             SourceInitialized += delegate { Controller.applyWindowTheme(this); };
             MinimizeButton.Click += delegate { SystemCommands.MinimizeWindow(this); };
             MaximizeButton.Click += delegate {
@@ -49,6 +50,7 @@ namespace Orla
             };
 
             NavPanels.Checked += delegate { showPage(PagePanels); };
+            NavPerformance.Checked += delegate { showPage(PagePerformance); };
             NavAppearance.Checked += delegate { showPage(PageAppearance); };
             NavGeneral.Checked += delegate { showPage(PageGeneral); };
             NavAbout.Checked += delegate { showPage(PageAbout); };
@@ -200,6 +202,8 @@ namespace Orla
             Main.Visibility = welcome ? Visibility.Collapsed : Visibility.Visible;
             if (page == "general")
                 NavGeneral.IsChecked = true;
+            else if (page == "performance" && !welcome)
+                NavPerformance.IsChecked = true;
             else if (!welcome && Nav.Children.OfType<RadioButton>().All(r => r.IsChecked != true))
                 NavPanels.IsChecked = true;
             Show();
@@ -210,7 +214,7 @@ namespace Orla
 
         void showPage(UIElement page)
         {
-            foreach (UIElement p in new UIElement[] { PagePanels, PageAppearance, PageGeneral, PageAbout })
+            foreach (UIElement p in new UIElement[] { PagePanels, PagePerformance, PageAppearance, PageGeneral, PageAbout })
                 p.Visibility = p == page ? Visibility.Visible : Visibility.Collapsed;
             if (page == PageAppearance)
                 buildPreview();
@@ -403,7 +407,7 @@ namespace Orla
             // The header's right side says what matters, and only the name gives way when space is short: the item
             // count on a fresh layout, as on the real panel; "new" or "+N" when organizing again.
             var header = new DockPanel { Width = Math.Max(0, width - 32 * k) };
-            string note = fresh ? Text.get("organize.fresh") : added > 0 ? "+" + added : added < 0 && !g.IsFolder ? g.Items.Count.ToString() : null;
+            string note = fresh ? Text.get("organize.fresh") : added > 0 ? "+" + added : added < 0 && g.IsCollection ? g.Items.Count.ToString() : null;
             if (note != null)
             {
                 var side = new TextBlock { Text = note, FontSize = 9, Margin = new Thickness(4, 0, 0, 0),
@@ -429,7 +433,7 @@ namespace Orla
             double tile = PanelMetrics.tile(iconSize) * k, icon = Math.Round(PanelMetrics.icon(iconSize) * k);
             double top = 19, pitch = (height - top - 3) / rows;
             // A folder panel's content is only known later, so it shows one faint row, as a panel that fills up.
-            int count = g.Collapsed ? 0 : g.IsFolder ? g.Columns : Math.Min(g.Items.Count, g.Columns * rows);
+            int count = g.Collapsed ? 0 : g.IsFolder ? g.Columns : Math.Min(PanelMetrics.count(g), g.Columns * rows);
             for (int i = 0; i < count; i++)
             {
                 var mark = new Border { Width = icon, Height = icon, CornerRadius = new CornerRadius(icon / 4),
@@ -571,6 +575,7 @@ namespace Orla
         public void refresh()
         {
             loading = true;
+            refreshPerformance();
             Layout l = controller.Layout;
             ThemeSystem.IsChecked = l.Theme == "system";
             ThemeLight.IsChecked = l.Theme == "light";
@@ -681,7 +686,7 @@ namespace Orla
             var marker = new Grid { Width = 36, Height = 36, Margin = new Thickness(0, 0, 14, 0) };
             var plate = new Border { CornerRadius = new CornerRadius(8), Opacity = 0.18 };
             plate.SetResourceReference(Border.BackgroundProperty, "Brush.Tint." + g.Tint);
-            var glyph = Menus.glyph(g.IsFolder ? "Glyph.PanelFolder" : "Glyph.PanelCollection");
+            var glyph = Menus.glyph(g.IsFolder ? "Glyph.PanelFolder" : g.IsSensors ? "Glyph.Pulse" : "Glyph.PanelCollection");
             glyph.SetResourceReference(Shape.StrokeProperty, "Brush.Tint." + g.Tint);
             glyph.HorizontalAlignment = HorizontalAlignment.Center;
             glyph.VerticalAlignment = VerticalAlignment.Center;
@@ -694,6 +699,7 @@ namespace Orla
             title.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Text");
             var detail = new TextBlock { FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis,
                                          Text = g.IsFolder ? Text.format("central.folderDetail", folderLabel(g))
+                                                : g.IsSensors ? Text.get("preset.performanceHint")
                                                            : Text.format(g.Items.Count == 1 ? "central.itemCount" : "central.itemsCount", g.Items.Count) };
             detail.SetResourceReference(TextBlock.ForegroundProperty, "Brush.TextSecondary");
             if (g.IsFolder)
