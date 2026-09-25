@@ -51,6 +51,8 @@ Na primeira vez que o Orla abre, a tela **Bem-vindo ao Orla Desktop** oferece du
 
 Nenhuma das opções move, renomeia ou apaga arquivos. Você pode mudar tudo depois.
 
+Assim que os painéis aparecem, um tour de cinco dicas passa por eles no próprio desktop: mover pelo título, mudar o tamanho pelas bordas, o menu **···**, o atalho com a busca e o ícone na bandeja. **Próximo** (ou Enter) avança, **Pular** (ou Esc) fecha. Para ver de novo, use **Sobre > Tour pelo Orla**.
+
 ## Deixe o Orla organizar
 
 <picture>
@@ -198,7 +200,7 @@ A **Cor da linha** muda a linha fina abaixo do título: **Vidro do mar**, **Arei
 - **Renomear:** clique duas vezes no título, digite o novo nome e aperte Enter. Esc cancela.
 - **Recolher:** a seta no lado direito da barra de título deixa só a barra de título à vista. Clique de novo para expandir.
 - **Travar:** em **Geral**, **Travar posição e tamanho** evita mover ou redimensionar sem querer. O mesmo ajuste está no menu da bandeja como **Travar painéis**.
-- **Reorganizar:** em **Geral**, **Reorganizar painéis** reorganiza os painéis visíveis na tela principal do mesmo jeito que o **Deixe o Orla organizar**: as ferramentas à esquerda (se o Desktop limpo estiver ligado), o resto à direita e o centro livre. Os painéis de cada lado ficam com a mesma largura.
+- **Alinhar:** na página **Painéis**, **Alinhar painéis**, abaixo da lista, alinha os painéis visíveis na tela principal do mesmo jeito que o **Deixe o Orla organizar**: as ferramentas à esquerda (se o Desktop limpo estiver ligado), o resto à direita e o centro livre. Os painéis de cada lado ficam com a mesma largura, e os recolhidos continuam recolhidos.
 
 ## Itens nos painéis
 
@@ -320,8 +322,10 @@ A janela tem quatro páginas:
 
 - **Painéis:** cria, mostra, oculta e remove painéis. Veja [Criar, ocultar e remover painéis](#criar-ocultar-e-remover-painéis).
 - **Aparência:** tema, opacidade, ícones e animações, com uma pré-visualização ao vivo.
-- **Geral:** inicialização, **Desktop limpo**, atalho, trava, idioma, **Reorganizar painéis** e **Recomeçar do zero**.
-- **Sobre:** versão, pasta dos seus dados, **Guia de uso**, **Relatar um problema** e **Sair do Orla**.
+- **Geral:** inicialização, idioma, **Desktop limpo**, trava, atalho e **Recomeçar do zero**.
+- **Sobre:** versão, **Tour pelo Orla**, **Atualizações**, pasta dos seus dados, **Guia de uso**, **Relatar um problema** e **Sair do Orla**.
+
+A janela do Orla tem a própria barra de título, com **Minimizar**, **Maximizar** e **Fechar** no canto, e continua encaixando nas bordas da tela como qualquer janela. Fechar a janela não fecha o Orla: os painéis continuam no desktop, e o ícone da bandeja abre a janela de novo. As confirmações que removem ou recomeçam algo têm o botão em vermelho.
 
 No rodapé da barra lateral, **Integrado ao desktop do Windows** indica que os painéis estão na camada do desktop. Se aparecer **Modo compatível: não encontrei o desktop do Windows.**, veja [Solução de problemas](#o-orla-mostra-modo-compatível).
 
@@ -348,18 +352,17 @@ Com o Alto Contraste do Windows ligado, o Orla usa as cores do sistema e desliga
 | Ajuste | O que faz |
 | --- | --- |
 | **Iniciar com o Windows** | Abre os painéis quando você entra no Windows. Vem ligado. |
-| **Desktop limpo** | Esconde os ícones do Windows. Veja [Desktop limpo](#desktop-limpo). |
-| **Atalho de teclado** | Liga ou desliga o atalho. Veja [O atalho de teclado](#o-atalho-de-teclado). |
-| **Combinação de teclas** | Troca a combinação do atalho. **Restaurar padrão** volta para **Ctrl+Alt+Espaço**. |
-| **Travar posição e tamanho** | Impede mover ou redimensionar painéis |
 | **Idioma** | **Sistema** segue o idioma de exibição do Windows. Você também pode escolher Português (Brasil), English, Español, Français, Deutsch ou Italiano. A troca vale na hora. |
-| **Reorganizar painéis** | O botão **Reorganizar** reorganiza os painéis visíveis na tela principal do mesmo jeito que o **Deixe o Orla organizar**: as ferramentas à esquerda (se o Desktop limpo estiver ligado), o resto à direita e o centro livre. Os painéis de cada lado ficam com a mesma largura. |
+| **Desktop limpo** | Esconde os ícones do Windows. Veja [Desktop limpo](#desktop-limpo). |
+| **Travar posição e tamanho** | Impede mover ou redimensionar painéis |
 | **Recomeçar do zero** | O botão **Recomeçar…** tira todos os painéis, volta os ajustes ao padrão e abre a tela **Bem-vindo ao Orla Desktop**, como numa instalação nova. Antes, o Orla guarda uma cópia do layout atual na pasta de dados, com o nome `layout.json.before-reset-<data>`. Nenhum arquivo seu é movido ou apagado, e **Iniciar com o Windows** fica como estava. Para voltar ao layout anterior, saia do Orla e renomeie essa cópia para `layout.json`. |
-| **Atualizações automáticas** | Só na versão instalada. A chave começa ligada. Veja [Atualizações](#atualizações). |
+| **Atalho de teclado** | Liga ou desliga o atalho. Ligado, a combinação aparece logo abaixo: clique nela e aperte a nova; **Restaurar padrão** volta para **Ctrl+Alt+Espaço**. Veja [O atalho de teclado](#o-atalho-de-teclado). |
+
+Os ajustes ficam agrupados em **Ao iniciar**, **Desktop** e **Avançado**. **Alinhar painéis** fica na página **Painéis**, abaixo da lista, e **Atualizações automáticas** fica em **Sobre**, junto de **Buscar agora**.
 
 ### Atualizações
 
-A versão instalada e a portátil procuram uma versão nova no GitHub um minuto depois de abrir e, depois, a cada seis horas. Você não precisa voltar ao GitHub nem baixar nada. Quando encontra, baixa em segundo plano e aplica na próxima vez que o Orla fechar. Se você desligar o Windows com o Orla aberto, a atualização é aplicada na próxima vez que ele abrir, um ou dois segundos antes de os painéis aparecerem. A busca pede ao GitHub a lista de versões deste repositório e não envia dados pessoais. Na página **Sobre**, o cartão **Atualizações** mostra quando foi a última busca e tem o botão **Buscar agora**. Quando uma versão nova estiver pronta, o botão vira **Reiniciar e atualizar**, para instalar na hora. Depois de atualizar, um aviso na bandeja leva às novidades da versão. Para desligar as buscas automáticas, use **Atualizações automáticas** em **Geral**; **Buscar agora** continua funcionando.
+A versão instalada e a portátil procuram uma versão nova no GitHub um minuto depois de abrir e, depois, a cada seis horas. Você não precisa voltar ao GitHub nem baixar nada. Quando encontra, baixa em segundo plano e aplica na próxima vez que o Orla fechar. Se você desligar o Windows com o Orla aberto, a atualização é aplicada na próxima vez que ele abrir, um ou dois segundos antes de os painéis aparecerem. A busca pede ao GitHub a lista de versões deste repositório e não envia dados pessoais. Na página **Sobre**, o cartão **Atualizações** mostra quando foi a última busca e tem o botão **Buscar agora**. Quando uma versão nova estiver pronta, o botão vira **Reiniciar e atualizar**, para instalar na hora. Depois de atualizar, um aviso na bandeja leva às novidades da versão. Para desligar as buscas automáticas, use **Atualizações automáticas** em **Sobre**; **Buscar agora** continua funcionando.
 
 A versão portátil precisa estar numa pasta em que você possa gravar, como Documentos ou Downloads, para se atualizar. Seus painéis ficam em `%LOCALAPPDATA%\Orla` e não são afetados.
 
@@ -430,7 +433,7 @@ Quando o Explorador reinicia, a camada do desktop é recriada. O Orla percebe is
 
 ### Um painel está fora da tela
 
-Em **Geral**, clique em **Reorganizar** ao lado de **Reorganizar painéis**. Todos os painéis visíveis voltam para a tela principal, alinhados em colunas.
+Na página **Painéis**, clique em **Alinhar painéis**, abaixo da lista. Todos os painéis visíveis voltam para a tela principal, alinhados em colunas.
 
 ### Um painel sumiu
 

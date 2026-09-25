@@ -32,13 +32,14 @@ namespace Orla
             return result;
         }
 
-        public static bool confirm(string title, string message, string action)
+        // danger: the action removes or resets something, and its button says so in red.
+        public static bool confirm(string title, string message, string action, bool danger = false)
         {
             bool accepted = false;
             build(title, message, null, action, delegate {
                 accepted = true;
                 return true;
-            }).ShowDialog();
+            }, true, danger).ShowDialog();
             return accepted;
         }
 
@@ -47,20 +48,43 @@ namespace Orla
             build(title, message, null, Text.get("dialog.ok"), () => true, false).ShowDialog();
         }
 
+        // For the documentation images: the confirmation card, built but not shown.
+        internal static Window sample(string title, string message, string action, bool danger) =>
+            build(title, message, null, action, () => true, true, danger);
+
+        // A card without the system frame, with the panels' corners and shadow. It can be dragged by any empty part.
         static Window build(string title, string message, UIElement body, string action, Func<bool> accept,
-                            bool cancellable = true)
+                            bool cancellable = true, bool danger = false)
         {
             var w = new Window {
-                Title = title, Width = 400, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize,
-                WindowStyle = WindowStyle.ToolWindow, ShowInTaskbar = false, Topmost = true,
-                WindowStartupLocation = WindowStartupLocation.Manual
+                Title = title, Width = 448, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize,
+                WindowStyle = WindowStyle.None, AllowsTransparency = true, Background = System.Windows.Media.Brushes.Transparent,
+                ShowInTaskbar = false, Topmost = true, WindowStartupLocation = WindowStartupLocation.Manual
             };
-            w.SetResourceReference(Control.BackgroundProperty, "Brush.Surface");
-            var panel = new StackPanel { Margin = new Thickness(24, 20, 24, 20) };
+            w.SetResourceReference(Window.FontFamilyProperty, "Font.Text");
+            var card = new Border { Margin = new Thickness(24, 16, 24, 32), Padding = new Thickness(24, 18, 16, 20), BorderThickness = new Thickness(1),
+                                    Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 32, ShadowDepth = 8, Opacity = 0.3, Direction = 270 } };
+            card.SetResourceReference(Border.BackgroundProperty, "Brush.Surface");
+            card.SetResourceReference(Border.BorderBrushProperty, "Brush.Line");
+            card.SetResourceReference(Border.CornerRadiusProperty, "Radius.Panel");
+            card.MouseLeftButtonDown += (s, e) => {
+                if (e.OriginalSource == card || e.OriginalSource is TextBlock || e.OriginalSource is StackPanel || e.OriginalSource is DockPanel)
+                    w.DragMove();
+            };
+            var panel = new StackPanel { Margin = new Thickness(0, 0, 8, 0) };
+            var top = new DockPanel();
+            var close = new Button { Content = Menus.glyph("Glyph.Close"), ToolTip = Text.get("window.close"), IsTabStop = false,
+                                     VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(12, -4, -8, 0) };
+            close.SetResourceReference(FrameworkElement.StyleProperty, "Orla.IconButton");
+            close.Click += delegate { w.Close(); };
+            ((System.Windows.Shapes.Path)close.Content).SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "Brush.TextSecondary");
+            DockPanel.SetDock(close, Dock.Right);
+            top.Children.Add(close);
             var heading = new TextBlock { Text = title, FontSize = 18, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap };
             heading.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Text");
             heading.SetResourceReference(TextBlock.FontFamilyProperty, "Font.Display");
-            panel.Children.Add(heading);
+            top.Children.Add(heading);
+            panel.Children.Add(top);
             if (!String.IsNullOrEmpty(message))
             {
                 var text = new TextBlock { Text = message, FontSize = 13, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
@@ -74,7 +98,7 @@ namespace Orla
             var cancel = new Button { Content = Text.get("dialog.cancel"), IsCancel = true, Margin = new Thickness(0, 0, 8, 0) };
             cancel.SetResourceReference(FrameworkElement.StyleProperty, "Orla.Button");
             var ok = new Button { Content = action, IsDefault = true };
-            ok.SetResourceReference(FrameworkElement.StyleProperty, "Orla.Button.Accent");
+            ok.SetResourceReference(FrameworkElement.StyleProperty, danger ? "Orla.Button.Danger" : "Orla.Button.Accent");
             ok.Click += delegate {
                 if (accept())
                     w.DialogResult = true;
@@ -83,7 +107,8 @@ namespace Orla
                 buttons.Children.Add(cancel);
             buttons.Children.Add(ok);
             panel.Children.Add(buttons);
-            w.Content = panel;
+            card.Child = panel;
+            w.Content = card;
             if (OwnerHandle != IntPtr.Zero)
                 new System.Windows.Interop.WindowInteropHelper(w).Owner = OwnerHandle;
             w.SourceInitialized += delegate { Controller.applyWindowTheme(w); };

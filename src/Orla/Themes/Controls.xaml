@@ -78,6 +78,18 @@
         </Style.Triggers>
     </Style>
 
+    <!-- For actions that remove or reset something. -->
+    <Style x:Key="Orla.Button.Danger" TargetType="Button" BasedOn="{StaticResource Orla.Button}">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.OnCritical}" />
+        <Setter Property="Background" Value="{DynamicResource Brush.Critical}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Brush.Critical}" />
+                <Setter Property="Opacity" Value="0.9" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style x:Key="Orla.Button.Quiet" TargetType="Button" BasedOn="{StaticResource Orla.Button}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="FontWeight" Value="Normal" />
@@ -96,6 +108,53 @@
         <Setter Property="Height" Value="{StaticResource Size.HeaderButton}" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- Window caption buttons, drawn like Windows 11's: 46 x 32, thin glyphs, red only for Close. -->
+    <Geometry x:Key="Caption.Minimize">M0,5.5 H10</Geometry>
+    <Geometry x:Key="Caption.Maximize">M0.5,0.5 H9.5 V9.5 H0.5 Z</Geometry>
+    <Geometry x:Key="Caption.Restore">M0.5,2.5 H7.5 V9.5 H0.5 Z M2.5,2.5 V0.5 H9.5 V7.5 H7.5</Geometry>
+    <Geometry x:Key="Caption.Close">M0.5,0.5 L9.5,9.5 M9.5,0.5 L0.5,9.5</Geometry>
+
+    <Style x:Key="Orla.Caption" TargetType="Button">
+        <Setter Property="Width" Value="46" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}">
+                        <Path Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" Width="10" Height="10" Stretch="None" StrokeThickness="1"
+                              Stroke="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                              SnapsToDevicePixels="True" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Brush.ItemHover}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource Brush.ItemPressed}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="Orla.Caption.Close" TargetType="Button" BasedOn="{StaticResource Orla.Caption}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#C42B1C" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="#B22A1B" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- Switch: label on the left, track on the right, like Windows settings. -->
@@ -159,6 +218,8 @@
                         <!-- A raised chip with accent text, so a chosen segment never competes with the page's main button. -->
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Brush.SurfaceRaised}" />
+                            <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource Brush.Line}" />
+                            <Setter TargetName="Chrome" Property="BorderThickness" Value="1" />
                             <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>

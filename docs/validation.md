@@ -2,6 +2,13 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.5
+
+- A five-step tour on the real desktop after the welcome screen, and again from **About**. Each step rings the part of a panel it explains, and its card sits beside the whole panel.
+- The Orla window draws its own title bar with Windows 11 style caption buttons, keeping Windows' shadow, resizing and snapping.
+- Dialogs are cards without the system frame, with the panels' corners and shadow; removing and resetting use a red button with enough contrast in both themes and in High Contrast.
+- Renders cover every page, the search, a dialog and a tour step, in both themes.
+
 ## 1.4
 
 - Quick search over everything the panels show, including folder panel contents. It opens with the panels when the shortcut brings them to the front, when typing on a panel, and from the tray menu.

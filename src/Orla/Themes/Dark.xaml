@@ -8,7 +8,7 @@
     <SolidColorBrush x:Key="Brush.Shoreline" Color="#5EC8C0" />
 
     <SolidColorBrush x:Key="Brush.Text" Color="#EAF3F1" />
-    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#C3D8D5" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#9FB9B6" />
     <SolidColorBrush x:Key="Brush.TextDisabled" Color="#6E8A88" />
     <SolidColorBrush x:Key="Brush.Glyph" Color="#A6E3DD" />
 
@@ -24,13 +24,14 @@
 
     <SolidColorBrush x:Key="Brush.Window" Color="#0D1B1F" />
     <SolidColorBrush x:Key="Brush.Surface" Color="#12262B" />
-    <SolidColorBrush x:Key="Brush.SurfaceRaised" Color="#183238" />
+    <SolidColorBrush x:Key="Brush.SurfaceRaised" Color="#274A50" />
     <SolidColorBrush x:Key="Brush.Control" Color="#1C3A40" />
     <SolidColorBrush x:Key="Brush.ControlHover" Color="#23464D" />
     <SolidColorBrush x:Key="Brush.Line" Color="#24393E" />
 
     <SolidColorBrush x:Key="Brush.Warning" Color="#E9C58A" />
     <SolidColorBrush x:Key="Brush.Critical" Color="#F29B8E" />
+    <SolidColorBrush x:Key="Brush.OnCritical" Color="#2A0D09" />
 
     <!-- Shoreline tints a panel can choose. -->
     <SolidColorBrush x:Key="Brush.Tint.seaglass" Color="#5EC8C0" />

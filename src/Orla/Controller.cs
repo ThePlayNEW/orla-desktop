@@ -584,7 +584,7 @@ namespace Orla
         public void removePanel(Group g)
         {
             string message = Text.get(g.IsFolder ? "panel.removeFolderMessage" : "panel.removeMessage");
-            if (!Dialog.confirm(Text.format("panel.removeTitle", g.Name), message, Text.get("panel.removeAction")))
+            if (!Dialog.confirm(Text.format("panel.removeTitle", g.Name), message, Text.get("panel.removeAction"), true))
                 return;
             Layout.Groups.Remove(g);
             foreach (string rule in Layout.Learned.Where(r => r.Value == g.Id).Select(r => r.Key).ToList())
@@ -769,6 +769,7 @@ namespace Orla
                 Layout.Welcomed = true;
                 saveLayout();
                 rebuild();
+                startTour();
             })));
         }
 
@@ -793,9 +794,62 @@ namespace Orla
                 next.UndoBackup = Path.GetFileName(backupLayout("before-organize"));
                 beforeOrganize = store.data;
             }
+            bool first = !Layout.Welcomed;
             store.data = next;
             saveLayout();
             rebuild();
+            if (first)
+                startTour();
+        }
+
+        // Five tips on the real panels, after the first welcome and whenever people ask from About.
+        TourWindow tour;
+
+        public void startTour()
+        {
+            if (tour != null)
+            {
+                tour.Activate();
+                return;
+            }
+            var wait = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(900) };
+            wait.Tick += delegate {
+                wait.Stop();
+                if (tour != null)
+                    return;
+                // The Orla window steps aside so the panels show, and comes back as it was afterwards.
+                CentralWindow window = central;
+                WindowState before = window?.WindowState ?? WindowState.Normal;
+                if (window != null)
+                    window.WindowState = WindowState.Minimized;
+                Screen main = Screens.primary();
+                double s = main.Scale;
+                // The first panel fully on the main screen that shows its content: the tips point at its parts.
+                PanelHost host = hosts.FirstOrDefault(h => h.Group.Visible && !h.Group.Collapsed &&
+                                                           h.Rect.Left >= main.Work.Left && h.Rect.Right <= main.Work.Right &&
+                                                           h.Rect.Top >= main.Work.Top && h.Rect.Bottom <= main.Work.Bottom);
+                Rect? panel = host == null ? (Rect?)null : new Rect(host.Rect.Left / s, host.Rect.Top / s, host.Rect.Width / s, host.Rect.Height / s);
+                var bounds = new Rect(main.Work.Left / s, main.Work.Top / s, main.Work.Width / s, main.Work.Height / s);
+                var steps = new List<TourWindow.Step> {
+                    new TourWindow.Step { Key = "move", Target = panel.HasValue ? new Rect(panel.Value.Left, panel.Value.Top, panel.Value.Width, 44) : (Rect?)null,
+                                         Around = panel },
+                    new TourWindow.Step { Key = "resize", Target = panel.HasValue ? new Rect(panel.Value.Right - 44, panel.Value.Bottom - 44, 44, 44) : (Rect?)null,
+                                         Around = panel },
+                    new TourWindow.Step { Key = "menu", Target = panel.HasValue ? new Rect(panel.Value.Right - 76, panel.Value.Top + 4, 68, 36) : (Rect?)null,
+                                         Around = panel },
+                    new TourWindow.Step { Key = "search", Argument = Shortcut.display() },
+                    // The taskbar can be on any edge, so this tip needs no ring.
+                    new TourWindow.Step { Key = "tray" },
+                };
+                tour = new TourWindow(steps, bounds);
+                tour.Closed += delegate {
+                    tour = null;
+                    if (window != null && window.IsLoaded && window.WindowState == WindowState.Minimized)
+                        window.WindowState = before;
+                };
+                tour.Show();
+            };
+            wait.Start();
         }
 
         // Straight to the organizer's preview, from the notification area.

@@ -16,6 +16,8 @@ namespace Orla
     // in both themes, so screenshots never contain anyone's personal files.
     public static class Render
     {
+        static Controller controller0;
+
         public static async void run(Controller controller, string[] args)
         {
             string folder = args.Length > 0 ? args[0] : ".";
@@ -41,6 +43,7 @@ namespace Orla
                 return;
             }
             controller.store.data = Demo.create();
+            controller0 = controller;
             foreach (string theme in new[] { "dark", "light" })
             {
                 controller.Layout.Theme = theme;
@@ -48,10 +51,14 @@ namespace Orla
                 await scene(controller, System.IO.Path.Combine(folder, "hero-" + theme + ".png"));
                 await central(controller, "panels", System.IO.Path.Combine(folder, "central-" + theme + ".png"));
                 await central(controller, "appearance", System.IO.Path.Combine(folder, "appearance-" + theme + ".png"));
+                await central(controller, "general", System.IO.Path.Combine(folder, "general-" + theme + ".png"));
+                await central(controller, "about", System.IO.Path.Combine(folder, "about-" + theme + ".png"));
                 await central(controller, "welcome", System.IO.Path.Combine(folder, "welcome-" + theme + ".png"));
                 await central(controller, "presets", System.IO.Path.Combine(folder, "presets-" + theme + ".png"));
                 await central(controller, "organize", System.IO.Path.Combine(folder, "organize-" + theme + ".png"), new[] { Screens.primary() });
                 await search(controller, System.IO.Path.Combine(folder, "search-" + theme + ".png"));
+                await dialog(System.IO.Path.Combine(folder, "dialog-" + theme + ".png"));
+                await tour(System.IO.Path.Combine(folder, "tour-" + theme + ".png"));
             }
             controller.Layout.Theme = "dark";
             Theme.apply(controller.Layout);
@@ -140,6 +147,46 @@ namespace Orla
             window.Close();
         }
 
+        // One tour step over a sample panel on the shoreline wallpaper.
+        static async Task tour(string path)
+        {
+            const double width = 1000, height = 560;
+            var canvas = new Canvas { Width = width, Height = height, ClipToBounds = true };
+            canvas.Children.Add(wallpaper(Theme.IsDark, width, height));
+            var view = new PanelView(controller0, controller0.Layout.Groups[1]) { Scale = 1 };
+            view.refresh();
+            Canvas.SetLeft(view, 560);
+            Canvas.SetTop(view, 40);
+            canvas.Children.Add(view);
+            await Task.Delay(1800);
+            var window = new TourWindow(new List<TourWindow.Step> {
+                new TourWindow.Step { Key = "move", Target = new Rect(560, 40, view.Width, 44), Around = new Rect(560, 40, view.Width, view.Height) },
+                new TourWindow.Step { Key = "resize" }, new TourWindow.Step { Key = "menu" }, new TourWindow.Step { Key = "search", Argument = "Ctrl+Alt+Espaço" },
+                new TourWindow.Step { Key = "tray" } }, new Rect(0, 0, width, height)) { ShowActivated = false };
+            window.Show();
+            window.Left = -20000;
+            await Task.Delay(300);
+            var stage = (Canvas)window.Content;
+            var copy = new VisualBrush(stage) { Stretch = Stretch.None, ViewboxUnits = BrushMappingMode.Absolute, Viewbox = new Rect(0, 0, width, height) };
+            canvas.Children.Add(new Rectangle { Width = width, Height = height, Fill = copy });
+            await save(canvas, width, height, path);
+            window.Close();
+        }
+
+        static async Task dialog(string path)
+        {
+            Window window = Dialog.sample(Text.format("panel.removeTitle", Text.get("preset.work")), Text.get("panel.removeMessage"),
+                                          Text.get("panel.removeAction"), true);
+            window.ShowActivated = false;
+            window.Show();
+            window.Left = -20000;
+            await Task.Delay(300);
+            var content = (FrameworkElement)window.Content;
+            await save(content, content.ActualWidth + content.Margin.Left + content.Margin.Right,
+                       content.ActualHeight + content.Margin.Top + content.Margin.Bottom, path);
+            window.Close();
+        }
+
         static async Task central(Controller controller, string page, string path, IList<Screen> screens = null)
         {
             var window = new CentralWindow(controller) { PreviewScreens = screens, WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000,
@@ -164,6 +211,10 @@ namespace Orla
                 window.show(null);
                 if (page == "appearance")
                     window.NavAppearance.IsChecked = true;
+                if (page == "general")
+                    window.NavGeneral.IsChecked = true;
+                if (page == "about")
+                    window.NavAbout.IsChecked = true;
             }
             var content = (FrameworkElement)window.Content;
             await save(content, content.ActualWidth, content.ActualHeight, path);

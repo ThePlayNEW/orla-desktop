@@ -72,6 +72,8 @@ namespace Orla
         [DllImport("user32.dll")]
         public static extern bool TrackMouseEvent(ref TRACKMOUSEEVENT tme);
         [DllImport("user32.dll")]
+        public static extern int GetSystemMetrics(int index);
+        [DllImport("user32.dll")]
         public static extern bool EnumWindows(EnumProc cb, IntPtr arg);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern IntPtr FindWindow(string cls, string title);
