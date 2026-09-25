@@ -52,7 +52,7 @@ Na primeira vez que o Orla abre, a tela **Bem-vindo ao Orla Desktop** oferece du
 
 Nenhuma das opções move, renomeia ou apaga arquivos. Você pode mudar tudo depois.
 
-Assim que os painéis aparecem, um tour de cinco dicas passa por eles no próprio desktop: mover pelo título, mudar o tamanho pelas bordas, o menu **···**, o atalho com a busca e o ícone na bandeja. **Próximo** (ou Enter) avança, **Pular** (ou Esc) fecha. Para ver de novo, use **Sobre > Tour pelo Orla**.
+Assim que os painéis aparecem, um tour de seis dicas passa por eles no próprio desktop: mover pelo título, mudar o tamanho pelas bordas, o menu **···**, a barra de busca, o atalho e o ícone na bandeja. **Próximo** (ou Enter) avança, **Pular** (ou Esc) fecha. Para ver de novo, use **Sobre > Tour pelo Orla**.
 
 ## Deixe o Orla organizar
 
@@ -246,7 +246,7 @@ O atalho é **Ctrl+Alt+Espaço** por padrão, e você pode trocá-lo em **Geral*
 | Situação | O que o atalho faz |
 | --- | --- |
 | Desktop à vista (o foco está no desktop, na barra de tarefas ou em um painel) | Esconde os painéis, ou mostra de novo. Com o **Desktop limpo** ligado, os ícones do Windows voltam enquanto os painéis estão escondidos. |
-| Uma janela de aplicativo na frente | Traz os painéis para a frente das janelas, com a [busca rápida](#busca-rápida) aberta. Aperte de novo, ou Esc, para devolvê-los ao desktop. |
+| Uma janela de aplicativo na frente | Traz os painéis para a frente das janelas, com a [barra de busca](#busca-rápida) pronta para digitar. Aperte de novo, ou Esc, para devolvê-los ao desktop. |
 
 Os painéis sempre começam visíveis quando o Orla abre.
 
@@ -278,16 +278,17 @@ Se outro programa já usa a combinação escolhida, o Orla mantém a anterior e 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="../images/search-dark.png">
-  <img src="../images/search-light.png" width="620" alt="Busca rápida com dois resultados, cada um com o painel de onde vem">
+  <img src="../images/search-light.png" width="620" alt="Barra de busca no desktop com dois resultados, cada um com o painel de onde vem">
 </picture>
 
-A busca procura em tudo o que os painéis mostram, inclusive o conteúdo dos painéis de pasta. Ela abre:
+A barra de busca fica sempre no alto da tela principal, no centro, no espaço que os painéis deixam livre. Ela procura em tudo o que os painéis mostram, inclusive o conteúdo dos painéis de pasta. Para usar:
 
-- junto com os painéis, quando o atalho os traz para a frente de uma janela;
-- quando você começa a digitar com um painel selecionado;
-- pelo item **Buscar nos painéis** do menu da bandeja.
+- clique nela;
+- comece a digitar com um painel selecionado;
+- com uma janela na frente, aperte o atalho: os painéis e a barra vêm para cima dela, prontos para digitar;
+- use o item **Buscar nos painéis** do menu da bandeja.
 
-Acentos e maiúsculas não importam. Primeiro vêm os nomes que começam com o que você digitou, depois os que têm uma palavra começando assim. Use as setas para escolher, **Enter** para abrir, **Ctrl+Enter** para mostrar o item na pasta dele e **Esc** para fechar. Clicar fora também fecha.
+Acentos e maiúsculas não importam. Primeiro vêm os nomes que começam com o que você digitou, depois os que têm uma palavra começando assim. Use as setas para escolher, **Enter** para abrir e **Ctrl+Enter** para mostrar o item na pasta dele. **Esc** limpa o texto; um segundo **Esc** tira o foco da barra. Os resultados aparecem só enquanto a barra tem o foco; a barra continua no lugar. Quando o atalho está ligado, ela mostra a combinação à direita.
 
 ## Desempenho
 

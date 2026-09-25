@@ -52,7 +52,7 @@ The first time Orla opens, the **Welcome to Orla Desktop** screen offers two way
 
 Neither option moves, renames or deletes a file. You can change everything later.
 
-As soon as the panels appear, a five-tip tour goes over them on the desktop itself: moving by the title, resizing from the edges, the **···** menu, the shortcut with search, and the notification area icon. **Next** (or Enter) moves on, **Skip** (or Esc) closes it. To see it again, use **About > Orla tour**.
+As soon as the panels appear, a six-tip tour goes over them on the desktop itself: moving by the title, resizing from the edges, the **···** menu, the search bar, the shortcut, and the notification area icon. **Next** (or Enter) moves on, **Skip** (or Esc) closes it. To see it again, use **About > Orla tour**.
 
 ## Let Orla organize
 
@@ -246,7 +246,7 @@ The shortcut is **Ctrl+Alt+Space** by default, and you can change it in **Genera
 | Situation | What the shortcut does |
 | --- | --- |
 | Desktop in view (the desktop, the taskbar or a panel has focus) | Hides the panels, or shows them again. With **Clean desktop** on, the Windows icons come back while the panels are hidden. |
-| An application window in front | Brings the panels in front of your windows, with [quick search](#quick-search) open. Press it again, or Esc, to send them back to the desktop. |
+| An application window in front | Brings the panels in front of your windows, with the [search bar](#quick-search) ready for typing. Press it again, or Esc, to send them back to the desktop. |
 
 Panels always start visible when Orla opens.
 
@@ -278,16 +278,17 @@ If another program already uses the combination you pick, Orla keeps the previou
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="../images/search-dark.png">
-  <img src="../images/search-light.png" width="620" alt="Quick search with two results, each showing the panel it comes from">
+  <img src="../images/search-light.png" width="620" alt="The search bar on the desktop with two results, each showing the panel it comes from">
 </picture>
 
-Search looks through everything your panels show, including what is inside folder panels. It opens:
+The search bar always sits at the top of the main screen, in the middle the panels leave free. It looks through everything your panels show, including what is inside folder panels. To use it:
 
-- with the panels, when the shortcut brings them in front of a window;
-- when you start typing with a panel selected;
-- from **Search your panels** in the notification area menu.
+- click it;
+- start typing with a panel selected;
+- with a window in front, press the shortcut: the panels and the bar come above it, ready for typing;
+- use **Search your panels** in the notification area menu.
 
-Accents and case do not matter. Names that start with what you typed come first, then names with a word that starts that way. Use the arrow keys to choose, **Enter** to open, **Ctrl+Enter** to show the item in its folder and **Esc** to close. Clicking elsewhere closes it too.
+Accents and case do not matter. Names that start with what you typed come first, then names with a word that starts that way. Use the arrow keys to choose, **Enter** to open and **Ctrl+Enter** to show the item in its folder. **Esc** clears the text; a second **Esc** takes the focus away from the bar. The results show only while the bar has the focus; the bar stays in place. When the shortcut is on, the bar shows it on the right.
 
 ## Performance
 

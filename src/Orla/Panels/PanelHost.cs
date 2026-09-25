@@ -20,12 +20,9 @@ namespace Orla
     // Owns the native window of one panel. Switching modes rebuilds the window around the same PanelView, which is
     // also how panels come back after Explorer restarts. Panels always stay inside a monitor's work area and never
     // overlap each other.
-    public class PanelHost : IDisposable
+    public class PanelHost : LayerWindow
     {
-        readonly Controller controller;
-        HwndSource source;
-        Desktop desktop;
-        RECT rect, dragStart;
+        RECT dragStart;
         POINT dragCursor;
         string resizeSide;
         RECT resizeLimits;
@@ -33,18 +30,14 @@ namespace Orla
         System.Windows.Threading.DispatcherTimer settleAnimation;
         RECT animationTarget;
         Action animationDone;
-        bool visible = true;
-        double scale = 1;
 
         public PanelView View { get; }
-        public PanelMode Mode { get; private set; }
         public Group Group => View.Group;
-        public RECT Rect => rect;
-        public IntPtr Handle => source?.Handle ?? IntPtr.Zero;
+        protected override FrameworkElement Root => View;
+        protected override string Title => "Orla · " + Group.Name;
 
-        public PanelHost(Controller controller, Group group)
+        public PanelHost(Controller controller, Group group) : base(controller)
         {
-            this.controller = controller;
             View = new PanelView(controller, group);
             View.MoveStarted += startDrag;
             View.MoveUpdated += dragMove;
@@ -72,9 +65,7 @@ namespace Orla
             };
         }
 
-        int pixels(double dip) => (int)Math.Round(dip * scale);
-
-        List<RECT> others() => controller.Hosts.Where(h => h != this).Select(h => h.Rect).ToList();
+        List<RECT> others() => controller.Hosts.Where(h => h != this).Select(h => h.Rect).Concat(controller.SearchSpace).ToList();
 
         public void show(PanelMode mode, Desktop target, bool shown)
         {
@@ -126,79 +117,6 @@ namespace Orla
             {
                 fitting = false;
             }
-        }
-
-        void create()
-        {
-            int style, ex;
-            IntPtr parent = IntPtr.Zero;
-            int x = rect.Left, y = rect.Top;
-            if (Mode == PanelMode.Desktop)
-            {
-                style = Native.WS_CHILD | Native.WS_CLIPSIBLINGS | Native.WS_CLIPCHILDREN;
-                ex = 0;
-                parent = desktop.Host;
-                POINT p = desktop.toHost(rect.Left, rect.Top);
-                x = p.X;
-                y = p.Y;
-            }
-            else if (Mode == PanelMode.Overlay)
-            {
-                style = Native.WS_POPUP | Native.WS_CLIPCHILDREN;
-                ex = Native.WS_EX_TOOLWINDOW | Native.WS_EX_TOPMOST;
-            }
-            else
-            {
-                style = Native.WS_POPUP | Native.WS_CLIPCHILDREN;
-                ex = Native.WS_EX_TOOLWINDOW | Native.WS_EX_NOACTIVATE;
-            }
-            source = new HwndSource(new HwndSourceParameters("Orla · " + Group.Name, rect.Width, rect.Height) {
-                WindowStyle = style, ExtendedWindowStyle = ex, ParentWindow = parent, PositionX = x, PositionY = y,
-                UsesPerPixelTransparency = true
-            });
-            source.CompositionTarget.BackgroundColor = Colors.Transparent;
-            applyScale();
-            source.RootVisual = View;
-            if (Mode == PanelMode.Fallback)
-                placeAboveShell();
-            else
-                bringToFront();
-            if (!visible)
-                return;
-            Native.ShowWindow(Handle, Native.SW_SHOWNA);
-            reveal();
-        }
-
-        // A child window takes the DPI of its host (the primary monitor). Panels on other monitors are scaled to
-        // match the monitor they sit on; top-level windows get this from WPF itself.
-        void applyScale()
-        {
-            double factor = Mode == PanelMode.Desktop ? scale * 96.0 / desktop.dpi : 1;
-            View.LayoutTransform = Math.Abs(factor - 1) < 0.01 ? Transform.Identity : new ScaleTransform(factor, factor);
-        }
-
-        void placeAboveShell()
-        {
-            IntPtr shell = Native.GetShellWindow();
-            IntPtr previous = shell == IntPtr.Zero ? IntPtr.Zero : Native.GetWindow(shell, Native.GW_HWNDPREV);
-            if (previous != IntPtr.Zero && previous != Handle)
-                Native.SetWindowPos(Handle, previous, 0, 0, 0, 0, Native.SWP_NOMOVE | Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
-            Native.setDwm(Handle, Native.DWMWA_EXCLUDED_FROM_PEEK, 1);
-        }
-
-        void place(bool resize)
-        {
-            if (source == null)
-                return;
-            int x = rect.Left, y = rect.Top;
-            if (Mode == PanelMode.Desktop)
-            {
-                POINT p = desktop.toHost(x, y);
-                x = p.X;
-                y = p.Y;
-            }
-            Native.SetWindowPos(Handle, IntPtr.Zero, x, y, rect.Width, rect.Height,
-                                Native.SWP_NOZORDER | Native.SWP_NOACTIVATE | (resize ? 0 : Native.SWP_NOSIZE));
         }
 
         // ---- dragging ----
@@ -420,74 +338,10 @@ namespace Orla
             place(true);
         }
 
-        // Called when something reorders the desktop's windows, such as a wallpaper app starting.
-        public void keepAbove()
-        {
-            if (Mode == PanelMode.Desktop && source != null && desktop.IsValid && !desktop.isAbove(Handle))
-                desktop.placeAbove(Handle);
-        }
-
-        public void setVisible(bool show)
-        {
-            if (source == null || visible == show)
-                return;
-            visible = show;
-            Native.ShowWindow(Handle, show ? Native.SW_SHOWNA : Native.SW_HIDE);
-            if (show)
-                reveal();
-        }
-
-        // The only motion when a panel appears: a short, eased fade. Nothing runs continuously.
-        void reveal()
-        {
-            if (!controller.Layout.Animations || !SystemParameters.ClientAreaAnimation)
-                return;
-            View.BeginAnimation(UIElement.OpacityProperty, new System.Windows.Media.Animation.DoubleAnimation(0.6, 1, TimeSpan.FromMilliseconds(160)) {
-                EasingFunction = new System.Windows.Media.Animation.CubicEase { EasingMode = System.Windows.Media.Animation.EasingMode.EaseOut },
-                FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop
-            });
-        }
-
-        public void bringToFront()
-        {
-            if (source == null)
-                return;
-            if (Mode == PanelMode.Desktop)
-                desktop.placeAbove(Handle);
-            else if (Mode == PanelMode.Overlay)
-                Native.SetWindowPos(Handle, Native.HWND_TOPMOST, 0, 0, 0, 0,
-                                    Native.SWP_NOMOVE | Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
-        }
-
-        public void focus()
-        {
-            if (source == null)
-                return;
-            if (Mode == PanelMode.Overlay)
-                Native.SetForegroundWindow(Handle);
-            Native.SetFocus(Handle);
-        }
-
-        void destroyWindow()
-        {
-            if (source == null)
-                return;
-            try
-            {
-                source.RootVisual = null;
-                source.Dispose();
-            }
-            catch (Exception)
-            {
-                // The window may already be gone with Explorer's desktop.
-            }
-            source = null;
-        }
-
-        public void Dispose()
+        public override void Dispose()
         {
             settleAnimation?.Stop();
-            destroyWindow();
+            base.Dispose();
         }
     }
 }

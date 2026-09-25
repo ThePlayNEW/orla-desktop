@@ -2,6 +2,13 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.7
+
+- The search bar is a window on the desktop layer like the panels: `--smoke` checks that it is a child of the desktop's icon host, visible, above the icons and clear of every panel.
+- Panels keep clear of the bar's place when they are placed, dragged or settled; new panels count it as taken.
+- In front of an application, the shortcut brings the panels and the bar together and puts the keyboard in the bar.
+- Renders show the bar with results in both themes.
+
 ## 1.6.1
 
 - The quick search no longer fails when it loses the focus while already closing; that error showed the "something went wrong" message again and again.

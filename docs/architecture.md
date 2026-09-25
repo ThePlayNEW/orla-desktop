@@ -18,6 +18,8 @@ This document describes Orla Desktop 1.0. User-facing behaviour is covered in th
 | `Screens` | `Shell/Screens.cs` | Monitor geometry, clamping, snapping, free-spot search, default arrangement |
 | `Tray` | `Shell/Tray.cs` | Notification area icon and menu |
 | `Updates` | `Shell/Updates.cs` | Daily update check and background download for the installed version |
+| `LayerWindow` | `Panels/LayerWindow.cs` | A native window on the desktop layer, in front, or in the fallback; shared by panels and the search bar |
+| `SearchHost`, `SearchBar` | `Panels/SearchHost.cs`, `Central/SearchBar.xaml(.cs)` | The search bar at the top of the main screen: search across every panel, results while focused |
 | `PanelHost` | `Panels/PanelHost.cs` | The native window of one panel: creation per mode, placement, DPI scaling, move and resize |
 | `PanelView` | `Panels/PanelView.xaml(.cs)` | Panel content: header, tiles, selection, menus, drag and drop, folder watching |
 | `CentralWindow` | `Central/CentralWindow.xaml(.cs)` | The Orla window: welcome and preset choice, panels, appearance, general, about |

@@ -128,26 +128,26 @@ namespace Orla
             await save(canvas, width, height, path);
         }
 
-        // Quick search over the sample panels, with a few letters typed.
+        // The search bar over the wallpaper, with a few letters typed and the matches from the sample panels.
         static async Task search(Controller controller, string path)
         {
-            var hits = new List<SearchWindow.Hit>();
+            var hits = new List<SearchBar.Hit>();
             foreach (Group g in controller.Layout.Groups)
             {
                 var view = new PanelView(controller, g);
                 view.refresh();
                 await Task.Delay(600);
-                hits.AddRange(view.Tiles.Select(t => new SearchWindow.Hit { Tile = t, Group = g, Plain = Organizer.plain(t.Label ?? "") }));
+                hits.AddRange(view.Tiles.Select(t => new SearchBar.Hit { Tile = t, Group = g, Plain = Organizer.plain(t.Label ?? "") }));
             }
-            var window = new SearchWindow(controller, hits, "re") { ShowActivated = false };
-            window.Show();
-            window.Left = -20000;
-            await Task.Delay(300);
-            // The card keeps room around it for its shadow.
-            var content = (FrameworkElement)window.Content;
-            await save(content, content.ActualWidth + content.Margin.Left + content.Margin.Right,
-                       content.ActualHeight + content.Margin.Top + content.Margin.Bottom, path);
-            window.Close();
+            const double width = 720, height = 220;
+            var canvas = new Canvas { Width = width, Height = height, ClipToBounds = true };
+            canvas.Children.Add(wallpaper(Theme.IsDark, 1440, 820));
+            var bar = new SearchBar(controller);
+            bar.preview("re", hits);
+            Canvas.SetLeft(bar, (width - bar.Width) / 2);
+            Canvas.SetTop(bar, 32);
+            canvas.Children.Add(bar);
+            await save(canvas, width, height, path);
         }
 
         // One tour step over a sample panel on the shoreline wallpaper.
