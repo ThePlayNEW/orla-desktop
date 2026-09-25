@@ -471,7 +471,7 @@ namespace Orla
         // The sensors this computer has, updated with each reading. Before the first one, the usual set holds the space.
         void showSensors(Reading r)
         {
-            List<Metric> shown = Metric.All.Where(m => r == null ? m.Key != "battery" : m.Available(r)).ToList();
+            List<Metric> shown = Metric.All.Where(m => r == null ? m.Key != "battery" || Sensors.HasBattery : m.Available(r)).ToList();
             if (!shown.SequenceEqual(sensorTiles.Select(t => t.Metric)))
             {
                 sensorTiles.Clear();

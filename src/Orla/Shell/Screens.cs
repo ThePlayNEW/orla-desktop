@@ -16,7 +16,9 @@ namespace Orla
     // Monitor geometry in physical pixels, and where panels are allowed to sit.
     public static class Screens
     {
-        public const int Margin = 12, Snap = 12, Grid = 8;
+        // Margin: the gap between panels. Edge: the gap between the panels and the edges of the screen, the same
+        // wherever a panel lands, whether arranged, placed, dragged or kept on screen.
+        public const int Margin = 12, Edge = 24, Snap = 12, Grid = 8;
 
         public static List<Screen> all()
         {
@@ -57,9 +59,9 @@ namespace Orla
 
         public static RECT clampTo(RECT r, RECT work)
         {
-            int w = Math.Min(r.Width, work.Width - 2 * Margin), h = Math.Min(r.Height, work.Height - 2 * Margin);
-            int x = Math.Max(work.Left + Margin, Math.Min(r.Left, work.Right - Margin - w));
-            int y = Math.Max(work.Top + Margin, Math.Min(r.Top, work.Bottom - Margin - h));
+            int w = Math.Min(r.Width, work.Width - 2 * Edge), h = Math.Min(r.Height, work.Height - 2 * Edge);
+            int x = Math.Max(work.Left + Edge, Math.Min(r.Left, work.Right - Edge - w));
+            int y = Math.Max(work.Top + Edge, Math.Min(r.Top, work.Bottom - Edge - h));
             return new RECT { Left = x, Top = y, Right = x + w, Bottom = y + h };
         }
 
@@ -84,7 +86,7 @@ namespace Orla
         // chosen edge, then the next column inward, keeping the usual gap. It never covers a panel.
         public static void place(Group g, IList<RECT> taken, Screen s, string iconSize, bool fromLeft)
         {
-            const int edge = Margin * 2;
+            const int edge = Edge;
             RECT work = s.Work;
             RECT size = rectOf(g, iconSize, s.Scale);
             int w = size.Width, h = size.Height;
@@ -149,8 +151,8 @@ namespace Orla
                 foreach (int y in ys)
                     consider(x, y);
             if (best == null)
-                for (int y = work.Top + Margin; y + h <= work.Bottom - Margin; y += 24)
-                    for (int x = work.Left + Margin; x + w <= work.Right - Margin; x += 24)
+                for (int y = work.Top + Edge; y + h <= work.Bottom - Edge; y += 24)
+                    for (int x = work.Left + Edge; x + w <= work.Right - Edge; x += 24)
                         consider(x, y);
             return best ?? r;
         }
@@ -159,8 +161,8 @@ namespace Orla
         // the same gap between panels everywhere. No grid, so the panel still follows the pointer smoothly.
         public static RECT magnet(RECT r, IEnumerable<RECT> others, RECT work)
         {
-            int x = pull(r.Left, r.Width, new[] { work.Left + Margin }, new[] { work.Right - Margin });
-            int y = pull(r.Top, r.Height, new[] { work.Top + Margin }, new[] { work.Bottom - Margin });
+            int x = pull(r.Left, r.Width, new[] { work.Left + Edge }, new[] { work.Right - Edge });
+            int y = pull(r.Top, r.Height, new[] { work.Top + Edge }, new[] { work.Bottom - Edge });
             foreach (RECT o in others)
             {
                 if (r.Top < o.Bottom + Snap && r.Bottom > o.Top - Snap)
@@ -200,7 +202,7 @@ namespace Orla
         {
             left = left.Where(g => g.Visible).ToList();
             right = right.Where(g => g.Visible).ToList();
-            const int edge = Margin * 2;
+            const int edge = Edge;
             RECT work = s.Work;
             int room = work.Height - 2 * edge;
             var leftOptions = Fit.options(left, iconSize, s.Scale, room, keepCollapsed);

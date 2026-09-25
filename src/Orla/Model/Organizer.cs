@@ -282,8 +282,13 @@ namespace Orla
                 {
                     g.Rows++;
                     RECT grown = Screens.rectOf(g, next.IconSize, own.Scale);
+                    if (grown.Bottom + Screens.Edge > own.Work.Bottom)
+                    {
+                        g.Rows--;
+                        break;
+                    }
                     grown.Bottom += Screens.Margin;
-                    if (grown.Bottom > own.Work.Bottom || others.Any(o => Screens.overlaps(grown, o)))
+                    if (others.Any(o => Screens.overlaps(grown, o)))
                     {
                         g.Rows--;
                         break;

@@ -136,7 +136,7 @@ Ready-made panels help you start quickly. They appear in the second step of the 
 | **Work** | Collection | Empty, for you to fill |
 | **Study** | Collection | Empty, for you to fill |
 
-On first run, **Quick access**, **Downloads** and **Apps** come ticked.
+On first run, **Quick access**, **Downloads**, **Apps** and **Performance** come ticked.
 
 The **Games** panel recognizes a shortcut by where it points: Steam links (`steam://`) and Epic links (`com.epicgames.launcher://`), Riot, EA, Ubisoft, Battle.net, GOG and Rockstar links, or the folders where those stores and Xbox install games. If a game is missing, drag its shortcut onto the panel.
 
@@ -176,6 +176,8 @@ In the Orla window, under **Panels**, the **New panel** button opens a list with
 - the [ready-made panels](#ready-made-panels) available on your computer;
 - **New collection**, which asks for a name and creates an empty collection;
 - **Folder panel**, which asks for the folder the panel will show.
+
+A new panel goes into the first free spot along the right edge of the screen, lined up with the others. Every panel keeps the same distance from the edge of the screen, whether Orla placed it or you dragged it there.
 
 In the panel list:
 
@@ -318,7 +320,7 @@ GPU temperature, fan and power come from the display driver. When the driver doe
 
 **Add to desktop**, on the **Performance** page, creates a panel with CPU, GPU, memory, disk and network, each with its value and a chart of the last minute. It is also in **New panel > Performance**. It moves, resizes and hides like any panel. Double-click a sensor to open its details.
 
-The sensors are read only while the page or a performance panel is open, once a second, off Orla's main thread. Reading them costs less than 0.5% of the processor. Nothing leaves your computer.
+The sensors are read only while the page or a performance panel is open, twice a second, off Orla's main thread. Reading them costs less than 0.5% of the processor. Nothing leaves your computer.
 
 ## Clean desktop
 

@@ -2,6 +2,15 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.6.1
+
+- The quick search no longer fails when it loses the focus while already closing; that error showed the "something went wrong" message again and again.
+- The Performance page keeps one width and shows placeholder blocks in the shape of its content until the first readings, so nothing jumps; each metric keeps the tallest height it has had.
+- Sensors read twice a second, with a minute of history; the program list changes once a second.
+- The tour waits until a panel is really on screen and brings the panels in front of any window while it runs.
+- The performance panel is on by default: ticked on the welcome screen, and added once for people updating from an earlier version.
+- One distance from the screen edge everywhere: arranging, placing a new panel, dragging and keeping panels on screen all use 24 px.
+
 ## 1.6
 
 - Sensors checked against Task Manager on a desktop with an 8-core Intel processor, an NVIDIA card, two disks (NVMe and SATA SSD) and 64 GB of DDR4. CPU, per-thread use, speed, memory, disk activity and rates, network rates, GPU use, dedicated and shared memory match within a reading. GPU temperature, fan, power and memory clock come from the driver through `D3DKMT_ADAPTER_PERFDATA`.

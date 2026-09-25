@@ -98,7 +98,17 @@ namespace Orla
             }
             // Someone already using Orla who starts a new version sees what is new, once; a fresh install does not.
             bool updated = interactive && Layout.Welcomed && Layout.SeenVersion != Report.Version;
+            // The performance panel comes on by default since 1.6.1: once for people updating from before, and never
+            // again, so removing it sticks.
+            bool addPerformance = updated && (!Version.TryParse(Layout.SeenVersion ?? "", out Version seen) || seen < new Version(1, 6, 1)) &&
+                                  !Layout.Groups.Any(g => g.IsSensors) && Layout.Groups.Count < Store.MaxGroups;
             Layout.SeenVersion = Report.Version;
+            if (addPerformance)
+            {
+                Group g = Presets.performance();
+                place(g);
+                Layout.Groups.Add(g);
+            }
             if (!Layout.Welcomed)
             {
                 showCentral("welcome");
@@ -251,7 +261,7 @@ namespace Orla
             Overlay = on;
             // The search opened with the panels leaves with them.
             if (!on)
-                search?.Close();
+                search?.close();
             showHosts();
             if (on)
                 hosts.FirstOrDefault()?.focus();
@@ -511,6 +521,16 @@ namespace Orla
                                         Tint = Tints.All[Layout.Groups.Count % Tints.All.Length] });
         }
 
+        // Shows the performance panel, adding it when there is none.
+        public void showPerformancePanel()
+        {
+            Group g = Layout.Groups.FirstOrDefault(x => x.IsSensors);
+            if (g != null)
+                setVisible(g, true);
+            else
+                addPanel(Presets.performance());
+        }
+
         // Presets that scan shortcuts do their reading off the UI thread.
         public void createFromPreset(Preset preset)
         {
@@ -520,7 +540,8 @@ namespace Orla
             })));
         }
 
-        // A new panel appears in the middle of the main screen, or at the nearest free spot.
+        // A new panel lands on the same lines as the others: the first free spot down the right edge of the main
+        // screen, the side the work goes on; a performance panel goes with the tools on the left when the desktop is clean.
         Group addPanel(Group g)
         {
             if (Layout.Groups.Count >= Store.MaxGroups)
@@ -528,18 +549,17 @@ namespace Orla
                 Dialog.alert(Text.get("error.title"), Text.format("error.tooManyPanels", Store.MaxGroups));
                 return null;
             }
-            Screen s = Screens.primary();
-            int w = (int)(PanelMetrics.width(g.Columns, Layout.IconSize) * s.Scale);
-            int h = (int)(PanelMetrics.height(Math.Min(g.Rows, 2), Layout.IconSize) * s.Scale);
-            var spot = new RECT { Left = s.Work.Left + (s.Work.Width - w) / 2, Top = s.Work.Top + (s.Work.Height - h) / 3 };
-            spot.Right = spot.Left + w;
-            spot.Bottom = spot.Top + h;
-            spot = Screens.free(spot, hosts.Select(x => x.Rect).ToList());
-            g.X = spot.Left;
-            g.Y = spot.Top;
+            place(g);
             Layout.Groups.Add(g);
             changed(g);
             return g;
+        }
+
+        void place(Group g)
+        {
+            Screen s = Screens.primary();
+            var taken = Layout.Groups.Where(x => x.Visible).Select(x => Screens.rectOf(x, Layout.IconSize, s.Scale)).ToList();
+            Screens.place(g, taken, s, Layout.IconSize, g.IsSensors && Layout.CleanDesktop);
         }
 
         public void renamePanel(Group g, string name)
@@ -812,44 +832,70 @@ namespace Orla
                 tour.Activate();
                 return;
             }
-            var wait = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(900) };
+            // The tips point at a real panel, so the tour waits until one is on screen with its content: the welcome
+            // screen's panels are still being built when it asks. Without one after a few seconds, only the tips that
+            // need no panel remain.
+            int tries = 0;
+            var wait = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
             wait.Tick += delegate {
-                wait.Stop();
                 if (tour != null)
+                {
+                    wait.Stop();
                     return;
-                // The Orla window steps aside so the panels show, and comes back as it was afterwards.
-                CentralWindow window = central;
-                WindowState before = window?.WindowState ?? WindowState.Normal;
-                if (window != null)
-                    window.WindowState = WindowState.Minimized;
-                Screen main = Screens.primary();
-                double s = main.Scale;
-                // The first panel fully on the main screen that shows its content: the tips point at its parts.
-                PanelHost host = hosts.FirstOrDefault(h => h.Group.Visible && !h.Group.Collapsed &&
-                                                           h.Rect.Left >= main.Work.Left && h.Rect.Right <= main.Work.Right &&
-                                                           h.Rect.Top >= main.Work.Top && h.Rect.Bottom <= main.Work.Bottom);
-                Rect? panel = host == null ? (Rect?)null : new Rect(host.Rect.Left / s, host.Rect.Top / s, host.Rect.Width / s, host.Rect.Height / s);
-                var bounds = new Rect(main.Work.Left / s, main.Work.Top / s, main.Work.Width / s, main.Work.Height / s);
-                var steps = new List<TourWindow.Step> {
-                    new TourWindow.Step { Key = "move", Target = panel.HasValue ? new Rect(panel.Value.Left, panel.Value.Top, panel.Value.Width, 44) : (Rect?)null,
-                                         Around = panel },
-                    new TourWindow.Step { Key = "resize", Target = panel.HasValue ? new Rect(panel.Value.Right - 44, panel.Value.Bottom - 44, 44, 44) : (Rect?)null,
-                                         Around = panel },
-                    new TourWindow.Step { Key = "menu", Target = panel.HasValue ? new Rect(panel.Value.Right - 76, panel.Value.Top + 4, 68, 36) : (Rect?)null,
-                                         Around = panel },
-                    new TourWindow.Step { Key = "search", Argument = Shortcut.display() },
-                    // The taskbar can be on any edge, so this tip needs no ring.
-                    new TourWindow.Step { Key = "tray" },
-                };
-                tour = new TourWindow(steps, bounds);
-                tour.Closed += delegate {
-                    tour = null;
-                    if (window != null && window.IsLoaded && window.WindowState == WindowState.Minimized)
-                        window.WindowState = before;
-                };
-                tour.Show();
+                }
+                PanelHost host = tourPanel();
+                if (host == null && ++tries < 20)
+                    return;
+                wait.Stop();
+                showTour(host);
             };
             wait.Start();
+        }
+
+        // The first panel fully on the main screen that shows its content.
+        PanelHost tourPanel()
+        {
+            RECT work = Screens.primary().Work;
+            return hosts.FirstOrDefault(h => h.Group.Visible && !h.Group.Collapsed && h.Handle != IntPtr.Zero && h.View.IsLoaded &&
+                                             h.View.ActualHeight > 0 && h.Rect.Left >= work.Left && h.Rect.Right <= work.Right &&
+                                             h.Rect.Top >= work.Top && h.Rect.Bottom <= work.Bottom);
+        }
+
+        void showTour(PanelHost host)
+        {
+            // The Orla window steps aside and the panels come in front of any window, so what the tips talk about is
+            // really in view; both go back as they were afterwards.
+            CentralWindow window = central;
+            WindowState before = window?.WindowState ?? WindowState.Normal;
+            if (window != null)
+                window.WindowState = WindowState.Minimized;
+            bool front = !Overlay && host != null;
+            if (front)
+                setOverlay(true);
+            Screen main = Screens.primary();
+            double s = main.Scale;
+            var bounds = new Rect(main.Work.Left / s, main.Work.Top / s, main.Work.Width / s, main.Work.Height / s);
+            var steps = new List<TourWindow.Step>();
+            if (host != null)
+            {
+                var panel = new Rect(host.Rect.Left / s, host.Rect.Top / s, host.Rect.Width / s, host.Rect.Height / s);
+                steps.Add(new TourWindow.Step { Key = "move", Target = new Rect(panel.Left, panel.Top, panel.Width, 44), Around = panel });
+                steps.Add(new TourWindow.Step { Key = "resize", Target = new Rect(panel.Right - 44, panel.Bottom - 44, 44, 44), Around = panel });
+                steps.Add(new TourWindow.Step { Key = "menu", Target = new Rect(panel.Right - 76, panel.Top + 4, 68, 36), Around = panel });
+            }
+            steps.Add(new TourWindow.Step { Key = "search", Argument = Shortcut.display() });
+            // The taskbar can be on any edge, so this tip needs no ring.
+            steps.Add(new TourWindow.Step { Key = "tray" });
+            tour = new TourWindow(steps, bounds);
+            tour.Closed += delegate {
+                tour = null;
+                if (front)
+                    setOverlay(false);
+                if (window != null && window.IsLoaded && window.WindowState == WindowState.Minimized)
+                    window.WindowState = before;
+            };
+            // After the panels have come in front, so the tour sits above them.
+            dispatcher.BeginInvoke(new Action(() => tour?.Show()), DispatcherPriority.Background);
         }
 
         // Straight to the organizer's preview, from the notification area.
@@ -968,8 +1014,10 @@ namespace Orla
                 return false;
             RECT r = host.Rect;
             Screen screen = Screens.forRect(r);
-            r.Bottom += (int)Math.Round(rows * PanelMetrics.tile(Layout.IconSize) * screen.Scale) + Screens.Margin;
-            return r.Bottom <= screen.Work.Bottom && !hosts.Any(o => o != host && Screens.overlaps(r, o.Rect));
+            r.Bottom += (int)Math.Round(rows * PanelMetrics.tile(Layout.IconSize) * screen.Scale);
+            RECT gap = r;
+            gap.Bottom += Screens.Margin;
+            return r.Bottom + Screens.Edge <= screen.Work.Bottom && !hosts.Any(o => o != host && Screens.overlaps(gap, o.Rect));
         }
 
         // The copy's path, or null when there was nothing to copy or the copy failed.

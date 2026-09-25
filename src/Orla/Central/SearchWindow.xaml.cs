@@ -38,6 +38,9 @@ namespace Orla
             Top = work.Top + work.Height * 0.12;
             Query.TextChanged += delegate { filter(); };
             PreviewKeyDown += key;
+            // Closing loses the focus, which fires Deactivated in the middle of closing; whatever started the close,
+            // the window knows it is going and does not close twice.
+            Closing += delegate { closing = true; };
             Deactivated += delegate { close(); };
             Loaded += delegate {
                 Query.Focus();
@@ -58,7 +61,7 @@ namespace Orla
 
         bool closing;
 
-        void close()
+        public void close()
         {
             if (closing)
                 return;

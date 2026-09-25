@@ -112,7 +112,7 @@ On first run, and later from **New panel**, Orla offers ready-made panels. Only 
 | **New on desktop** | What is on the desktop and not in any panel yet. Pairs well with hidden Windows icons |
 | **Work**, **Study** | Empty collections for you to fill |
 
-**Quick access**, **Downloads** and **Apps** come ticked. Building a ready-made panel never moves or copies a file.
+**Quick access**, **Downloads**, **Apps** and **Performance** come ticked. Building a ready-made panel never moves or copies a file.
 
 ## Shortcuts and gestures
 

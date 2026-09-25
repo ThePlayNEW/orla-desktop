@@ -112,7 +112,7 @@ Na primeira vez, e depois em **Novo painel**, o Orla oferece painéis prontos. S
 | **Novos no desktop** | O que está no desktop e ainda não foi para nenhum painel. Combina com os ícones do Windows ocultos |
 | **Trabalho**, **Estudos** | Coleções vazias para você preencher |
 
-**Acesso rápido**, **Downloads** e **Aplicativos** já vêm marcados. Montar um painel pronto nunca move nem copia arquivos.
+**Acesso rápido**, **Downloads**, **Aplicativos** e **Desempenho** já vêm marcados. Montar um painel pronto nunca move nem copia arquivos.
 
 ## Atalhos e gestos
 

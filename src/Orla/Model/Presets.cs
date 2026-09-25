@@ -41,7 +41,7 @@ namespace Orla
             new Preset { Key = "recent", Glyph = "Glyph.ItemFile", Tint = Tints.Sky,
                          Create = () => folder("recent", Shell.RecentFolder, Tints.Sky), Available = () => Directory.Exists(Shell.RecentFolder) },
             new Preset { Key = "desktop", Glyph = "Glyph.Desktop", Tint = Tints.SeaGlass, Create = inbox },
-            new Preset { Key = "performance", Glyph = "Glyph.Pulse", Tint = Tints.Sky, Create = performance },
+            new Preset { Key = "performance", Glyph = "Glyph.Pulse", Tint = Tints.Sky, Recommended = true, Create = performance },
             new Preset { Key = "work", Glyph = "Glyph.PanelCollection", Tint = Tints.SeaGlass,
                          Create = () => new Group { Tint = Tints.SeaGlass, Rows = 2 }.titled("preset.work") },
             new Preset { Key = "study", Glyph = "Glyph.PanelCollection", Tint = Tints.Moss,

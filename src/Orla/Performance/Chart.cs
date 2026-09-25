@@ -135,7 +135,7 @@ namespace Orla
             if (TryFindResource("Brush.TextSecondary") is Brush guide)
                 dc.DrawLine(new Pen(guide, 1) { DashStyle = DashStyles.Dot }, new Point(Math.Round(p.X) + 0.5, 0), new Point(Math.Round(p.X) + 0.5, ActualHeight));
             dc.DrawEllipse(tint, new Pen(surface, 2), p, 4.5, 4.5);
-            string when = hover == 0 ? Text.get("perf.now") : Text.format("perf.secondsAgo", hover);
+            string when = hover == 0 ? Text.get("perf.now") : Text.format("perf.secondsAgo", (hover * Sensors.Interval / 1000.0).ToString("0.#"));
             var text = new FormattedText(Format(values[i]) + "   " + when, CultureInfo.CurrentCulture, FlowDirection,
                                          new Typeface((FontFamily)FindResource("Font.Text"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal),
                                          12, TryFindResource("Brush.Text") as Brush ?? Brushes.Black, VisualTreeHelper.GetDpi(this).PixelsPerDip);

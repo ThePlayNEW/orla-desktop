@@ -201,7 +201,7 @@
   "perf.gpu": "GPU",
   "perf.inUse": "En uso",
   "perf.lastMinute": "Últimos 60 segundos",
-  "perf.lead": "Cómo está tu equipo ahora mismo, actualizado cada segundo.",
+  "perf.lead": "Cómo está tu equipo ahora mismo, actualizado dos veces por segundo.",
   "perf.max": "Máx.",
   "perf.memory": "Memoria",
   "perf.memoryClock": "Reloj de memoria",
