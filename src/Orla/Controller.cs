@@ -240,6 +240,8 @@ namespace Orla
                 var host = new PanelHost(this, g);
                 hosts.Add(host);
                 host.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
+                // A new panel that found no free spot of its own moves beside the others instead of covering one.
+                host.settle();
             }
         }
 
@@ -259,6 +261,8 @@ namespace Orla
                 applyCleanDesktop();
             }
             Overlay = on;
+            if (on)
+                overlayEntries++;
             // The search opened with the panels leaves with them.
             if (!on)
                 search?.close();
@@ -269,6 +273,8 @@ namespace Orla
         }
 
         SearchWindow search;
+        // How many times the panels came in front, so the tour can tell whether the overlay it left is still its own.
+        int overlayEntries;
 
         // Quick search over everything the panels show right now, including folder panels.
         public void showSearch(string first = "")
@@ -872,6 +878,7 @@ namespace Orla
             bool front = !Overlay && host != null;
             if (front)
                 setOverlay(true);
+            int entry = overlayEntries;
             Screen main = Screens.primary();
             double s = main.Scale;
             var bounds = new Rect(main.Work.Left / s, main.Work.Top / s, main.Work.Width / s, main.Work.Height / s);
@@ -889,7 +896,8 @@ namespace Orla
             tour = new TourWindow(steps, bounds);
             tour.Closed += delegate {
                 tour = null;
-                if (front)
+                // Only the overlay the tour opened; one the person brought back with the shortcut stays.
+                if (front && Overlay && overlayEntries == entry)
                     setOverlay(false);
                 if (window != null && window.IsLoaded && window.WindowState == WindowState.Minimized)
                     window.WindowState = before;

@@ -365,10 +365,14 @@ namespace Orla
         // A slow breathing, the sign of something loading; still when animations are off.
         T pulse<T>(T e) where T : UIElement
         {
-            if (controller.Layout.Animations)
-                e.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0.4, TimeSpan.FromMilliseconds(800)) {
+            if (controller.Layout.Animations && e is FrameworkElement f)
+            {
+                f.BeginAnimation(OpacityProperty, new DoubleAnimation(1, 0.4, TimeSpan.FromMilliseconds(800)) {
                     AutoReverse = true, RepeatBehavior = RepeatBehavior.Forever, EasingFunction = new SineEase()
                 });
+                // Stops with the placeholder, so nothing keeps redrawing once the readings are in.
+                f.Unloaded += delegate { f.BeginAnimation(OpacityProperty, null); };
+            }
             return e;
         }
 
