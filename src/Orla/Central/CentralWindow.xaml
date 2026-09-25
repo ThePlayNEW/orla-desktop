@@ -7,6 +7,12 @@
         FontFamily="{StaticResource Font.Text}" FontSize="{StaticResource Type.Body}"
         Foreground="{DynamicResource Brush.Text}" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
 
+    <!-- Orla draws its own title bar; Windows keeps the shadow, resizing and snapping. -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32" ResizeBorderThickness="6" GlassFrameThickness="0,0,0,1" CornerRadius="0"
+                      UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
     <Window.Resources>
         <!-- Navigation entry with the Windows 11 selection pill. -->
         <Style x:Key="Orla.Nav" TargetType="RadioButton">
@@ -53,6 +59,14 @@
             <Setter Property="Margin" Value="0,0,0,4" />
         </Style>
 
+        <!-- Groups cards on a long page, like the section names in Windows Settings. -->
+        <Style x:Key="Orla.SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="2,20,0,8" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+        </Style>
+
         <Style x:Key="Orla.CardTitle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
@@ -85,13 +99,12 @@
             <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Margin" Value="0,0,8,8" />
-            <Setter Property="Width" Value="210" />
             <Setter Property="FocusVisualStyle" Value="{StaticResource Orla.FocusVisual}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <Border x:Name="Card" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Line}"
-                                BorderThickness="1" CornerRadius="10" Padding="14,12" MinHeight="96">
+                                BorderThickness="1" CornerRadius="8" Padding="14,12" MinHeight="96">
                             <Grid>
                                 <Border x:Name="Tick" Width="18" Height="18" CornerRadius="5" BorderThickness="1.5"
                                         BorderBrush="{DynamicResource Brush.TextSecondary}" HorizontalAlignment="Right" VerticalAlignment="Top">
@@ -130,7 +143,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border x:Name="Card" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Line}"
-                                BorderThickness="1" CornerRadius="10" Padding="20,18">
+                                BorderThickness="1" CornerRadius="8" Padding="20,18">
                             <ContentPresenter />
                         </Border>
                         <ControlTemplate.Triggers>
@@ -147,7 +160,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid Background="{DynamicResource Brush.Window}">
+    <Grid x:Name="Root" Background="{DynamicResource Brush.Window}">
         <!-- Main layout -->
         <Grid x:Name="Main">
             <Grid.ColumnDefinitions>
@@ -155,15 +168,10 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <DockPanel Margin="16,20,12,16">
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,0,0,28">
-                    <Image Source="{StaticResource Brand.Mark}" Width="30" Height="30" />
-                    <Path Data="{StaticResource Brand.Word}" Fill="{DynamicResource Brush.Text}" Stretch="Uniform" Height="17"
-                          Margin="12,3,0,0" VerticalAlignment="Center" />
-                </StackPanel>
+            <DockPanel Margin="16,48,12,16">
 
                 <StackPanel DockPanel.Dock="Bottom">
-                    <Button x:Name="FrontButton" Style="{StaticResource Orla.Button}" HorizontalAlignment="Stretch"
+                    <Button x:Name="FrontButton" Style="{StaticResource Orla.Button}" HorizontalAlignment="Left"
                             HorizontalContentAlignment="Left" Padding="12,9">
                         <StackPanel Orientation="Horizontal">
                             <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Overlay}" Margin="0,0,10,0" />
@@ -193,9 +201,10 @@
                 </StackPanel>
             </DockPanel>
 
-            <Border Grid.Column="1" Background="{DynamicResource Brush.Surface}" Opacity="0.35" CornerRadius="8,0,0,0" />
-            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False">
-                <Grid Margin="36,28,40,32" MaxWidth="760" HorizontalAlignment="Left">
+            <Border Grid.Column="1" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Line}"
+                    BorderThickness="1,1,0,0" CornerRadius="8,0,0,0" Margin="0,32,0,0" />
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Margin="0,33,0,0">
+                <Grid Margin="36,24,40,32" MaxWidth="760" HorizontalAlignment="Left">
 
                     <!-- Panels -->
                     <StackPanel x:Name="PagePanels">
@@ -223,7 +232,7 @@
                                             VerticalAlignment="Center" Margin="24,0,0,0" Content="{l:T organize.open}" />
                                     <Image Source="{StaticResource Brand.Mark}" Width="36" Height="36" VerticalAlignment="Top" Margin="0,0,14,0" />
                                     <StackPanel>
-                                        <TextBlock Style="{StaticResource Orla.CardTitle}" FontSize="15" FontWeight="SemiBold"
+                                        <TextBlock Style="{StaticResource Orla.CardTitle}" FontSize="{StaticResource Type.Subtitle}" FontWeight="SemiBold"
                                                    Text="{l:T organize.cardTitle}" />
                                         <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T organize.cardHint}" />
                                     </StackPanel>
@@ -241,13 +250,26 @@
                             </StackPanel>
                         </Border>
                         <StackPanel x:Name="PanelList" />
-                        <TextBlock x:Name="PanelsEmpty" Text="{l:T central.panelsEmpty}" Visibility="Collapsed" Margin="0,12,0,0"
-                                   Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" />
+                        <StackPanel x:Name="PanelsEmpty" Visibility="Collapsed" Margin="0,28,0,8" HorizontalAlignment="Center" MaxWidth="440">
+                            <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.PanelCollection}" Width="32" Height="32"
+                                  Stretch="Uniform" HorizontalAlignment="Center" />
+                            <TextBlock Text="{l:T central.panelsEmpty}" Margin="0,12,0,16" TextAlignment="Center" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource Brush.TextSecondary}" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button x:Name="EmptyCollection" Style="{StaticResource Orla.Button.Accent}" Content="{l:T central.newCollection}"
+                                        Margin="0,0,8,0" />
+                                <Button x:Name="EmptyFolder" Style="{StaticResource Orla.Button}" Content="{l:T central.newFolderPanel}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <DockPanel Margin="0,12,0,0">
+                            <Button x:Name="ArrangeButton" HorizontalAlignment="Left" Style="{StaticResource Orla.Button.Quiet}" VerticalAlignment="Top"
+                                    Content="{l:T general.arrange}" ToolTip="{l:T general.arrangeHint}" Margin="-14,0,0,0" />
+                        </DockPanel>
                         <Border Style="{StaticResource Orla.Card}" Margin="0,20,0,0" Background="Transparent">
                             <DockPanel>
                                 <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Info}" Margin="0,0,12,0"
                                       VerticalAlignment="Top" />
-                                <TextBlock x:Name="PanelsTip" TextWrapping="Wrap" FontSize="13"
+                                <TextBlock x:Name="PanelsTip" TextWrapping="Wrap" FontSize="{StaticResource Type.Caption}"
                                            Foreground="{DynamicResource Brush.TextSecondary}" />
                             </DockPanel>
                         </Border>
@@ -256,7 +278,7 @@
                     <!-- Appearance -->
                     <StackPanel x:Name="PageAppearance" Visibility="Collapsed">
                         <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T central.navAppearance}" />
-                        <Border x:Name="PreviewStage" Margin="0,20,0,4" CornerRadius="10" Height="220" ClipToBounds="True"
+                        <Border x:Name="PreviewStage" Margin="0,20,0,4" CornerRadius="8" Height="220" ClipToBounds="True"
                                 Background="{StaticResource Orla.Shore}">
                             <Grid x:Name="PreviewHost" Margin="28,22" HorizontalAlignment="Left" VerticalAlignment="Top" />
                         </Border>
@@ -316,57 +338,13 @@
 
                     <!-- General -->
                     <StackPanel x:Name="PageGeneral" Visibility="Collapsed">
-                        <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T central.navGeneral}" Margin="0,0,0,20" />
+                        <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T central.navGeneral}" Margin="0,0,0,4" />
+                        <TextBlock Style="{StaticResource Orla.SectionHeader}" Text="{l:T general.sectionStart}" />
                         <Border Style="{StaticResource Orla.Card}">
                             <CheckBox x:Name="StartupSwitch" Style="{StaticResource Orla.Switch}">
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.startup}" />
                                     <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.startupHint}" />
-                                </StackPanel>
-                            </CheckBox>
-                        </Border>
-                        <Border Style="{StaticResource Orla.Card}">
-                            <CheckBox x:Name="UpdateSwitch" Style="{StaticResource Orla.Switch}">
-                                <StackPanel>
-                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.updates}" />
-                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.updatesHint}" />
-                                </StackPanel>
-                            </CheckBox>
-                        </Border>
-                        <Border Style="{StaticResource Orla.Card}">
-                            <CheckBox x:Name="CleanSwitch" Style="{StaticResource Orla.Switch}">
-                                <StackPanel>
-                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.clean}" />
-                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.cleanHint}" />
-                                </StackPanel>
-                            </CheckBox>
-                        </Border>
-                        <Border Style="{StaticResource Orla.Card}">
-                            <CheckBox x:Name="HotkeySwitch" Style="{StaticResource Orla.Switch}">
-                                <StackPanel>
-                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.hotkey}" />
-                                    <TextBlock x:Name="HotkeyHint" Style="{StaticResource Orla.CardHint}" />
-                                </StackPanel>
-                            </CheckBox>
-                        </Border>
-                        <Border Style="{StaticResource Orla.Card}">
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0,0,0">
-                                    <Button x:Name="ShortcutReset" Style="{StaticResource Orla.Button.Quiet}" Content="{l:T general.shortcutReset}"
-                                            Margin="0,0,8,0" />
-                                    <Button x:Name="ShortcutButton" Style="{StaticResource Orla.Button}" MinWidth="170" />
-                                </StackPanel>
-                                <StackPanel>
-                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.shortcut}" />
-                                    <TextBlock x:Name="ShortcutHint" Style="{StaticResource Orla.CardHint}" Text="{l:T general.shortcutHint}" />
-                                </StackPanel>
-                            </DockPanel>
-                        </Border>
-                        <Border Style="{StaticResource Orla.Card}">
-                            <CheckBox x:Name="LockSwitch" Style="{StaticResource Orla.Switch}">
-                                <StackPanel>
-                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.lock}" />
-                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.lockHint}" />
                                 </StackPanel>
                             </CheckBox>
                         </Border>
@@ -386,16 +364,46 @@
                                 </StackPanel>
                             </DockPanel>
                         </Border>
-                        <Border Style="{StaticResource Orla.Card}" Margin="0,0,0,4">
-                            <DockPanel>
-                                <Button x:Name="ArrangeButton" DockPanel.Dock="Right" Margin="24,0,0,0" Style="{StaticResource Orla.Button}" VerticalAlignment="Center"
-                                        Content="{l:T general.arrangeAction}" />
+                        <TextBlock Style="{StaticResource Orla.SectionHeader}" Text="{l:T general.sectionDesktop}" />
+                        <Border Style="{StaticResource Orla.Card}">
+                            <CheckBox x:Name="CleanSwitch" Style="{StaticResource Orla.Switch}">
                                 <StackPanel>
-                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.arrange}" />
-                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.arrangeHint}" />
+                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.clean}" />
+                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.cleanHint}" />
                                 </StackPanel>
-                            </DockPanel>
+                            </CheckBox>
                         </Border>
+                        <Border Style="{StaticResource Orla.Card}">
+                            <CheckBox x:Name="LockSwitch" Style="{StaticResource Orla.Switch}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.lock}" />
+                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.lockHint}" />
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+                        <!-- The shortcut: on or off, and its keys right below when it is on. -->
+                        <Border Style="{StaticResource Orla.Card}">
+                            <StackPanel>
+                                <CheckBox x:Name="HotkeySwitch" Style="{StaticResource Orla.Switch}">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.hotkey}" />
+                                        <TextBlock x:Name="HotkeyHint" Style="{StaticResource Orla.CardHint}" />
+                                    </StackPanel>
+                                </CheckBox>
+                                <DockPanel x:Name="ShortcutRow" Margin="0,14,0,0">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0,0,0">
+                                        <Button x:Name="ShortcutReset" Style="{StaticResource Orla.Button.Quiet}" Content="{l:T general.shortcutReset}"
+                                                Margin="0,0,8,0" />
+                                        <Button x:Name="ShortcutButton" Style="{StaticResource Orla.Button}" MinWidth="170" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.shortcut}" />
+                                        <TextBlock x:Name="ShortcutHint" Style="{StaticResource Orla.CardHint}" Text="{l:T general.shortcutHint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Style="{StaticResource Orla.SectionHeader}" Text="{l:T general.sectionAdvanced}" />
                         <Border Style="{StaticResource Orla.Card}">
                             <DockPanel>
                                 <Button x:Name="ResetButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button}" VerticalAlignment="Center"
@@ -424,6 +432,24 @@
                         </StackPanel>
                         <TextBlock Text="{l:T about.lead}" Margin="0,22,0,20" FontSize="15" TextWrapping="Wrap" MaxWidth="560"
                                    HorizontalAlignment="Left" />
+                        <Border Style="{StaticResource Orla.Card}">
+                            <DockPanel>
+                                <Button x:Name="TourButton" DockPanel.Dock="Right" Margin="24,0,0,0" Style="{StaticResource Orla.Button}"
+                                        VerticalAlignment="Center" Content="{l:T about.tourAction}" />
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T about.tour}" />
+                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T about.tourHint}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <Border Style="{StaticResource Orla.Card}">
+                            <CheckBox x:Name="UpdateSwitch" Style="{StaticResource Orla.Switch}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Orla.CardTitle}" Text="{l:T general.updates}" />
+                                    <TextBlock Style="{StaticResource Orla.CardHint}" Text="{l:T general.updatesHint}" />
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
                         <!-- Updates: where they stand, and a way to look now or install what is ready. -->
                         <Border x:Name="UpdateCard" Style="{StaticResource Orla.Card}">
                             <DockPanel>
@@ -474,20 +500,30 @@
 
         <!-- Welcome, second step: first panels -->
         <Grid x:Name="WelcomePresets" Visibility="Collapsed" Background="{DynamicResource Brush.Window}">
-            <StackPanel MaxWidth="720" VerticalAlignment="Center" Margin="40">
-                <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T welcome.presetsTitle}" Margin="0,0,0,6" />
-                <TextBlock Text="{l:T welcome.presetsLead}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="15" TextWrapping="Wrap" />
-                <WrapPanel x:Name="PresetChoices" Margin="0,24,0,0" />
-                <TextBlock x:Name="PresetsLoading" Text="{l:T welcome.presetsLoading}" Margin="0,24,0,0"
-                           Foreground="{DynamicResource Brush.TextSecondary}" />
-                <DockPanel Margin="0,20,0,0">
-                    <Button x:Name="FinishButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button.Accent}" Content="{l:T welcome.start}"
-                            Padding="22,9" />
+            <!-- Cards scroll; the buttons stay in view. -->
+            <Grid MaxWidth="760" Margin="40,48,40,24">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+                    <StackPanel VerticalAlignment="Top" Margin="0,0,8,0">
+                        <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T welcome.presetsTitle}" Margin="0,0,0,6" />
+                        <TextBlock Text="{l:T welcome.presetsLead}" Foreground="{DynamicResource Brush.TextSecondary}"
+                                   FontSize="{StaticResource Type.Lead}" TextWrapping="Wrap" />
+                        <UniformGrid x:Name="PresetChoices" Columns="3" Margin="0,24,-8,0" />
+                        <TextBlock x:Name="PresetsLoading" Text="{l:T welcome.presetsLoading}" Margin="0,24,0,0"
+                                   Foreground="{DynamicResource Brush.TextSecondary}" />
+                    </StackPanel>
+                </ScrollViewer>
+                <DockPanel Grid.Row="1" Margin="0,16,0,0">
+                    <Button x:Name="FinishButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button.Accent}"
+                            Content="{l:T welcome.createPanels}" Padding="22,9" />
                     <Button x:Name="BackButton" DockPanel.Dock="Right" Style="{StaticResource Orla.Button.Quiet}" Content="{l:T welcome.back}"
                             Margin="0,0,8,0" />
                     <TextBlock />
                 </DockPanel>
-            </StackPanel>
+            </Grid>
         </Grid>
 
         <!-- Welcome -->
@@ -495,7 +531,7 @@
             <StackPanel MaxWidth="720" VerticalAlignment="Center" Margin="40">
                 <Image Source="{StaticResource Brand.Mark}" Width="56" Height="56" HorizontalAlignment="Left" />
                 <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T welcome.title}" Margin="0,22,0,6" />
-                <TextBlock Text="{l:T welcome.lead}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="15" TextWrapping="Wrap" />
+                <TextBlock Text="{l:T welcome.lead}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{StaticResource Type.Lead}" TextWrapping="Wrap" />
                 <UniformGrid Columns="2" Margin="0,28,0,0">
                     <RadioButton x:Name="ChoiceOrganize" Style="{StaticResource Orla.Choice}" GroupName="start" Margin="0,0,8,0" IsChecked="True">
                         <StackPanel>
@@ -508,7 +544,7 @@
                                 <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.PanelCollection}" HorizontalAlignment="Left"
                                       Stroke="{DynamicResource Brush.Accent}" />
                             </DockPanel>
-                            <TextBlock Text="{l:T welcome.organize}" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,6" />
+                            <TextBlock Text="{l:T welcome.organize}" FontSize="{StaticResource Type.Subtitle}" FontWeight="SemiBold" Margin="0,14,0,6" />
                             <TextBlock Text="{l:T welcome.organizeHint}" TextWrapping="Wrap" FontSize="13"
                                        Foreground="{DynamicResource Brush.TextSecondary}" />
                         </StackPanel>
@@ -517,7 +553,7 @@
                         <StackPanel>
                             <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Desktop}" HorizontalAlignment="Left"
                                   Stroke="{DynamicResource Brush.Accent}" />
-                            <TextBlock Text="{l:T welcome.alongside}" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,6" />
+                            <TextBlock Text="{l:T welcome.alongside}" FontSize="{StaticResource Type.Subtitle}" FontWeight="SemiBold" Margin="0,14,0,6" />
                             <TextBlock Text="{l:T welcome.alongsideHint}" TextWrapping="Wrap" FontSize="13"
                                        Foreground="{DynamicResource Brush.TextSecondary}" />
                         </StackPanel>
@@ -548,7 +584,7 @@
                     </Border>
                     <StackPanel>
                         <TextBlock Style="{StaticResource Orla.PageTitle}" Text="{l:T organize.title}" Margin="0,0,0,6" />
-                        <TextBlock x:Name="OrganizeLead" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="15" TextWrapping="Wrap" />
+                        <TextBlock x:Name="OrganizeLead" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{StaticResource Type.Lead}" TextWrapping="Wrap" />
                     </StackPanel>
                 </DockPanel>
                 <DockPanel DockPanel.Dock="Bottom" Margin="0,18,0,0">
@@ -593,5 +629,23 @@
                 </Border>
             </DockPanel>
         </Grid>
+
+        <!-- The title strip: Orla's mark and name, like Windows 11 apps. -->
+        <StackPanel x:Name="CaptionTitle" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16,8,0,0"
+                    IsHitTestVisible="False">
+            <Image Source="{StaticResource Brand.Mark}" Width="16" Height="16" />
+            <TextBlock Text="Orla Desktop" FontSize="{StaticResource Type.Caption}" Margin="10,0,0,0" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextSecondary}" />
+        </StackPanel>
+
+        <!-- Caption buttons, above every page and overlay. -->
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Orientation="Horizontal" Panel.ZIndex="100">
+            <Button x:Name="MinimizeButton" Style="{StaticResource Orla.Caption}" Content="{StaticResource Caption.Minimize}"
+                    ToolTip="{l:T window.minimize}" AutomationProperties.Name="{l:T window.minimize}" />
+            <Button x:Name="MaximizeButton" Style="{StaticResource Orla.Caption}" Content="{StaticResource Caption.Maximize}"
+                    ToolTip="{l:T window.maximize}" AutomationProperties.Name="{l:T window.maximize}" />
+            <Button x:Name="CloseButton" Style="{StaticResource Orla.Caption.Close}" Content="{StaticResource Caption.Close}"
+                    ToolTip="{l:T window.close}" AutomationProperties.Name="{l:T window.close}" />
+        </StackPanel>
     </Grid>
 </Window>

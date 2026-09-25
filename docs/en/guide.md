@@ -51,6 +51,8 @@ The first time Orla opens, the **Welcome to Orla Desktop** screen offers two way
 
 Neither option moves, renames or deletes a file. You can change everything later.
 
+As soon as the panels appear, a five-tip tour goes over them on the desktop itself: moving by the title, resizing from the edges, the **···** menu, the shortcut with search, and the notification area icon. **Next** (or Enter) moves on, **Skip** (or Esc) closes it. To see it again, use **About > Orla tour**.
+
 ## Let Orla organize
 
 <picture>
@@ -198,7 +200,7 @@ Removing a panel never deletes files. For a collection, only the shortcuts go aw
 - **Rename:** double-click the title, type the new name and press Enter. Esc cancels.
 - **Collapse:** the chevron on the right of the title bar leaves only the title bar in view. Click it again to expand.
 - **Lock:** in **General**, **Lock position and size** prevents accidental moves and resizes. The same setting is in the notification area menu as **Lock panels**.
-- **Rearrange:** in **General**, **Rearrange panels** lays out the visible panels on the main screen the same way as **Let Orla organize**: tools on the left (when Clean desktop is on), everything else on the right and the middle free. Panels on each side get the same width.
+- **Align:** on the **Panels** page, **Align panels**, below the list, lines up the visible panels on the main screen the same way as **Let Orla organize**: tools on the left (when Clean desktop is on), everything else on the right and the middle free. Panels on each side get the same width, and collapsed panels stay collapsed.
 
 ## Items in panels
 
@@ -320,8 +322,10 @@ The window has four pages:
 
 - **Panels:** create, show, hide and remove panels. See [Creating, hiding and removing panels](#creating-hiding-and-removing-panels).
 - **Appearance:** theme, opacity, icons and animations, with a live preview.
-- **General:** startup, **Clean desktop**, the shortcut, locking, language, **Rearrange panels** and **Start over**.
-- **About:** version, your data folder, **User guide**, **Report a problem** and **Quit Orla**.
+- **General:** startup, language, **Clean desktop**, locking, the shortcut and **Start over**.
+- **About:** version, **Orla tour**, **Updates**, your data folder, **User guide**, **Report a problem** and **Quit Orla**.
+
+The Orla window has its own title bar, with **Minimize**, **Maximize** and **Close** in the corner, and still snaps to the screen edges like any window. Closing the window does not close Orla: the panels stay on the desktop, and the notification area icon opens the window again. Confirmations that remove or reset something have a red button.
 
 At the bottom of the sidebar, **Part of the Windows desktop** means the panels are on the desktop layer. If it says **Compatibility mode: the Windows desktop was not found.**, see [Troubleshooting](#orla-shows-compatibility-mode).
 
@@ -348,18 +352,17 @@ With Windows High Contrast on, Orla uses the system colours and turns off transp
 | Setting | What it does |
 | --- | --- |
 | **Start with Windows** | Opens your panels when you sign in. On by default. |
-| **Clean desktop** | Hides the Windows icons. See [Clean desktop](#clean-desktop). |
-| **Keyboard shortcut** | Turns the shortcut on or off. See [The keyboard shortcut](#the-keyboard-shortcut). |
-| **Key combination** | Changes the shortcut's combination. **Restore default** goes back to **Ctrl+Alt+Space**. |
-| **Lock position and size** | Prevents moving or resizing panels |
 | **Language** | **System** follows the Windows display language. You can also pick Português (Brasil), English, Español, Français, Deutsch or Italiano. The change applies immediately. |
-| **Rearrange panels** | The **Rearrange** button lays out the visible panels on the main screen the same way as **Let Orla organize**: tools on the left (when Clean desktop is on), everything else on the right and the middle free. Panels on each side get the same width. |
+| **Clean desktop** | Hides the Windows icons. See [Clean desktop](#clean-desktop). |
+| **Lock position and size** | Prevents moving or resizing panels |
 | **Start over** | The **Start over…** button removes every panel, returns settings to their defaults and opens **Welcome to Orla Desktop**, as after a fresh install. First, Orla keeps a copy of the current layout in its data folder as `layout.json.before-reset-<date>`. None of your files are moved or deleted, and **Start with Windows** stays as it was. To go back to the previous layout, quit Orla and rename that copy to `layout.json`. |
-| **Automatic updates** | Installed version only. On by default. See [Updates](#updates). |
+| **Keyboard shortcut** | Turns the shortcut on or off. When it is on, the combination shows right below: click it and press the new one; **Restore default** goes back to **Ctrl+Alt+Space**. See [The keyboard shortcut](#the-keyboard-shortcut). |
+
+Settings are grouped under **Startup**, **Desktop** and **Advanced**. **Align panels** is on the **Panels** page, below the list, and **Automatic updates** is under **About**, next to **Check now**.
 
 ### Updates
 
-Both the installed and the portable version look for a new release on GitHub a minute after they start and then every six hours. You never need to go back to GitHub or download anything. When it finds one, it downloads it in the background and applies it the next time Orla closes. If you shut down Windows with Orla open, the update is applied the next time Orla starts, which takes a second or two before the panels appear. The check asks GitHub for this repository's list of releases and sends no personal data. On the **About** page, the **Updates** card shows when Orla last looked and has a **Check now** button. When a new version is ready, the button becomes **Restart and update** to install it right away. After an update, a notification leads to what is new in that version. To turn the automatic checks off, use **Automatic updates** in **General**; **Check now** still works.
+Both the installed and the portable version look for a new release on GitHub a minute after they start and then every six hours. You never need to go back to GitHub or download anything. When it finds one, it downloads it in the background and applies it the next time Orla closes. If you shut down Windows with Orla open, the update is applied the next time Orla starts, which takes a second or two before the panels appear. The check asks GitHub for this repository's list of releases and sends no personal data. On the **About** page, the **Updates** card shows when Orla last looked and has a **Check now** button. When a new version is ready, the button becomes **Restart and update** to install it right away. After an update, a notification leads to what is new in that version. To turn the automatic checks off, use **Automatic updates** under **About**; **Check now** still works.
 
 To update itself, the portable version must be in a folder you can write to, such as Documents or Downloads. Your panels live in `%LOCALAPPDATA%\Orla` and are not affected.
 
@@ -430,7 +433,7 @@ When Explorer restarts, the desktop layer is recreated. Orla notices and puts th
 
 ### A panel is off screen
 
-Under **General**, click **Rearrange** next to **Rearrange panels**. Every visible panel comes back to the main screen, lined up in columns.
+On the **Panels** page, click **Align panels**, below the list. Every visible panel comes back to the main screen, lined up in columns.
 
 ### A panel disappeared
 

@@ -29,6 +29,24 @@ namespace Orla
             this.controller = controller;
             InitializeComponent();
             SourceInitialized += delegate { Controller.applyWindowTheme(this); };
+            MinimizeButton.Click += delegate { SystemCommands.MinimizeWindow(this); };
+            MaximizeButton.Click += delegate {
+                if (WindowState == WindowState.Maximized)
+                    SystemCommands.RestoreWindow(this);
+                else
+                    SystemCommands.MaximizeWindow(this);
+            };
+            CloseButton.Click += delegate { SystemCommands.CloseWindow(this); };
+            // A maximized window with its own chrome reaches past the screen by the resize border; pull the content in.
+            StateChanged += delegate {
+                bool max = WindowState == WindowState.Maximized;
+                // The frame Windows keeps around a maximized window: the sizing border plus the padded border.
+                double frame = (Native.GetSystemMetrics(32) + Native.GetSystemMetrics(92)) /
+                               (PresentationSource.FromVisual(this)?.CompositionTarget.TransformToDevice.M11 ?? 1);
+                Root.Margin = max ? new Thickness(frame) : new Thickness(0);
+                MaximizeButton.Content = FindResource(max ? "Caption.Restore" : "Caption.Maximize");
+                MaximizeButton.ToolTip = Text.get(max ? "window.restore" : "window.maximize");
+            };
 
             NavPanels.Checked += delegate { showPage(PagePanels); };
             NavAppearance.Checked += delegate { showPage(PageAppearance); };
@@ -37,6 +55,16 @@ namespace Orla
             FrontButton.Click += delegate { controller.setOverlay(!controller.Overlay); refresh(); };
 
             NewPanel.Click += delegate { openPresetMenu(); };
+            EmptyCollection.Click += delegate {
+                string name = Dialog.prompt(Text.get("central.newCollection"), Text.get("central.collectionDefault"));
+                if (name != null)
+                    controller.createPanel(PanelKind.Collection, name, null);
+            };
+            EmptyFolder.Click += delegate {
+                string folder = controller.pickFolder(Text.get("central.folderPick"));
+                if (folder != null)
+                    controller.createPanel(PanelKind.Folder, Shell.displayName(folder), folder);
+            };
             ThemeSystem.Checked += delegate { onChange(() => controller.setTheme("system")); };
             ThemeLight.Checked += delegate { onChange(() => controller.setTheme("light")); };
             ThemeDark.Checked += delegate { onChange(() => controller.setTheme("dark")); };
@@ -99,11 +127,12 @@ namespace Orla
             ArrangeButton.Click += delegate { controller.resetPositions(); };
             ResetButton.Click += delegate {
                 if (Dialog.confirm(Text.get("general.resetConfirmTitle"), Text.get("general.resetConfirmMessage"),
-                                   Text.get("general.resetConfirmAction")))
+                                   Text.get("general.resetConfirmAction"), true))
                     controller.resetToWelcome();
             };
 
             DataButton.Click += delegate { controller.open(controller.DataDirectory); };
+            TourButton.Click += delegate { controller.startTour(); };
             GuideButton.Click += delegate { browse(Repository + (Text.Language == "pt-BR" ? "/blob/main/docs/pt-BR/guia.md" : "/blob/main/docs/en/guide.md")); };
             IssueButton.Click += delegate { browse(Report.issueUrl(Repository)); };
             QuitButton.Click += delegate { controller.quit(); };
@@ -571,6 +600,9 @@ namespace Orla
             if (!recording)
                 ShortcutButton.Content = shortcut;
             ShortcutButton.IsEnabled = l.OverlayHotkey;
+            ShortcutRow.Visibility = l.OverlayHotkey ? Visibility.Visible : Visibility.Collapsed;
+            // Once there are panels, organizing is an option among others, not the page's main action.
+            OrganizeButton.SetResourceReference(StyleProperty, l.Groups.Count > 0 ? "Orla.Button" : "Orla.Button.Accent");
             KeepSwitch.IsChecked = l.AutoOrganize;
             KeepSwitch.Visibility = controller.Organized ? Visibility.Visible : Visibility.Collapsed;
             OrganizeUndo.Visibility = controller.CanUndoOrganize ? Visibility.Visible : Visibility.Collapsed;
@@ -637,8 +669,10 @@ namespace Orla
             DockPanel.SetDock(more, Dock.Right);
             row.Children.Add(more);
 
-            var visible = new CheckBox { IsChecked = g.Visible, Content = Text.get("central.onDesktop"), VerticalAlignment = VerticalAlignment.Center,
-                                         FontSize = 13 };
+            // One switch per row says it all; its name is for screen readers and the tooltip.
+            var visible = new CheckBox { IsChecked = g.Visible, VerticalAlignment = VerticalAlignment.Center,
+                                         ToolTip = Text.format("central.showPanel", g.Name) };
+            System.Windows.Automation.AutomationProperties.SetName(visible, Text.format("central.showPanel", g.Name));
             visible.SetResourceReference(StyleProperty, "Orla.Switch");
             visible.Click += delegate { controller.setVisible(g, visible.IsChecked == true); };
             DockPanel.SetDock(visible, Dock.Right);

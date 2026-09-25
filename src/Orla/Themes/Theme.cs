@@ -93,6 +93,7 @@ namespace Orla
             set("Brush.Line", SystemColors.WindowTextBrush);
             set("Brush.Warning", SystemColors.WindowTextBrush);
             set("Brush.Critical", SystemColors.WindowTextBrush);
+            set("Brush.OnCritical", SystemColors.WindowBrush);
             foreach (string tint in Tints.All)
                 set("Brush.Tint." + tint, SystemColors.HighlightBrush);
             return d;

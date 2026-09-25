@@ -9,6 +9,8 @@
 
     <sys:Double x:Key="Type.Caption">12</sys:Double>
     <sys:Double x:Key="Type.Body">14</sys:Double>
+    <sys:Double x:Key="Type.Lead">15</sys:Double>
+    <sys:Double x:Key="Type.Subtitle">16</sys:Double>
     <sys:Double x:Key="Type.Title">28</sys:Double>
     <sys:Double x:Key="Type.ItemLabel">12</sys:Double>
     <sys:Double x:Key="Type.PanelTitle">13</sys:Double>
