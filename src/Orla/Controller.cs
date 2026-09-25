@@ -65,6 +65,7 @@ namespace Orla
                     h.keepAbove();
                 searchHost?.keepAbove();
             };
+            watch.DesktopActivated += takeDefaultFocus;
             rebuildTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(800), DispatcherPriority.Background, delegate {
                 rebuildTimer.Stop();
                 rebuild();
@@ -120,6 +121,9 @@ namespace Orla
             if (Organizer.retitle(Layout) | updated)
                 saveLayout();
             rebuild();
+            // Signing in lands on the desktop: the bar is ready for typing from the start.
+            if (interactive)
+                dispatcher.BeginInvoke(new Action(takeDefaultFocus), DispatcherPriority.ApplicationIdle);
             if (store.recoveryNotice != null)
                 tray?.notify(store.recoveryNotice);
             else if (updated)
@@ -327,6 +331,24 @@ namespace Orla
         public void focusSearch()
         {
             searchHost?.focus();
+        }
+
+        // The search bar has the keyboard by default whenever the desktop comes to the front, so typing searches at
+        // once. Not when the pointer is on a panel or the bar, and not when Windows icons are selected: their keys
+        // (Delete, Enter, arrows, F2) stay theirs.
+        void takeDefaultFocus()
+        {
+            if (searchHost == null || Hidden || Overlay || searchHost.Bar.Active || !desktopInView())
+                return;
+            Native.GetCursorPos(out POINT pointer);
+            bool within(RECT r) => pointer.X >= r.Left && pointer.X < r.Right && pointer.Y >= r.Top && pointer.Y < r.Bottom;
+            if (hosts.Any(h => within(h.Rect)) || within(searchHost.Rect) || hosts.Any(h => h.Handle == Native.GetFocus()))
+                return;
+            if (desktop != null && desktop.iconsVisible &&
+                Native.SendMessage(desktop.IconList, Native.LVM_GETSELECTEDCOUNT, IntPtr.Zero, IntPtr.Zero) != IntPtr.Zero)
+                return;
+            focusSearch();
+            searchHost.Bar.begin("");
         }
 
         // Esc on an empty search: the bar lets go, and panels that came in front go back.
@@ -728,7 +750,6 @@ namespace Orla
                 Layout.OverlayShortcut = shortcut.ToString();
                 saveLayout();
                 tray?.refreshMenu();
-                searchHost?.Bar.refreshHint();
                 return true;
             }
             messages.setHotkey(true, Shortcut);
@@ -746,7 +767,6 @@ namespace Orla
             bool ok = messages.setHotkey(value, Shortcut);
             Layout.OverlayHotkey = value && ok;
             saveLayout();
-            searchHost?.Bar.refreshHint();
             return ok;
         }
 

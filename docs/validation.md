@@ -2,6 +2,11 @@
 
 This page records what has been tested, how, and what has not been tested yet. Numbers come from one computer and are not guarantees.
 
+## 1.7.1
+
+- The search bar takes the keyboard when the desktop comes to the front (a foreground WinEvent for Progman or WorkerW) and when Orla starts with the desktop in view. It leaves the keyboard alone when the pointer is on a panel or the bar, when a panel has the focus, and when Windows icons are selected (`LVM_GETSELECTEDCOUNT`).
+- The shortcut hint left the bar, since it read as the bar's own key.
+
 ## 1.7
 
 - The search bar is a window on the desktop layer like the panels: `--smoke` checks that it is a child of the desktop's icon host, visible, above the icons and clear of every panel.

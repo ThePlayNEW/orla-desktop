@@ -283,7 +283,7 @@
   "tint.sand": "Arena",
   "tint.seaglass": "Vidrio de mar",
   "tint.sky": "Cielo",
-  "tour.barText": "Busca en todo lo que muestran tus paneles. Haz clic en ella o empieza a escribir en un panel; Esc la vacía y, la segunda vez, suelta el foco.",
+  "tour.barText": "Busca en todo lo que muestran tus paneles y tiene el teclado cada vez que el escritorio pasa al frente: solo escribe. Esc la vacía y, la segunda vez, devuelve el teclado a los iconos.",
   "tour.barTitle": "La búsqueda siempre está aquí",
   "tour.done": "Listo",
   "tour.menuText": "En ··· o con clic derecho: renombrar, colores, altura automática y más. Con clic derecho en un elemento lo abres, lo renombras o lo quitas del panel.",
