@@ -14,7 +14,7 @@
 
     <SolidColorBrush x:Key="Brush.ItemHover" Color="#140E3B43" />
     <SolidColorBrush x:Key="Brush.ItemPressed" Color="#240E3B43" />
-    <SolidColorBrush x:Key="Brush.ItemSelected" Color="#1F1D7F79" />
+    <SolidColorBrush x:Key="Brush.ItemSelected" Color="#2E1D7F79" />
     <SolidColorBrush x:Key="Brush.Focus" Color="#1D7F79" />
     <SolidColorBrush x:Key="Brush.DropTarget" Color="#141D7F79" />
 

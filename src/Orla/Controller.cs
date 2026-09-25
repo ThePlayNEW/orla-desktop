@@ -96,16 +96,24 @@ namespace Orla
                 if (Layout.AutoUpdate)
                     Updates.start(this);
             }
+            // Someone already using Orla who starts a new version sees what is new, once; a fresh install does not.
+            bool updated = interactive && Layout.Welcomed && Layout.SeenVersion != Report.Version;
+            Layout.SeenVersion = Report.Version;
             if (!Layout.Welcomed)
             {
                 showCentral("welcome");
                 return;
             }
-            if (Organizer.retitle(Layout))
+            if (Organizer.retitle(Layout) | updated)
                 saveLayout();
             rebuild();
             if (store.recoveryNotice != null)
                 tray?.notify(store.recoveryNotice);
+            else if (updated)
+            {
+                string version = Report.Version;
+                tray?.notify(Text.format("notice.updated", version), () => open(CentralWindow.Repository + "/releases/tag/v" + version));
+            }
         }
 
         // ---- panels on the desktop ----
@@ -160,7 +168,11 @@ namespace Orla
             else if (desktopInView())
                 setHidden(true);
             else
+            {
                 setOverlay(true);
+                // In front of other windows, the panels come with the search field ready, over the free middle.
+                showSearch();
+            }
         }
 
         static bool desktopInView()
@@ -237,10 +249,32 @@ namespace Orla
                 applyCleanDesktop();
             }
             Overlay = on;
+            // The search opened with the panels leaves with them.
+            if (!on)
+                search?.Close();
             showHosts();
             if (on)
                 hosts.FirstOrDefault()?.focus();
             tray?.refreshMenu();
+        }
+
+        SearchWindow search;
+
+        // Quick search over everything the panels show right now, including folder panels.
+        public void showSearch(string first = "")
+        {
+            if (search != null)
+            {
+                search.type(first);
+                search.Activate();
+                return;
+            }
+            var items = hosts.Where(h => h.Group.Visible).SelectMany(h => h.View.Tiles.Select(t => new SearchWindow.Hit {
+                Tile = t, Group = h.Group, Plain = Organizer.plain(t.Label ?? "") })).ToList();
+            search = new SearchWindow(this, items, first);
+            search.Closed += delegate { search = null; };
+            search.Show();
+            search.Activate();
         }
 
         public void focusPanel(PanelView view)
@@ -415,9 +449,8 @@ namespace Orla
             changed(store.owner(entry.Id));
         }
 
-        public void transfer(Group g, string[] paths, bool copy)
+        public void transfer(string folder, string[] paths, bool copy)
         {
-            string folder = Shell.resolveFolder(g.FolderPath);
             var sources = paths.Where(p => !String.Equals(Path.GetDirectoryName(p), folder, StringComparison.OrdinalIgnoreCase));
             // Runs on its own thread, owned by Orla's hidden window: Windows' progress and conflict dialogs never
             // block the panels, and a dialog owned by a panel would disable Explorer's desktop window.

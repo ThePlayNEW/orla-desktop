@@ -13,6 +13,7 @@ Orla places translucent panels on the Windows desktop. Each panel shows shortcut
 - [Items in panels](#items-in-panels)
 - [Drag and drop](#drag-and-drop)
 - [The keyboard shortcut](#the-keyboard-shortcut)
+- [Quick search](#quick-search)
 - [Clean desktop](#clean-desktop)
 - [The Orla window](#the-orla-window)
 - [Keyboard](#keyboard)
@@ -126,6 +127,7 @@ Ready-made panels help you start quickly. They appear in the second step of the 
 | **Documents** | Folder panel | Your Documents folder |
 | **Pictures** | Folder panel | Your Pictures folder, with thumbnails |
 | **Screenshots** | Folder panel | The Screenshots folder inside Pictures. Listed only if it exists. |
+| **Recent** | Folder panel | The files you opened last, newest first (up to 40) |
 | **New on desktop** | Folder panel | What is on the desktop and not in any panel yet. Pairs well with Clean desktop. |
 | **Work** | Collection | Empty, for you to fill |
 | **Study** | Collection | Empty, for you to fill |
@@ -156,6 +158,8 @@ To add items without dragging, open the panel's **···** menu and choose **Add
 ### Folder panels
 
 A folder panel shows what is inside a folder, folders first and in alphabetical order, as File Explorer sorts them. Hidden and system files are not shown. The panel updates on its own when something in the folder is created, deleted or renamed.
+
+Double-click a subfolder to go into it right there. The title shows the path, such as **Projects › FiveM**, and the **‹** button (or Backspace, or Alt+←) goes back one level. Files dragged onto the panel go to the folder it shows at that moment. To open the subfolder in File Explorer, Ctrl+double-click it or use **Open in File Explorer** in its menu. When Orla opens again, the panel is back at its own folder.
 
 The **New on desktop** panel shows your desktop and the Windows public desktop. In its **···** menu, **Show only what is not in another panel** hides what another panel already shows: the item itself, a folder whose shortcuts are in collections, or a folder that has its own panel. Anything you save to the desktop later appears there until you organize it.
 
@@ -236,7 +240,7 @@ The shortcut is **Ctrl+Alt+Space** by default, and you can change it in **Genera
 | Situation | What the shortcut does |
 | --- | --- |
 | Desktop in view (the desktop, the taskbar or a panel has focus) | Hides the panels, or shows them again. With **Clean desktop** on, the Windows icons come back while the panels are hidden. |
-| An application window in front | Brings the panels in front of your windows. Press it again, or Esc, to send them back to the desktop. |
+| An application window in front | Brings the panels in front of your windows, with [quick search](#quick-search) open. Press it again, or Esc, to send them back to the desktop. |
 
 Panels always start visible when Orla opens.
 
@@ -263,6 +267,21 @@ In **General**:
 - **Restore default** goes back to **Ctrl+Alt+Space**.
 
 If another program already uses the combination you pick, Orla keeps the previous one and tells you. See [The shortcut does not work](#the-shortcut-does-not-work).
+
+## Quick search
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../images/search-dark.png">
+  <img src="../images/search-light.png" width="620" alt="Quick search with two results, each showing the panel it comes from">
+</picture>
+
+Search looks through everything your panels show, including what is inside folder panels. It opens:
+
+- with the panels, when the shortcut brings them in front of a window;
+- when you start typing with a panel selected;
+- from **Search your panels** in the notification area menu.
+
+Accents and case do not matter. Names that start with what you typed come first, then names with a word that starts that way. Use the arrow keys to choose, **Enter** to open, **Ctrl+Enter** to show the item in its folder and **Esc** to close. Clicking elsewhere closes it too.
 
 ## Clean desktop
 
@@ -340,9 +359,9 @@ With Windows High Contrast on, Orla uses the system colours and turns off transp
 
 ### Updates
 
-The installed version looks for a new release on GitHub a minute after it starts and then every six hours. When it finds one, it downloads it in the background and applies it the next time Orla closes. If you shut down Windows with Orla open, the update is applied the next time Orla starts, which takes a second or two before the panels appear. The check asks GitHub for this repository's list of releases and sends no personal data. When a new version is ready, the **About** page shows a **Restart and update** button to install it right away. To turn updates off, use **Automatic updates** in **General**.
+Both the installed and the portable version look for a new release on GitHub a minute after they start and then every six hours. You never need to go back to GitHub or download anything. When it finds one, it downloads it in the background and applies it the next time Orla closes. If you shut down Windows with Orla open, the update is applied the next time Orla starts, which takes a second or two before the panels appear. The check asks GitHub for this repository's list of releases and sends no personal data. On the **About** page, the **Updates** card shows when Orla last looked and has a **Check now** button. When a new version is ready, the button becomes **Restart and update** to install it right away. After an update, a notification leads to what is new in that version. To turn the automatic checks off, use **Automatic updates** in **General**; **Check now** still works.
 
-The portable version does not update itself. To update it, quit Orla, download the new ZIP from the [releases page](https://github.com/ThePlayNEW/orla-desktop/releases/latest) and extract it in place of the old folder. Your panels live in `%LOCALAPPDATA%\Orla` and are not affected.
+To update itself, the portable version must be in a folder you can write to, such as Documents or Downloads. Your panels live in `%LOCALAPPDATA%\Orla` and are not affected.
 
 ## Keyboard
 

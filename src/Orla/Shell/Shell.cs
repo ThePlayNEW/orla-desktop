@@ -40,6 +40,12 @@ namespace Orla
                    path.StartsWith(folder + "\\", StringComparison.OrdinalIgnoreCase);
         }
 
+        public static string RecentFolder => Environment.GetFolderPath(Environment.SpecialFolder.Recent);
+
+        public static bool isRecent(string folderPath) =>
+            !String.IsNullOrEmpty(folderPath) && !isVirtual(folderPath) && folderPath != DesktopFolder && within(folderPath, RecentFolder) &&
+            within(RecentFolder, folderPath);
+
         public static bool isHidden(string path)
         {
             try
@@ -134,6 +140,9 @@ namespace Orla
                 {
                 }
             }
+            // Windows' recent items: newest first and only the latest few, as in File Explorer's Recent list.
+            if (isRecent(folderPath))
+                return result.Where(p => !Directory.Exists(p)).OrderByDescending(File.GetLastWriteTimeUtc).Take(40).ToList();
             return result.OrderBy(p => Directory.Exists(p) ? 0 : 1)
                 .ThenBy(p => Path.GetFileName(p), StringComparer.CurrentCultureIgnoreCase)
                 .ToList();

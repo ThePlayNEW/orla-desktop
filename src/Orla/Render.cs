@@ -51,6 +51,7 @@ namespace Orla
                 await central(controller, "welcome", System.IO.Path.Combine(folder, "welcome-" + theme + ".png"));
                 await central(controller, "presets", System.IO.Path.Combine(folder, "presets-" + theme + ".png"));
                 await central(controller, "organize", System.IO.Path.Combine(folder, "organize-" + theme + ".png"), new[] { Screens.primary() });
+                await search(controller, System.IO.Path.Combine(folder, "search-" + theme + ".png"));
             }
             controller.Layout.Theme = "dark";
             Theme.apply(controller.Layout);
@@ -115,6 +116,28 @@ namespace Orla
                 tops[column] += view.Height + 24;
             }
             await save(canvas, width, height, path);
+        }
+
+        // Quick search over the sample panels, with a few letters typed.
+        static async Task search(Controller controller, string path)
+        {
+            var hits = new List<SearchWindow.Hit>();
+            foreach (Group g in controller.Layout.Groups)
+            {
+                var view = new PanelView(controller, g);
+                view.refresh();
+                await Task.Delay(600);
+                hits.AddRange(view.Tiles.Select(t => new SearchWindow.Hit { Tile = t, Group = g, Plain = Organizer.plain(t.Label ?? "") }));
+            }
+            var window = new SearchWindow(controller, hits, "re") { ShowActivated = false };
+            window.Show();
+            window.Left = -20000;
+            await Task.Delay(300);
+            // The card keeps room around it for its shadow.
+            var content = (FrameworkElement)window.Content;
+            await save(content, content.ActualWidth + content.Margin.Left + content.Margin.Right,
+                       content.ActualHeight + content.Margin.Top + content.Margin.Bottom, path);
+            window.Close();
         }
 
         static async Task central(Controller controller, string page, string path, IList<Screen> screens = null)

@@ -29,7 +29,8 @@
 - **Panels on the desktop layer.** They live with the Windows desktop icons, so **Win+D** and the show desktop button leave them in place, and they never cover an application.
 - **The desktop keeps working.** In empty areas, rubber-band selection, the right-click menu and dragging files onto the desktop behave as they do in Windows.
 - **Collections.** They hold shortcuts to files and folders from anywhere. If you rename the file in File Explorer, the shortcut follows it. Removing an item from a collection never deletes the file.
-- **Folder panels.** They show a real folder, such as Downloads, and update on their own when something in it changes.
+- **Folder panels.** They show a real folder, such as Downloads, and update on their own when something in it changes. Double-click a subfolder to go into it right there.
+- **Quick search.** Type with a panel selected, or bring the panels to the front with the shortcut, and find any item in any panel.
 - **One shortcut that does what the moment calls for.** With the desktop in view, **Ctrl+Alt+Space** (the default, which you can change) hides or shows the panels. With a window in front, it brings the panels above it, so you can drop files from File Explorer without minimizing anything.
 - **Panels that stay tidy.** A panel never sits on top of another, and resizing moves in whole columns and rows of icons.
 - **Clean desktop, if you want it.** An option hides the Windows icons and leaves only the panels. A small safeguard process brings the icons back if Orla closes or crashes.
@@ -42,7 +43,7 @@ Download from the [releases page](https://github.com/ThePlayNEW/orla-desktop/rel
 | File | Who it is for |
 | --- | --- |
 | [`OrlaDesktop-win-Setup.exe`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Setup.exe) | Most people. Installs for your user only, without administrator rights, adds a Start menu shortcut and updates itself. |
-| [`OrlaDesktop-win-Portable.zip`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Portable.zip) | People who prefer not to install. Extract it anywhere and run `Orla Desktop.exe`. It does not update itself: download a new ZIP to update. |
+| [`OrlaDesktop-win-Portable.zip`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Portable.zip) | People who prefer not to install. Extract it into a folder of yours, such as Documents, and run `Orla Desktop.exe`. It updates itself too. |
 
 The executables are not code-signed yet, so Windows SmartScreen may show a warning the first time. Click **More info**, then **Run anyway**. Signing through the SignPath Foundation is planned.
 
@@ -105,6 +106,7 @@ On first run, and later from **New panel**, Orla offers ready-made panels. Only 
 | **Apps** | The program shortcuts on your desktop, if there are any |
 | **Games** | Games and launchers found on the desktop and in the Start menu: Steam, Epic, Riot, EA, Ubisoft, Battle.net, GOG, Rockstar and Xbox |
 | **Documents**, **Pictures**, **Screenshots** | Those folders, always up to date |
+| **Recent** | The files you opened last, newest first |
 | **New on desktop** | What is on the desktop and not in any panel yet. Pairs well with hidden Windows icons |
 | **Work**, **Study** | Empty collections for you to fill |
 

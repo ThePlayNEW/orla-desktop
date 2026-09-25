@@ -87,7 +87,15 @@ namespace Orla
                 menu.IsOpen = true;
             };
             UpdateSwitch.Click += delegate { controller.setAutoUpdate(UpdateSwitch.IsChecked == true); };
-            UpdateButton.Click += delegate { Updates.restartNow(controller); };
+            UpdateButton.Click += delegate {
+                if (Updates.Status == Updates.State.Ready)
+                    Updates.restartNow(controller);
+                else
+                    Updates.checkNow(controller);
+            };
+            Action updatesChanged = () => showUpdates();
+            Updates.Changed += updatesChanged;
+            Closed += delegate { Updates.Changed -= updatesChanged; };
             ArrangeButton.Click += delegate { controller.resetPositions(); };
             ResetButton.Click += delegate {
                 if (Dialog.confirm(Text.get("general.resetConfirmTitle"), Text.get("general.resetConfirmMessage"),
@@ -552,8 +560,7 @@ namespace Orla
                                      ? Text.format("language.systemCurrent", Text.nativeName(Text.Language))
                                      : Text.nativeName(l.Language);
             UpdateSwitch.IsChecked = l.AutoUpdate;
-            UpdateCard.Visibility = Updates.Ready != null ? Visibility.Visible : Visibility.Collapsed;
-            UpdateTitle.Text = Updates.Ready != null ? Text.format("about.updateReady", Updates.Ready) : "";
+            showUpdates();
             FrontLabel.Text = Text.get(controller.Overlay ? "central.back" : "central.front");
             string shortcut = controller.Shortcut.display();
             FrontShortcut.Text = shortcut;
@@ -572,6 +579,29 @@ namespace Orla
             StatusDot.SetResourceReference(Shape.FillProperty, controller.DesktopFound ? "Brush.Accent" : "Brush.Warning");
             buildPanelList();
             loading = false;
+        }
+
+        void showUpdates()
+        {
+            Updates.State state = Updates.Status;
+            bool ready = state == Updates.State.Ready;
+            string last = DateTime.TryParse(controller.Layout.LastUpdateCheck, null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime when)
+                              ? Text.format("about.lastCheck", when.ToLocalTime().ToString("g", new System.Globalization.CultureInfo(Text.Language)))
+                              : Text.get("about.neverChecked");
+            UpdateTitle.Text = ready ? Text.format("about.updateReady", Updates.Ready)
+                             : state == Updates.State.Checking ? Text.get("about.checking")
+                             : state == Updates.State.UpToDate ? Text.get("about.upToDate")
+                             : state == Updates.State.Failed ? Text.get("about.checkFailed")
+                             : state == Updates.State.NotInstalled ? Text.get("about.notInstalled")
+                             : Text.get("about.updates");
+            UpdateHint.Text = ready ? Text.get("about.updateHint")
+                            : state == Updates.State.Failed ? Text.get("about.checkFailedHint")
+                            : state == Updates.State.NotInstalled ? Text.get("about.notInstalledHint")
+                            : last;
+            UpdateButton.Content = Text.get(ready ? "about.updateAction" : "about.checkNow");
+            UpdateButton.SetResourceReference(StyleProperty, ready ? "Orla.Button.Accent" : "Orla.Button");
+            UpdateButton.IsEnabled = state != Updates.State.Checking;
+            UpdateButton.Visibility = state == Updates.State.NotInstalled ? Visibility.Collapsed : Visibility.Visible;
         }
 
         void buildPanelList()

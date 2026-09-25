@@ -29,7 +29,8 @@
 - **Painéis na camada do desktop.** Eles ficam junto dos ícones do Windows, então **Win+D** e o botão de mostrar a área de trabalho não os escondem, e nenhum aplicativo fica coberto por eles.
 - **O desktop continua funcionando.** Nas áreas livres, a seleção com o mouse, o menu do botão direito e o arrastar de arquivos para o desktop se comportam como no Windows.
 - **Coleções.** Guardam atalhos para arquivos e pastas de qualquer lugar. Se você renomear o arquivo no Explorador, o atalho acompanha. Tirar um item da coleção nunca apaga o arquivo.
-- **Painéis de pasta.** Mostram uma pasta real, como Downloads, e se atualizam sozinhos quando algo muda nela.
+- **Painéis de pasta.** Mostram uma pasta real, como Downloads, e se atualizam sozinhos quando algo muda nela. Um clique duplo numa subpasta entra nela ali mesmo.
+- **Busca rápida.** Digite com um painel selecionado, ou traga os painéis para a frente com o atalho, e encontre qualquer item de qualquer painel.
 - **Um atalho que faz o que o momento pede.** Com o desktop à vista, **Ctrl+Alt+Espaço** (padrão, dá para trocar) esconde ou mostra os painéis. Com uma janela na frente, traz os painéis para cima dela, para você soltar arquivos do Explorador sem minimizar nada.
 - **Painéis organizados sozinhos.** Um painel nunca fica por cima de outro, e o tamanho avança em colunas e linhas inteiras de ícones.
 - **Desktop limpo, se você quiser.** Uma opção esconde os ícones do Windows e deixa só os painéis. Um pequeno processo de proteção devolve os ícones se o Orla fechar ou travar.
@@ -42,7 +43,7 @@ Baixe na página de [versões](https://github.com/ThePlayNEW/orla-desktop/releas
 | Arquivo | Para quem |
 | --- | --- |
 | [`OrlaDesktop-win-Setup.exe`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Setup.exe) | A maioria das pessoas. Instala só para o seu usuário, sem pedir administrador, cria um atalho no menu Iniciar e se atualiza sozinho. |
-| [`OrlaDesktop-win-Portable.zip`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Portable.zip) | Quem prefere não instalar. Extraia em qualquer pasta e abra `Orla Desktop.exe`. Não se atualiza sozinho: para atualizar, baixe um ZIP novo. |
+| [`OrlaDesktop-win-Portable.zip`](https://github.com/ThePlayNEW/orla-desktop/releases/latest/download/OrlaDesktop-win-Portable.zip) | Quem prefere não instalar. Extraia numa pasta sua, como Documentos, e abra `Orla Desktop.exe`. Também se atualiza sozinho. |
 
 Os executáveis ainda não têm assinatura digital, então o Windows SmartScreen pode mostrar um aviso na primeira vez. Clique em **Mais informações** e depois em **Executar assim mesmo**. A assinatura pelo SignPath Foundation está planejada.
 
@@ -105,6 +106,7 @@ Na primeira vez, e depois em **Novo painel**, o Orla oferece painéis prontos. S
 | **Aplicativos** | Os atalhos de programas do desktop, se houver |
 | **Jogos** | Jogos e lançadores encontrados no desktop e no menu Iniciar: Steam, Epic, Riot, EA, Ubisoft, Battle.net, GOG, Rockstar e Xbox |
 | **Documentos**, **Imagens**, **Capturas de tela** | As pastas correspondentes, sempre atualizadas |
+| **Recentes** | Os arquivos que você abriu por último, os mais novos primeiro |
 | **Novos no desktop** | O que está no desktop e ainda não foi para nenhum painel. Combina com os ícones do Windows ocultos |
 | **Trabalho**, **Estudos** | Coleções vazias para você preencher |
 

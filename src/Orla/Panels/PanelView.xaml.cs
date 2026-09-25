@@ -195,9 +195,24 @@ namespace Orla
                 if (!IsKeyboardFocusWithin)
                     KeyboardCues = false;
             };
+            // Typing on a panel starts a search across every panel, as typing in the Start menu does.
+            PreviewTextInput += (s, e) => {
+                if (TitleEditor.IsVisible || String.IsNullOrWhiteSpace(e.Text) || Char.IsControl(e.Text[0]))
+                    return;
+                controller.showSearch(e.Text);
+                e.Handled = true;
+            };
+            BackButton.Click += delegate { back(); };
             PreviewKeyDown += (s, e) => {
                 if (e.Key == Key.Tab || e.Key >= Key.Left && e.Key <= Key.Down)
                     KeyboardCues = true;
+                if (browsing != null && !TitleEditor.IsVisible &&
+                    (e.Key == Key.Back || e.Key == Key.System && e.SystemKey == Key.Left && Keyboard.Modifiers == ModifierKeys.Alt))
+                {
+                    back();
+                    e.Handled = true;
+                    return;
+                }
                 if (e.Key == Key.Escape && controller.Overlay && !TitleEditor.IsVisible)
                 {
                     controller.leaveOverlay();
@@ -251,11 +266,57 @@ namespace Orla
             Resources["Brush.PanelGlass"] = Theme.Glass;
         }
 
+        // ---- browsing inside a folder panel ----
+
+        // The subfolder a folder panel shows while people browse into it, or null at the panel's own folder. Not saved:
+        // a panel opens at its folder again next time.
+        string browsing;
+
+        string FolderShown => browsing ?? Group.FolderPath;
+
+        void browse(string folder)
+        {
+            browsing = folder;
+            foreach (TileItem t in tiles)
+                t.Selected = false;
+            refresh();
+            watch();
+            queueReload();
+            Scroller.ScrollToTop();
+        }
+
+        // One level up; at the top it is the panel's own folder again.
+        void back()
+        {
+            if (browsing == null)
+                return;
+            string parent = System.IO.Path.GetDirectoryName(browsing.TrimEnd('\\'));
+            bool top = parent == null || Shell.folderDirectories(Group.FolderPath).Any(d => Shell.within(d, parent) && Shell.within(parent, d));
+            browse(top ? null : parent);
+        }
+
+        // "Projects › FiveM › Current" while browsing, so it is always clear where the panel is.
+        string heading()
+        {
+            if (browsing == null)
+                return Group.Name;
+            string root = Shell.folderDirectories(Group.FolderPath).FirstOrDefault(d => Shell.within(browsing, d));
+            string inside = root == null ? System.IO.Path.GetFileName(browsing) : browsing.Substring(root.TrimEnd('\\').Length).Trim('\\');
+            // Deeper than one level, the middle gives way: the panel and the folder shown are what matter.
+            string[] parts = inside.Split('\\');
+            return Group.Name + " › " + (parts.Length > 1 ? "… › " + parts[parts.Length - 1] : inside);
+        }
+
+        bool browsable(TileItem tile) =>
+            Group.IsFolder && !Shell.isVirtual(tile.Path) && (Keyboard.Modifiers & ModifierKeys.Control) == 0 && Directory.Exists(tile.Path);
+
         // Re-reads everything the panel shows from the layout.
         public void refresh()
         {
-            Title.Text = Group.Name;
-            KindGlyph.Visibility = Group.IsFolder ? Visibility.Visible : Visibility.Collapsed;
+            Title.Text = heading();
+            BackButton.Visibility = browsing != null ? Visibility.Visible : Visibility.Collapsed;
+            BackButton.ToolTip = Text.get("panel.back");
+            KindGlyph.Visibility = Group.IsFolder && browsing == null ? Visibility.Visible : Visibility.Collapsed;
             Shoreline.SetResourceReference(Shape.StrokeProperty, "Brush.Tint." + Group.Tint);
             CollapseGlyph.Data = (Geometry)FindResource(Group.Collapsed ? "Glyph.ChevronDown" : "Glyph.ChevronUp");
             CollapseButton.ToolTip = Text.get(Group.Collapsed ? "panel.expand" : "panel.collapse");
@@ -304,8 +365,8 @@ namespace Orla
         void reload()
         {
             int version = ++reloadVersion;
-            bool folder = Group.IsFolder, only = Group.OnlyUnorganized;
-            string folderPath = Group.FolderPath;
+            bool folder = Group.IsFolder, only = Group.OnlyUnorganized && browsing == null;
+            string folderPath = FolderShown;
             Organized organized = folder && only ? controller.store.organized() : null;
             List<Entry> entries = folder ? null : Group.Items.ToList();
             Task.Run(() => {
@@ -330,6 +391,16 @@ namespace Orla
 
         void apply(List<TileItem> next, bool available)
         {
+            // The subfolder being browsed was deleted or renamed: go up to the nearest folder that still exists.
+            if (browsing != null && !available)
+            {
+                string up = System.IO.Path.GetDirectoryName(browsing.TrimEnd('\\'));
+                while (up != null && !Directory.Exists(up))
+                    up = System.IO.Path.GetDirectoryName(up);
+                bool top = up == null || Shell.folderDirectories(Group.FolderPath).Any(d => Shell.within(d, up));
+                browse(top ? null : up);
+                return;
+            }
             folderAvailable = available;
             var previous = new Dictionary<string, TileItem>(StringComparer.OrdinalIgnoreCase);
             foreach (TileItem t in tiles)
@@ -363,7 +434,7 @@ namespace Orla
             pendingSelection = null;
             Count.Text = tiles.Count.ToString();
             Empty.Text = Text.get(!Group.IsFolder ? "panel.empty" : !available ? "panel.folderMissing"
-                                  : Group.OnlyUnorganized ? "panel.inboxEmpty" : "panel.folderEmpty");
+                                  : Group.OnlyUnorganized && browsing == null ? "panel.inboxEmpty" : "panel.folderEmpty");
             Empty.Visibility = tiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             applySize();
         }
@@ -371,7 +442,7 @@ namespace Orla
         // Folder panels follow their folder through file system notifications, never by polling.
         void watch()
         {
-            string key = Group.IsFolder ? Group.FolderPath : null;
+            string key = Group.IsFolder ? FolderShown : null;
             if (key == watchedFolder && (key == null || watchers.Length > 0))
                 return;
             stopWatching();
@@ -505,6 +576,8 @@ namespace Orla
 
         List<TileItem> Selection => tiles.Where(t => t.Selected).ToList();
 
+        public IReadOnlyList<TileItem> Tiles => tiles;
+
         // What an action on a tile applies to: the selection, or the tile alone when nothing is selected.
         List<TileItem> selectionOr(TileItem tile) => Selection.Count > 0 ? Selection : new List<TileItem> { tile };
 
@@ -517,6 +590,12 @@ namespace Orla
         // A dozen at most, so a stray Enter on a big selection does not open a flood of windows.
         void openAll(List<TileItem> selection)
         {
+            // A single subfolder in a folder panel opens right here; Ctrl opens it in File Explorer.
+            if (selection.Count == 1 && browsable(selection[0]))
+            {
+                browse(selection[0].Path);
+                return;
+            }
             foreach (TileItem t in selection.Take(12))
                 controller.open(t.Path);
         }
@@ -559,7 +638,7 @@ namespace Orla
             {
                 pressed = null;
                 selectOnly(tile);
-                controller.open(tile.Path);
+                openAll(new List<TileItem> { tile });
             }
             else
             {
@@ -743,6 +822,8 @@ namespace Orla
             if (many)
                 open.Header = Text.format("tile.openMany", selection.Count);
             menu.Items.Add(open);
+            if (!many && browsable(tile))
+                menu.Items.Add(Menus.item("tile.openExplorer", "Glyph.Open", () => controller.open(tile.Path)));
             if (!many && !Shell.isVirtual(tile.Path))
                 menu.Items.Add(Menus.item("tile.reveal", "Glyph.Reveal", () => controller.reveal(tile.Path)));
             var collections = controller.Layout.Groups.Where(g => !g.IsFolder && g != Group).ToList();
@@ -824,14 +905,14 @@ namespace Orla
                                                                           : e.AllowedEffects & DragDropEffects.Copy;
                 return DragDropEffects.None;
             }
-            if (fromHere || !e.Data.GetDataPresent(DataFormats.FileDrop) || !folderAvailable)
+            if (fromHere || !e.Data.GetDataPresent(DataFormats.FileDrop) || !folderAvailable || Shell.isRecent(FolderShown))
                 return DragDropEffects.None;
             bool copy = (e.KeyStates & DragDropKeyStates.ControlKey) != 0;
             bool move = (e.KeyStates & DragDropKeyStates.ShiftKey) != 0;
             if (!copy && !move)
             {
                 var paths = (string[])e.Data.GetData(DataFormats.FileDrop);
-                string folder = Shell.resolveFolder(Group.FolderPath);
+                string folder = Shell.resolveFolder(FolderShown);
                 copy = paths.Length > 0 && !Shell.sameVolume(paths[0], folder);
             }
             DragDropEffects wanted = copy ? DragDropEffects.Copy : DragDropEffects.Move;
@@ -909,7 +990,8 @@ namespace Orla
             // so the source never deletes originals for a move that was skipped or cancelled.
             var paths = (string[])e.Data.GetData(DataFormats.FileDrop);
             e.Effects = DragDropEffects.None;
-            Dispatcher.BeginInvoke(new Action(() => controller.transfer(Group, paths, effect == DragDropEffects.Copy)));
+            string target = Shell.resolveFolder(FolderShown);
+            Dispatcher.BeginInvoke(new Action(() => controller.transfer(target, paths, effect == DragDropEffects.Copy)));
         }
 
         int dropIndex(DragEventArgs e)

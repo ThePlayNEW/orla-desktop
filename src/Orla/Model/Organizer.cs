@@ -417,7 +417,19 @@ namespace Orla
             return null;
         }
 
-        static string plain(string text)
+        // How well a name matches what was typed, both plain: 0 starts with it, 1 a word starts with it, 2 anywhere, -1 not at all.
+        public static int rank(string plain, string typed)
+        {
+            int i = plain.IndexOf(typed, StringComparison.Ordinal);
+            if (i < 0)
+                return -1;
+            if (i == 0)
+                return 0;
+            return " -_.()[]".IndexOf(plain[i - 1]) >= 0 ? 1 : 2;
+        }
+
+        // Lower case without accents, for matching the way people type.
+        public static string plain(string text)
         {
             var sb = new StringBuilder();
             foreach (char c in (text ?? "").Normalize(NormalizationForm.FormD))

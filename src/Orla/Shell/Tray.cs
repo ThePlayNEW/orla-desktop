@@ -20,6 +20,8 @@ namespace Orla
             this.owner = owner;
             icon = new Forms.NotifyIcon { Text = "Orla Desktop", Visible = true };
             refreshIcon();
+            icon.BalloonTipClicked += delegate { clicked?.Invoke(); };
+            icon.BalloonTipClosed += delegate { clicked = null; };
             icon.MouseUp += (s, e) => {
                 if (e.Button == Forms.MouseButtons.Left)
                     controller.showCentral(null);
@@ -55,6 +57,7 @@ namespace Orla
                 menu.Items.Add(visible);
                 MenuItem front = Menus.check("tray.front", controller.Overlay, () => controller.setOverlay(!controller.Overlay));
                 menu.Items.Add(front);
+                menu.Items.Add(Menus.item("tray.search", "Glyph.Search", () => controller.showSearch()));
                 menu.Items.Add(Menus.item("organize.open", "Glyph.PanelCollection", controller.showOrganize));
                 menu.Items.Add(new Separator());
                 menu.Items.Add(Menus.check("tray.lock", controller.Layout.LockLayout, () => controller.setLock(!controller.Layout.LockLayout)));
@@ -74,8 +77,12 @@ namespace Orla
                 menu.IsOpen = false;
         }
 
-        public void notify(string text)
+        Action clicked;
+
+        // onClick runs if people click this notification.
+        public void notify(string text, Action onClick = null)
         {
+            clicked = onClick;
             icon.BalloonTipTitle = "Orla Desktop";
             icon.BalloonTipText = text;
             icon.ShowBalloonTip(3000);
