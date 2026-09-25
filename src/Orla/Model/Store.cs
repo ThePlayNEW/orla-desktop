@@ -100,6 +100,8 @@ namespace Orla
                 d.Language = "system";
             if (!new[] { "small", "medium", "large" }.Contains(d.IconSize))
                 d.IconSize = "medium";
+            if (d.SearchX is double sx && d.SearchY is double sy && (Double.IsNaN(sx) || Double.IsInfinity(sx) || Double.IsNaN(sy) || Double.IsInfinity(sy)))
+                d.SearchX = d.SearchY = null;
 
             var ids = new HashSet<string>();
             foreach (Group g in d.Groups)

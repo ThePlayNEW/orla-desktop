@@ -4,14 +4,20 @@
              xmlns:l="clr-namespace:Orla"
              FontFamily="{StaticResource Font.Text}" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
              Width="600" VerticalAlignment="Top">
-    <!-- The search bar on the desktop: the same glass as the panels, a field, and the best matches from every panel
-         below it while it has the focus. -->
+    <!-- The search bar on the desktop: the same glass as the panels, a field, a grip to move it, and the best matches
+         from every panel below it while it has the focus. The space below stays clear for them even when closed. -->
     <Border x:Name="Frame" CornerRadius="{StaticResource Radius.Panel}" Background="{DynamicResource Brush.PanelGlass}"
-            BorderBrush="{DynamicResource Brush.PanelBorder}" BorderThickness="1" Padding="8,4,8,4" Cursor="IBeam">
+            BorderBrush="{DynamicResource Brush.PanelBorder}" BorderThickness="1" Padding="8,4,4,4" Cursor="IBeam"
+            VerticalAlignment="Top">
         <StackPanel>
-            <DockPanel Height="40" Margin="8,0,6,0">
+            <DockPanel Height="40" Margin="8,0,0,0">
                 <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Search}" Width="20" Margin="0,0,12,0"
                       VerticalAlignment="Center" Stroke="{DynamicResource Brush.Accent}" />
+                <!-- Moves the bar, like a panel's title. -->
+                <Border x:Name="Grip" DockPanel.Dock="Right" Width="32" Background="Transparent" Cursor="SizeAll" ToolTip="{l:T search.move}">
+                    <Path Style="{StaticResource Orla.Glyph}" Data="{StaticResource Glyph.Grip}" HorizontalAlignment="Center"
+                          VerticalAlignment="Center" Opacity="0.6" StrokeThickness="2.2" />
+                </Border>
                 <Grid>
                     <TextBlock x:Name="Placeholder" Text="{l:T search.placeholder}" FontSize="16" VerticalAlignment="Center"
                                Foreground="{DynamicResource Brush.TextSecondary}" IsHitTestVisible="False" />
@@ -21,14 +27,14 @@
                              AutomationProperties.Name="{l:T search.placeholder}" />
                 </Grid>
             </DockPanel>
-            <StackPanel x:Name="Drop" Visibility="Collapsed" Cursor="Arrow">
+            <StackPanel x:Name="Drop" Visibility="Collapsed" Cursor="Arrow" Margin="0,0,4,0">
                 <!-- The shoreline under the field, as under every panel's title. -->
                 <Path Height="6" Margin="10,0,10,6" Stretch="Fill" StrokeThickness="1.5" Stroke="{DynamicResource Brush.Accent}"
                       StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M 0 3 C 40 0 70 6 110 3 S 190 0 230 3 S 280 6 300 3" />
                 <StackPanel x:Name="Results" />
                 <TextBlock x:Name="Nothing" Margin="10,6,10,8" Visibility="Collapsed" FontSize="{StaticResource Type.Body}"
                            Foreground="{DynamicResource Brush.TextSecondary}" />
-                <TextBlock Text="{l:T search.keys}" Margin="10,8,10,6" FontSize="{StaticResource Type.Caption}"
+                <TextBlock Text="{l:T search.keys}" Margin="10,8,10,6" FontSize="{StaticResource Type.Caption}" TextWrapping="Wrap"
                            Foreground="{DynamicResource Brush.TextSecondary}" />
             </StackPanel>
         </StackPanel>

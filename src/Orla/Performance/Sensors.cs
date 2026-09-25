@@ -94,6 +94,12 @@ namespace Orla
         [DllImport("kernel32.dll")]
         static extern bool GlobalMemoryStatusEx(ref MemoryStatus status);
         [DllImport("kernel32.dll")]
+        static extern bool GetSystemTimes(out long idle, out long kernel, out long user);
+        [DllImport("iphlpapi.dll")]
+        static extern int GetIfTable2(out IntPtr table);
+        [DllImport("iphlpapi.dll")]
+        static extern void FreeMibTable(IntPtr table);
+        [DllImport("kernel32.dll")]
         static extern IntPtr OpenProcess(uint access, bool inherit, int pid);
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         static extern bool QueryFullProcessImageName(IntPtr process, uint flags, System.Text.StringBuilder name, ref int size);
@@ -231,18 +237,22 @@ namespace Orla
                                                      RegexOptions.IgnoreCase);
 
             readonly PdhQuery query = new PdhQuery(), processQuery = new PdhQuery();
-            readonly IntPtr cpu, performance, frequency, cores, processCount, threadCount, uptime, engines, dedicated, shared,
-                            diskIdle, diskRead, diskWrite, received, sent, processCpu, processMemory, processId;
+            readonly IntPtr performance, frequency, cores, processCount, threadCount, uptime, engines, dedicated, shared,
+                            diskIdle, diskRead, diskWrite, processCpu, processMemory, processId;
+            readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
+            long idleTime, kernelTime, userTime, received, sent;
+            double lastTick;
             bool processesPrimed;
             int tick;
             List<ProcessReading> top;
 
             public Sampler()
             {
-                cpu = query.add(@"\Processor Information(_Total)\% Processor Utility");
                 performance = query.add(@"\Processor Information(_Total)\% Processor Performance");
                 frequency = query.add(@"\Processor Information(_Total)\Processor Frequency");
-                cores = query.add(@"\Processor Information(*)\% Processor Utility");
+                // Use by time, as Resource Monitor counts it: never above 100, and right on every processor. "% Processor
+                // Utility" follows the clock speed instead, runs past 100 with turbo and reads nonsense on some machines.
+                cores = query.add(@"\Processor Information(*)\% Processor Time");
                 processCount = query.add(@"\System\Processes");
                 threadCount = query.add(@"\System\Threads");
                 uptime = query.add(@"\System\System Up Time");
@@ -252,20 +262,58 @@ namespace Orla
                 diskIdle = query.add(@"\PhysicalDisk(*)\% Idle Time");
                 diskRead = query.add(@"\PhysicalDisk(*)\Disk Read Bytes/sec");
                 diskWrite = query.add(@"\PhysicalDisk(*)\Disk Write Bytes/sec");
-                received = query.add(@"\Network Interface(*)\Bytes Received/sec");
-                sent = query.add(@"\Network Interface(*)\Bytes Sent/sec");
                 processCpu = processQuery.add(@"\Process(*)\% Processor Time");
                 processMemory = processQuery.add(@"\Process(*)\Working Set - Private");
                 processId = processQuery.add(@"\Process(*)\ID Process");
                 // Rates need a first collection to compare with.
                 query.collect();
+                GetSystemTimes(out idleTime, out kernelTime, out userTime);
+                network(out received, out sent);
+                lastTick = clock.Elapsed.TotalSeconds;
+            }
+
+            // Bytes through the computer's own network adapters: the ones on hardware, without the filter layers
+            // that repeat their traffic and the virtual adapters (Hyper-V, WSL, VPNs) that carry it a second time.
+            static bool network(out long inBytes, out long outBytes)
+            {
+                inBytes = outBytes = 0;
+                if (GetIfTable2(out IntPtr table) != 0)
+                    return false;
+                try
+                {
+                    // MIB_IF_TABLE2: the count, then MIB_IF_ROW2 rows of 1352 bytes. In each row the flags byte is at
+                    // 1152 (bit 0 hardware, bit 1 filter) and the octet counts at 1208 (in) and 1280 (out).
+                    int count = Marshal.ReadInt32(table);
+                    for (int i = 0; i < count; i++)
+                    {
+                        IntPtr row = table + 8 + i * 1352;
+                        byte flags = Marshal.ReadByte(row, 1152);
+                        if ((flags & 1) == 0 || (flags & 2) != 0)
+                            continue;
+                        inBytes += Marshal.ReadInt64(row, 1208);
+                        outBytes += Marshal.ReadInt64(row, 1280);
+                    }
+                }
+                finally
+                {
+                    FreeMibTable(table);
+                }
+                return true;
             }
 
             public Reading read(bool processes)
             {
                 query.collect();
                 var r = new Reading();
-                r.Cpu = clamp(PdhQuery.value(cpu));
+                double now = clock.Elapsed.TotalSeconds, seconds = Math.Max(0.001, now - lastTick);
+                lastTick = now;
+                GetSystemTimes(out long idleNow, out long kernel, out long user);
+                // Kernel time includes idle time.
+                double total = kernel - kernelTime + (user - userTime), busy = total - (idleNow - idleTime);
+                r.Cpu = total > 0 ? clamp(busy / total * 100) : 0;
+                idleTime = idleNow;
+                kernelTime = kernel;
+                userTime = user;
                 r.Mhz = PdhQuery.value(frequency) * PdhQuery.value(performance) / 100;
                 // "0,3" is core 3 of processor group 0; totals end in _Total.
                 r.Cores = PdhQuery.values(cores).Where(v => !v.Key.EndsWith("_Total"))
@@ -292,8 +340,15 @@ namespace Orla
                 foreach (var d in idle.OrderBy(v => index(v.Key.Split(' ')[0])))
                     r.Disks.Add(new DiskReading { Instance = d.Key, Active = clamp(100 - d.Value), Read = get(reads, d.Key), Write = get(writes, d.Key) });
 
-                r.Down = PdhQuery.values(received).Sum(v => v.Value);
-                r.Up = PdhQuery.values(sent).Sum(v => v.Value);
+                // An adapter coming or going moves the totals backwards, and a failed read has none; both moments read
+                // as zero instead of a spike.
+                if (network(out long inBytes, out long outBytes))
+                {
+                    r.Down = Math.Max(0, inBytes - received) / seconds;
+                    r.Up = Math.Max(0, outBytes - sent) / seconds;
+                    received = inBytes;
+                    sent = outBytes;
+                }
 
                 if (HasBattery)
                 {

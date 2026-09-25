@@ -30,6 +30,8 @@ namespace Orla
         public static int MemorySpeed { get; private set; }
         public static int MemorySlotsUsed { get; private set; }
         public static int MemorySlots { get; private set; }
+        // Installed memory, as on the label of the modules; Windows can use a little less.
+        public static double MemoryInstalled { get; private set; }
         public static List<GpuAdapter> Gpus { get; private set; } = new List<GpuAdapter>();
         // Physical disk number to its model and kind, such as "0" → ("Samsung SSD 980", "SSD").
         public static Dictionary<string, Tuple<string, string>> Disks { get; private set; } = new Dictionary<string, Tuple<string, string>>();
@@ -67,6 +69,7 @@ namespace Orla
                 loaded = true;
                 attempt(readCpu);
                 attempt(() => Gpus = Kmt.adapters());
+                attempt(() => MemoryInstalled = Kmt.GetPhysicallyInstalledSystemMemory(out ulong kb) ? kb * 1024.0 : 0);
             }
             // WMI can take seconds, or hang on a broken install; the readings do not wait for it.
             System.Threading.Tasks.Task.Run(() => {
@@ -197,6 +200,8 @@ namespace Orla
         static extern bool GetLogicalProcessorInformation(IntPtr buffer, ref int length);
         [DllImport("kernel32.dll")]
         public static extern uint GetActiveProcessorCount(ushort group);
+        [DllImport("kernel32.dll")]
+        public static extern bool GetPhysicallyInstalledSystemMemory(out ulong kilobytes);
 
         static byte[] query(uint handle, int type, int size)
         {

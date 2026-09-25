@@ -272,7 +272,7 @@ namespace Orla
                     slot("engine:" + e.Key, () => new BarRow(engineName(e.Key))).show(e.Value / 100, m.Tint, Units.percent(e.Value));
                 break;
             case "memory":
-                PerfTitle.Text = (Units.size(r.MemoryTotal) + " " + Hardware.MemoryType).Trim();
+                PerfTitle.Text = (Units.size(Hardware.MemoryInstalled > 0 ? Hardware.MemoryInstalled : r.MemoryTotal) + " " + Hardware.MemoryType).Trim();
                 if (Hardware.MemorySpeed > 0 && Hardware.MemorySlots > 0)
                     PerfHint.Text = Text.format("perf.memoryHint", Hardware.MemorySpeed, Hardware.MemorySlotsUsed, Hardware.MemorySlots);
                 stat("perf.inUse", Units.size(r.MemoryUsed));

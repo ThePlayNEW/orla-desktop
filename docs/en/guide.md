@@ -103,12 +103,13 @@ When you drag an item from one panel to another, or from the desktop (and **New 
 
 With more than one monitor, the preview shows all of them and offers **Use the second monitor**, already on. Tools go to the other monitor, on the side next to the main screen, and folders, files and **New on desktop** stay on the main screen. **Complete my panels** does not move anything between monitors.
 
-The two options in the preview:
+The options in the preview:
 
 | Option | What it does |
 | --- | --- |
 | **Hide the Windows icons** | Turns on [Clean desktop](#clean-desktop) and creates the **New on desktop** panel with what is not in any panel yet. If you turn it off, the Windows icons stay and that panel is not created, because the icons already show what is new. |
 | **Keep organized** | Each new item on the desktop goes to its category's panel by itself, a few seconds after it arrives. An item deleted or moved off the desktop leaves its panel. Anything that fits nowhere stays in **New on desktop**. You can turn it on or off later in **Panels**. |
+| **Performance panel** | Puts the [performance panel](#performance) with the tools. It is on by default and shows only while you do not have one yet. |
 
 With **Start fresh**, the panels you had are replaced. A copy of the previous layout stays in the [data folder](#where-your-data-lives) as `layout.json.before-organize-` followed by the date, and **Panels > Restore previous panels** undoes the organization, even after Orla is closed and opened again. Each copy undoes once.
 
@@ -290,7 +291,9 @@ Whenever the desktop comes to the front (when you sign in to Windows, with **Win
 - with a window in front, press the shortcut: the panels and the bar come above it, ready for typing;
 - use **Search your panels** in the notification area menu.
 
-Accents and case do not matter. Names that start with what you typed come first, then names with a word that starts that way. Use the arrow keys to choose, **Enter** to open and **Ctrl+Enter** to show the item in its folder. **Esc** clears the text; a second **Esc** gives the keyboard back to the desktop icons. The results show only while the bar has the focus; the bar stays in place.
+Accents and case do not matter. Names that start with what you typed come first, then names with a word that starts that way. Use the arrow keys to choose, **Enter** to open, **Ctrl+Enter** to show the item in its folder and **Shift+Enter** to show it in the panel it is in. The chosen result, or the one under the pointer, shows the same actions as buttons on the right, and a right-click also offers **Copy path**. **Esc** clears the text; a second **Esc** gives the keyboard back to the desktop icons. The results show only while the bar has the focus; the bar stays in place.
+
+To move the bar, drag it by the grip on its right, like a panel by its title. It sticks to the screen edges and to panels the same way. Its space counts the list of results open, so no panel sits where the results will appear. Right-click the grip for **Back to its usual place**. With **Lock position and size** on, the grip goes away.
 
 ## Performance
 
@@ -312,7 +315,7 @@ Click a card to see its details. The chart shows the last 60 seconds; point at i
 
 **Programs using the most** shows each program's CPU, memory and GPU side by side, grouped as Task Manager groups them. Click a column heading to sort by it. **Open Task Manager** opens the one in Windows.
 
-GPU temperature, fan and power come from the display driver. When the driver does not report one, it is left out, and temperature shows **—**. CPU temperature also shows **—**, because Windows does not report it without an extra driver, and Orla does not install drivers.
+CPU use is counted by the time the processor is busy, as in Resource Monitor, and never goes above 100%. Network adds up only the computer's own network adapters; virtual adapters, such as those of Hyper-V, WSL and VPNs, are left out, since they would repeat the same traffic. GPU temperature, fan and power come from the display driver. When the driver does not report one, it is left out, and temperature shows **—**. CPU temperature also shows **—**, because Windows does not report it without an extra driver, and Orla does not install drivers.
 
 ### Performance panel
 

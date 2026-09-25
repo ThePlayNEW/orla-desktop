@@ -6,6 +6,6 @@ using System.Runtime.InteropServices;
 [assembly:AssemblyCompany("Eduardo Torres")]
 [assembly:AssemblyProduct("Orla Desktop")]
 [assembly:AssemblyCopyright("Copyright © 2026 Eduardo Torres")]
-[assembly:AssemblyVersion("1.7.1.0")]
-[assembly:AssemblyFileVersion("1.7.1.0")]
+[assembly:AssemblyVersion("1.7.2.0")]
+[assembly:AssemblyFileVersion("1.7.2.0")]
 [assembly:ComVisible(false)]

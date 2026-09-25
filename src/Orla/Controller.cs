@@ -47,8 +47,9 @@ namespace Orla
             messages.ExplorerRestarted += queueRebuild;
             messages.DisplayChanged += delegate {
                 dispatcher.BeginInvoke(new Action(delegate {
-                    // The bar stays centred at the top of the main screen, whatever its size now.
+                    // The bar keeps its place, or stays centred at the top of the main screen, whatever its size now.
                     searchHost?.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
+                    searchHost?.yieldTo(hosts.Select(h => h.Rect).ToList());
                     refreshAll();
                     settleAll();
                 }), DispatcherPriority.Background);
@@ -163,15 +164,17 @@ namespace Orla
 
         void showHosts()
         {
-            // The search bar first, so panels already keep clear of its place when they settle.
+            foreach (PanelHost h in hosts)
+                h.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
+            // The bar yields to the panels where they are, rather than pushing them away; from then on panels keep
+            // clear of it when they move, grow or arrive.
             if (Layout.Welcomed)
             {
                 if (searchHost == null)
                     searchHost = new SearchHost(this);
                 searchHost.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
+                searchHost.yieldTo(hosts.Select(h => h.Rect).ToList());
             }
-            foreach (PanelHost h in hosts)
-                h.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
             settleAll();
         }
 
@@ -227,6 +230,9 @@ namespace Orla
             foreach (PanelHost h in hosts)
                 h.setVisible(!value);
             searchHost?.setVisible(!value);
+            // Back from hidden with the desktop in view: the bar has the keyboard again.
+            if (!value)
+                dispatcher.BeginInvoke(new Action(takeDefaultFocus), DispatcherPriority.ApplicationIdle);
             if (Layout.CleanDesktop && guard != null)
             {
                 if (value)
@@ -299,7 +305,7 @@ namespace Orla
         int overlayEntries;
 
         // The search bar's place, which panels keep clear of, hidden or not, so showing them again needs no shuffle.
-        public IEnumerable<RECT> SearchSpace => searchHost == null ? Enumerable.Empty<RECT>() : new[] { searchHost.Resting };
+        public IEnumerable<RECT> SearchSpace => searchHost == null ? Enumerable.Empty<RECT>() : new[] { searchHost.Rect };
 
         public IntPtr SearchHandle => searchHost?.Handle ?? IntPtr.Zero;
 
@@ -333,6 +339,27 @@ namespace Orla
             searchHost?.focus();
         }
 
+        // The search bar goes back to the top of the main screen, or as near as the panels leave room for.
+        public void resetSearchPlace()
+        {
+            Layout.SearchX = Layout.SearchY = null;
+            searchHost?.show(Overlay ? PanelMode.Overlay : baseMode, desktop, !Hidden);
+            searchHost?.yieldTo(hosts.Select(h => h.Rect).ToList());
+            saveLayout();
+        }
+
+        // A search result in its panel: selected there, scrolled into view, with the keyboard on it.
+        public void showInPanel(TileItem tile)
+        {
+            PanelHost host = hosts.FirstOrDefault(h => h.View.Tiles.Contains(tile));
+            if (host == null)
+                return;
+            if (host.Group.Collapsed)
+                setCollapsed(host.Group, false);
+            host.bringToFront();
+            host.View.reveal(tile);
+        }
+
         // The search bar has the keyboard by default whenever the desktop comes to the front, so typing searches at
         // once. Not when the pointer is on a panel or the bar, and not when Windows icons are selected: their keys
         // (Delete, Enter, arrows, F2) stay theirs.
@@ -342,7 +369,7 @@ namespace Orla
                 return;
             Native.GetCursorPos(out POINT pointer);
             bool within(RECT r) => pointer.X >= r.Left && pointer.X < r.Right && pointer.Y >= r.Top && pointer.Y < r.Bottom;
-            if (hosts.Any(h => within(h.Rect)) || within(searchHost.Rect) || hosts.Any(h => h.Handle == Native.GetFocus()))
+            if (hosts.Any(h => within(h.Rect)) || within(searchHost.Field) || hosts.Any(h => h.Handle == Native.GetFocus()))
                 return;
             if (desktop != null && desktop.iconsVisible &&
                 Native.SendMessage(desktop.IconList, Native.LVM_GETSELECTEDCOUNT, IntPtr.Zero, IntPtr.Zero) != IntPtr.Zero)
@@ -728,6 +755,7 @@ namespace Orla
         {
             Layout.LockLayout = value;
             changed();
+            searchHost?.Bar.refresh();
             tray?.refreshMenu();
         }
 
@@ -958,7 +986,7 @@ namespace Orla
             }
             if (searchHost != null)
             {
-                RECT bar = searchHost.Rect;
+                RECT bar = searchHost.Field;
                 steps.Add(new TourWindow.Step { Key = "bar", Target = new Rect(bar.Left / s, bar.Top / s, bar.Width / s, bar.Height / s) });
             }
             steps.Add(new TourWindow.Step { Key = "search", Argument = Shortcut.display() });

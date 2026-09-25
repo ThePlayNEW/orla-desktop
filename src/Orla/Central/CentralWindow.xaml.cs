@@ -147,6 +147,7 @@ namespace Orla
             OrganizeButton.Click += delegate { showOrganize(false); };
             OrganizeClean.Click += delegate { drawPlan(false); };
             OrganizeSecond.Click += delegate { drawPlan(false); };
+            OrganizePerformance.Click += delegate { drawPlan(false); };
             OrganizeComplete.Checked += delegate { drawPlan(true); };
             OrganizeRedo.Checked += delegate { drawPlan(true); };
             OrganizeStage.SizeChanged += delegate {
@@ -245,6 +246,8 @@ namespace Orla
             OrganizeKeep.IsChecked = !again || controller.Layout.AutoOrganize;
             OrganizeSecond.IsChecked = true;
             OrganizeSecond.Visibility = AllScreens.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+            OrganizePerformance.IsChecked = true;
+            OrganizePerformanceCard.Visibility = controller.Layout.Groups.Any(g => g.IsSensors) ? Visibility.Collapsed : Visibility.Visible;
             OrganizeModes.Visibility = !fromWelcome && controller.Organized ? Visibility.Visible : Visibility.Collapsed;
             OrganizeComplete.IsChecked = true;
             OrganizeMap.Children.Clear();
@@ -273,10 +276,10 @@ namespace Orla
         Layout planned(Organizer.Completion done)
         {
             bool clean = OrganizeClean.IsChecked == true, keep = OrganizeKeep.IsChecked == true;
+            bool performance = OrganizePerformanceCard.Visibility == Visibility.Visible && OrganizePerformance.IsChecked == true;
             IList<Screen> screens = AllScreens;
-            Screen main = screens.FirstOrDefault(s => s.Primary) ?? screens[0];
-            return done != null ? Organizer.complete(plan, controller.Layout, clean, keep, screens, done)
-                                : Organizer.build(plan, controller.Layout, clean, keep, screens, OrganizeSecond.IsChecked == true);
+            return done != null ? Organizer.complete(plan, controller.Layout, clean, keep, screens, done, performance)
+                                : Organizer.build(plan, controller.Layout, clean, keep, screens, OrganizeSecond.IsChecked == true, performance);
         }
 
         // The screens in miniature with every planned panel where it will be. The panels arrive one by one, the single
